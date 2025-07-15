@@ -60,6 +60,11 @@ const lessons = [
     { title: "الأجوبة القصيرة", explanation: "استخدام الأفعال المساعدة للرد بإيجاز.", example: "A: Do you like tea? B: Yes, I do." },
     { title: "مفردات السفر", explanation: "كلمات تستخدم في المطار والفنادق.", example: "Could you tell me where Gate 23 is?" },
     { title: "وصف الطعام والمدن والأشخاص", explanation: "صفات متنوعة للوصف.", example: "The food was delicious and the city was historic." },
+    { title: "التعبيرات الاجتماعية", explanation: "عبارات شائعة في المحادثات اليومية.", example: "Never mind. / Take care!" },
+    { title: "الأرقام والتواريخ", explanation: "كيفية قول الأعداد والمال والتواريخ.", example: "It costs €9.40. The date is 15/7/94." },
+    { title: "الطلبات والعروض", explanation: "كيفية طلب الأشياء أو عرض المساعدة بأدب.", example: "Could you help me? / Shall I help you?" },
+    { title: "مفردات الطقس", explanation: "كلمات لوصف أحوال الطقس المختلفة.", example: "It's sunny today, but it might be windy tomorrow." },
+    { title: "الصفات القوية والأساسية", explanation: "استخدام كلمات مثل 'good' مقابل 'wonderful'.", example: "The film wasn't just good, it was wonderful." },
 ];
 
 export function BookScreen() {
