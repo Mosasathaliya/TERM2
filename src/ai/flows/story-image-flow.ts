@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview A Genkit flow for generating an image based on a story's content using Imagen 3.
+ * @fileOverview A Genkit flow for generating an image based on a story's content.
  */
 
 import {ai} from '@/ai/genkit';
@@ -28,17 +28,20 @@ const storyImageFlow = ai.defineFlow(
     outputSchema: StoryImageOutputSchema,
   },
   async ({story}) => {
-    const prompt = `A simple, colorful, and friendly illustration for a story about: "${story}"`;
+    // A simple, direct prompt for the image generation model.
+    const prompt = `A simple, colorful, and friendly illustration for the story: "${story}"`;
     
-    // This configuration now matches the working Python example provided by the user.
+    // Generate the image using the correct model and required configuration for streaming modalities.
     const {media} = await ai.generate({
-      model: 'googleai/imagen-3.0-generate-002',
+      // This is the correct model for image generation in Genkit.
+      model: 'googleai/gemini-2.0-flash-preview-image-generation',
       prompt: prompt,
       config: {
-        numberOfImages: 1,
+        // Both TEXT and IMAGE modalities are required for this model to work correctly.
+        responseModalities: ['TEXT', 'IMAGE'],
+        // Specify aspect ratio for consistent image sizes.
         aspectRatio: '9:16',
-        outputMimeType: 'image/jpeg',
-        personGeneration: 'ALLOW_ADULT',
+        numberOfImages: 1,
       },
     });
 
@@ -46,11 +49,12 @@ const storyImageFlow = ai.defineFlow(
       throw new Error('Image generation failed. No media was returned.');
     }
     
-    // The image data is already in the correct data URI format.
+    // The image data is returned as a data URI and can be used directly.
     return { imageUrl: media.url };
   }
 );
 
+// Export a wrapper function to be called from client-side components.
 export async function generateStoryImage(
   input: StoryImageInput
 ): Promise<StoryImageOutput> {
