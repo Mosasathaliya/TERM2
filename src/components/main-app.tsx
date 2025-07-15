@@ -62,7 +62,7 @@ export function MainApp() {
 
       {/* Header */}
       <header className="relative z-10 flex justify-between items-center p-6">
-        <h1 className="text-2xl font-bold">TriNav</h1>
+        <h1 className="text-2xl font-bold">Learn English</h1>
         <Button
           variant="ghost"
           size="icon"

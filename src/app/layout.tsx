@@ -7,8 +7,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TriNav",
-  description: "تطبيق حديث بواجهة متجاوبة",
+  title: "Language Learning",
+  description: "تطبيق لتعلم اللغة بواجهة متجاوبة",
 };
 
 export default function RootLayout({

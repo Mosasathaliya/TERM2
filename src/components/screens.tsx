@@ -17,7 +17,7 @@ import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 export function HomeScreen() {
   return (
     <section className="animate-fadeIn text-center flex flex-col items-center justify-center h-[60vh]">
-      <h2 className="text-4xl font-bold mb-4">أهلاً بك في TriNav</h2>
+      <h2 className="text-4xl font-bold mb-4">أهلاً بك</h2>
     </section>
   );
 }
