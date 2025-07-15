@@ -64,6 +64,15 @@
     --input: 224 10% 24%;
     --ring: 151 59% 43%;
   }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 
   @keyframes morph {
     0% {
@@ -87,14 +96,5 @@
   
   .animate-fadeIn {
     animation: fadeIn 0.5s ease-out forwards;
-  }
-}
- 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
   }
 }
