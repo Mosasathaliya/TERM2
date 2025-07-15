@@ -1,6 +1,7 @@
 
 /**
  * @fileoverview Defines the structure and content for all English lessons and stories.
+ * Content is based on the "New Headway Intermediate Student's Book".
  */
 
 export interface Lesson {
@@ -22,7 +23,7 @@ export type LearningItem = Lesson | Story;
 const lessons: Lesson[] = [
   {
     type: 'lesson',
-    title: "أزمنة الأفعال المساعدة (do, be, have)",
+    title: "الأفعال المساعدة (do, be, have)",
     explanation: `الأفعال المساعدة (Auxiliary Verbs) 'do', 'be', و 'have' هي حجر الأساس في بناء الجمل الإنجليزية. هي لا تحمل معنى بمفردها غالبًا، بل تساعد الفعل الرئيسي في الجملة.
 - 'do'/'does'/'did': تُستخدم لتكوين الأسئلة والجمل المنفية في المضارع البسيط والماضي البسيط.
 - 'be' (am/is/are/was/were): تُستخدم لتكوين الأزمنة المستمرة (مثل المضارع المستمر) والمبني للمجهول.
@@ -135,7 +136,7 @@ const lessons: Lesson[] = [
 
 بعض الأفعال التي تصف الحالات (State Verbs) مثل 'know', 'like', 'want', 'understand' لا تُستخدم عادةً في الصيغة المستمرة.`,
     examples: [
-        { english: "She usually drives to work, but today she's walking.", arabic: "هي عادة تقود إلى العمل، لكنها اليوم تمشي." },
+        { english: "She usually drives to work, but today she is walking.", arabic: "هي عادة تقود إلى العمل، لكنها اليوم تمشي." },
         { english: "I don't understand this word.", arabic: "أنا لا أفهم هذه الكلمة." },
         { english: "He works for a company in Dallas, but he's working in Mexico this week.", arabic: "هو يعمل في شركة في دالاس، لكنه يعمل في المكسيك هذا الأسبوع." },
         { english: "I think opera is boring. (opinion)", arabic: "أعتقد أن الأوبرا مملة. (رأي)" },
@@ -415,277 +416,7 @@ const lessons: Lesson[] = [
       { question: "She seems ___ a nice person.", options: ["to be", "being", "be", "to being"], answer: "to be" },
       { question: "Have you finished ___ that book yet?", options: ["to read", "reading", "read", "to reading"], answer: "reading" }
     ]
-  },
-  {
-    type: 'lesson',
-    title: "المضارع التام مقابل الماضي البسيط",
-    explanation: `يعد التمييز بين المضارع التام (Present Perfect) والماضي البسيط (Past Simple) من أهم القواعد.
-- الماضي البسيط: يُستخدم لحدث بدأ وانتهى في وقت محدد في الماضي. (I worked for the BBC in 2010).
-- المضارع التام: يُستخدم لحدث بدأ في الماضي وما زال مستمرًا، أو حدث في الماضي وله نتيجة في الحاضر، أو لخبرات حياتية دون تحديد وقت. (I've worked there for five years - and I still do).`,
-    examples: [
-      { english: "I've worked there for five years.", arabic: "لقد عملت هناك لمدة خمس سنوات." },
-      { english: "I worked for the BBC.", arabic: "عملت في البي بي سي." },
-      { english: "She has lived in Paris since 2015.", arabic: "هي تعيش في باريس منذ عام 2015." },
-      { english: "She lived in Paris for two years.", arabic: "عاشت في باريس لمدة عامين." },
-      { english: "Have you ever been to Italy?", arabic: "هل زرت إيطاليا من قبل؟" },
-      { english: "I went to Italy last year.", arabic: "ذهبت إلى إيطاليا العام الماضي." },
-      { english: "I've lost my keys. (I can't find them now).", arabic: "لقد فقدت مفاتيحي. (لا أستطيع أن أجدهم الآن)." },
-      { english: "I lost my keys yesterday.", arabic: "فقدت مفاتيحي أمس." },
-      { english: "He has written three books.", arabic: "لقد كتب ثلاثة كتب." },
-      { english: "Shakespeare wrote many plays.", arabic: "كتب شكسبير العديد من المسرحيات." }
-    ],
-    mcqs: [
-      { question: "I ___ to the cinema last night.", options: ["have gone", "went", "was going", "go"], answer: "went" },
-      { question: "She ___ here since she was a child.", options: ["has lived", "lived", "lives", "was living"], answer: "has lived" },
-      { question: "They ___ the news yet.", options: ["didn't hear", "haven't heard", "don't hear", "not heard"], answer: "haven't heard" },
-      { question: "He ___ for that company for ten years, then he quit.", options: ["has worked", "worked", "works", "was working"], answer: "worked" },
-      { question: "___ your homework yet?", options: ["Did you finish", "Have you finished", "Do you finish", "Are you finishing"], answer: "Have you finished" }
-    ]
-  },
-  {
-    type: 'lesson',
-    title: "المضارع التام للمبني للمجهول",
-    explanation: `يُستخدم المضارع التام للمبني للمجهول (Present Perfect Passive) للتركيز على حدث أو خبر له صلة بالحاضر، دون ذكر الفاعل. يُصاغ باستخدام 'has/have been + past participle'.`,
-    examples: [
-      { english: "Two Spanish novelists have been awarded the Nobel Prize.", arabic: "تم منح روائيين إسبانيين جائزة نوبل." },
-      { english: "My wallet has been stolen.", arabic: "تمت سرقة محفظتي." },
-      { english: "The new bridge has just been completed.", arabic: "تم الانتهاء من الجسر الجديد للتو." },
-      { english: "Have you ever been bitten by a dog?", arabic: "هل عضك كلب من قبل؟" },
-      { english: "The classrooms have not been cleaned yet.", arabic: "لم يتم تنظيف الفصول الدراسية بعد." },
-      { english: "This castle has been visited by millions of tourists.", arabic: "تمت زيارة هذه القلعة من قبل ملايين السياح." },
-      { english: "An agreement has finally been reached.", arabic: "تم التوصل إلى اتفاق أخيرًا." },
-      { english: "The results have already been published.", arabic: "تم نشر النتائج بالفعل." },
-      { english: "How many times has this question been asked?", arabic: "كم مرة تم طرح هذا السؤال؟" },
-      { english: "The car hasn't been washed for weeks.", arabic: "لم يتم غسل السيارة منذ أسابيع." }
-    ],
-    mcqs: [
-      { question: "The windows ___ recently.", options: ["have cleaned", "has been cleaned", "have been cleaned", "were cleaned"], answer: "have been cleaned" },
-      { question: "This book ___ into fifty languages.", options: ["has been translated", "has translated", "is translated", "was translated"], answer: "has been translated" },
-      { question: "The thief ___ yet.", options: ["hasn't been caught", "hasn't caught", "wasn't caught", "didn't catch"], answer: "hasn't been caught" },
-      { question: "A lot of money ___ on this project.", options: ["has spent", "has been spent", "spent", "is spent"], answer: "has been spent" },
-      { question: "The invitations ___ to all the guests.", options: ["have been sent", "have sent", "were sending", "are sent"], answer: "have been sent" }
-    ]
-  },
-];
-
-const additionalLessons: Lesson[] = [
-  {
-    type: 'lesson',
-    title: "الشرطية الأولى (First Conditional)",
-    explanation: "تُستخدم الشرطية الأولى للتحدث عن مواقف حقيقية ومحتملة في المستقبل. تتكون من جزأين: جملة الشرط (تبدأ بـ if) وجملة النتيجة. القاعدة: If + Present Simple, ... will + infinitive.",
-    examples: [
-      { english: "If I see Anna, I'll tell her.", arabic: "إذا رأيت آنا، سأخبرها." },
-      { english: "If it rains, we will stay at home.", arabic: "إذا أمطرت، سنبقى في المنزل." },
-      { english: "You will miss the bus if you don't hurry.", arabic: "سيفوتك الحافلة إذا لم تسرع." },
-      { english: "If she studies hard, she will pass the exam.", arabic: "إذا درست بجد، ستنجح في الامتحان." },
-      { english: "What will you do if they don't come?", arabic: "ماذا ستفعل إذا لم يأتوا؟" },
-      { english: "If you touch that wire, you'll get an electric shock.", arabic: "إذا لمست ذلك السلك، ستصاب بصدمة كهربائية." },
-      { english: "I won't go unless you come with me.", arabic: "لن أذهب إلا إذا أتيت معي." },
-      { english: "If you have time, will you help me?", arabic: "إذا كان لديك وقت، هل ستساعدني؟" },
-      { english: "The team will win if they play well.", arabic: "سيفوز الفريق إذا لعبوا جيدًا." },
-      { english: "If you find my wallet, please call me.", arabic: "إذا وجدت محفظتي، من فضلك اتصل بي." }
-    ],
-    mcqs: [
-      { question: "If you ___ too much, you will get sick.", options: ["eat", "will eat", "ate", "are eating"], answer: "eat" },
-      { question: "I ___ you if I have time.", options: ["call", "will call", "am calling", "called"], answer: "will call" },
-      { question: "She will be angry if we ___ late.", options: ["will be", "are", "were", "be"], answer: "are" },
-      { question: "What will happen if the weather ___ bad?", options: ["is", "will be", "be", "was"], answer: "is" },
-      { question: "If he doesn't leave now, he ___ the train.", options: ["misses", "will miss", "missed", "is missing"], answer: "will miss" }
-    ]
-  },
-  {
-    type: 'lesson',
-    title: "الشرطية الثانية (Second Conditional)",
-    explanation: "تُستخدم الشرطية الثانية للتحدث عن مواقف غير حقيقية أو خيالية في الحاضر أو المستقبل. القاعدة: If + Past Simple, ... would + infinitive.",
-    examples: [
-      { english: "If I had £5 million, I'd buy an island.", arabic: "لو كان لدي 5 ملايين جنيه، لاشتريت جزيرة." },
-      { english: "If I were you, I would apologize.", arabic: "لو كنت مكانك، لاعتذرت." },
-      { english: "What would you do if you won the lottery?", arabic: "ماذا ستفعل لو فزت باليانصيب؟" },
-      { english: "If he knew the answer, he would tell us.", arabic: "لو كان يعرف الإجابة، لأخبرنا." },
-      { english: "She would travel more if she had more money.", arabic: "كانت ستسافر أكثر لو كان لديها المزيد من المال." },
-      { english: "If they lived closer, we would see them more often.", arabic: "لو كانوا يعيشون أقرب، لكنا نراهم أكثر." },
-      { english: "I wouldn't do that if I were you.", arabic: "لم أكن لأفعل ذلك لو كنت مكانك." },
-      { english: "If I could fly, I would go to the moon.", arabic: "لو استطعت الطيران، لذهبت إلى القمر." },
-      { english: "The world would be a better place if everyone was kind.", arabic: "سيكون العالم مكانًا أفضل لو كان الجميع لطفاء." },
-      { english: "If you had one wish, what would it be?", arabic: "لو كان لديك أمنية واحدة، ماذا ستكون؟" }
-    ],
-    mcqs: [
-      { question: "If I ___ the president, I would change many things.", options: ["am", "will be", "were", "be"], answer: "were" },
-      { question: "She ___ happier if she had a different job.", options: ["is", "will be", "would be", "be"], answer: "would be" },
-      { question: "If you ___ anywhere in the world, where would you go?", options: ["can go", "could go", "will go", "go"], answer: "could go" },
-      { question: "I would help him if I ___ how.", options: ["know", "knew", "would know", "had known"], answer: "knew" },
-      { question: "What would you buy if you ___ rich?", options: ["are", "will be", "were", "be"], answer: "were" }
-    ]
-  },
-  {
-    type: 'lesson',
-    title: "أفعال Modal (2): الاحتمالية",
-    explanation: "تُستخدم أفعال Modal مثل 'must', 'could', 'might', 'can't' للتعبير عن درجة اليقين أو الاحتمالية. 'must' (استنتاج مؤكد)، 'might'/'could' (احتمال ممكن)، 'can't' (استنتاج مؤكد بالنفي).",
-    examples: [
-      { english: "She can't be very old.", arabic: "لا يمكن أن تكون كبيرة في السن." },
-      { english: "She might be in love.", arabic: "قد تكون واقعة في الحب." },
-      { english: "He's not answering. He must be busy.", arabic: "إنه لا يرد. لابد أنه مشغول." },
-      { english: "It could rain later, so take an umbrella.", arabic: "قد تمطر لاحقًا، لذا خذ مظلة." },
-      { english: "That can't be true!", arabic: "لا يمكن أن يكون ذلك صحيحًا!" },
-      { english: "He might not come to the party.", arabic: "قد لا يأتي إلى الحفلة." },
-      { english: "This must be the right address.", arabic: "لابد أن هذا هو العنوان الصحيح." },
-      { english: "They could be on holiday.", arabic: "قد يكونون في إجازة." },
-      { english: "You look pale. You might be sick.", arabic: "تبدو شاحبًا. قد تكون مريضًا." },
-      { english: "Someone is at the door. It could be the postman.", arabic: "شخص ما عند الباب. قد يكون ساعي البريد." }
-    ],
-    mcqs: [
-      { question: "John is yawning. He ___ be tired.", options: ["must", "can't", "might", "should"], answer: "must" },
-      { question: "I'm not sure, but I ___ go out tonight.", options: ["must", "can't", "might", "have to"], answer: "might" },
-      { question: "She has a huge house and three cars. She ___ be poor.", options: ["must", "can't", "might", "shouldn't"], answer: "can't" },
-      { question: "The sky is very dark. It ___ rain soon.", options: ["must", "could", "can't", "should"], answer: "could" },
-      { question: "He speaks perfect French. He ___ be from France.", options: ["must", "can't", "might not", "should"], answer: "must" }
-    ]
-  },
-  {
-    type: 'lesson',
-    title: "المضارع التام المستمر",
-    explanation: "يُستخدم المضارع التام المستمر (Present Perfect Continuous) للتركيز على مدة نشاط بدأ في الماضي وما زال مستمرًا، أو انتهى للتو وله نتيجة واضحة في الحاضر. القاعدة: has/have been + verb-ing.",
-    examples: [
-      { english: "I've been texting my friends all day long.", arabic: "لقد كنت أراسل أصدقائي طوال اليوم." },
-      { english: "How long have you been learning English?", arabic: "منذ متى وأنت تتعلم الإنجليزية؟" },
-      { english: "It's been raining for three hours.", arabic: "إنها تمطر منذ ثلاث ساعات." },
-      { english: "She's been working here since 2010.", arabic: "هي تعمل هنا منذ عام 2010." },
-      { english: "Your eyes are red. Have you been crying?", arabic: "عيناك حمراوان. هل كنت تبكي؟" },
-      { english: "He's tired because he's been running.", arabic: "إنه متعب لأنه كان يركض." },
-      { english: "They have been waiting for the bus for an hour.", arabic: "لقد كانوا ينتظرون الحافلة لمدة ساعة." },
-      { english: "We've been planning this trip for months.", arabic: "لقد كنا نخطط لهذه الرحلة منذ شهور." },
-      { english: "How long have they been living in that house?", arabic: "منذ متى وهم يعيشون في ذلك المنزل؟" },
-      { english: "I've been reading this book all morning.", arabic: "لقد كنت أقرأ هذا الكتاب طوال الصباح." }
-    ],
-    mcqs: [
-      { question: "She ___ the piano for two hours.", options: ["has played", "has been playing", "is playing", "plays"], answer: "has been playing" },
-      { question: "How long ___ for me?", options: ["have you waited", "are you waiting", "have you been waiting", "did you wait"], answer: "have you been waiting" },
-      { question: "I'm tired because I ___ all night.", options: ["have studied", "studied", "have been studying", "study"], answer: "have been studying" },
-      { question: "It ___ all day. The streets are wet.", options: ["has rained", "rained", "has been raining", "is raining"], answer: "has been raining" },
-      { question: "They ___ about politics for hours.", options: ["have been arguing", "argued", "are arguing", "have argued"], answer: "have been arguing" }
-    ]
-  },
-  {
-    type: 'lesson',
-    title: "الأسئلة غير المباشرة (Indirect Questions)",
-    explanation: "تُستخدم الأسئلة غير المباشرة لجعل الأسئلة أكثر تهذيبًا. تبدأ بعبارات مثل 'Could you tell me...' أو 'I wonder...'. ترتيب الكلمات في السؤال غير المباشر هو نفس ترتيب الجملة العادية (فاعل ثم فعل)، ولا نستخدم do/does/did.",
-    examples: [
-      { english: "I wonder if you could help me.", arabic: "أتساءل عما إذا كان بإمكانك مساعدتي." },
-      { english: "I don't know what time the banks close.", arabic: "لا أعرف في أي وقت تغلق البنوك." },
-      { english: "Could you tell me where the station is?", arabic: "هل يمكنك أن تخبرني أين المحطة؟" },
-      { english: "Do you know if he is coming to the party?", arabic: "هل تعرف ما إذا كان سيأتي إلى الحفلة؟" },
-      { english: "I can't remember where I parked my car.", arabic: "لا أستطيع أن أتذكر أين أوقفت سيارتي." },
-      { english: "I'd like to know how much this costs.", arabic: "أود أن أعرف كم يكلف هذا." },
-      { english: "He asked me what my name was.", arabic: "سألني ما هو اسمي." },
-      { english: "She wants to know if we are free tomorrow.", arabic: "هي تريد أن تعرف ما إذا كنا متفرغين غدًا." },
-      { english: "I'm not sure why he said that.", arabic: "لست متأكدًا لماذا قال ذلك." },
-      { english: "Can you explain how this machine works?", arabic: "هل يمكنك شرح كيفية عمل هذه الآلة؟" }
-    ],
-    mcqs: [
-      { question: "Direct: 'Where is the post office?' Indirect: 'Could you tell me ___?'", options: ["where is the post office", "where the post office is", "where does the post office is", "is where the post office"], answer: "where the post office is" },
-      { question: "Direct: 'What time did he leave?' Indirect: 'Do you know ___?'", options: ["what time did he leave", "what time he left", "what time does he leave", "what time has he left"], answer: "what time he left" },
-      { question: "Direct: 'Is she married?' Indirect: 'I wonder ___.'", options: ["if is she married", "is she married", "if she is married", "she is married"], answer: "if she is married" },
-      { question: "Which sentence is correct?", options: ["I don't know what is the problem.", "I don't know what the problem is.", "I don't know what does the problem is.", "I don't know what the problem are."], answer: "I don't know what the problem is." },
-      { question: "He asked me ___.", options: ["where do I live", "where I lived", "where did I live", "I lived where"], answer: "where I lived" }
-    ]
-  },
-  {
-    type: 'lesson',
-    title: "الأسئلة الذيلية (Question Tags)",
-    explanation: "الأسئلة الذيلية هي أسئلة قصيرة تُضاف في نهاية الجملة، عادةً لتأكيد المعلومات أو لبدء محادثة. إذا كانت الجملة مثبتة، يكون السؤال الذيلي منفيًا، والعكس صحيح.",
-    examples: [
-      { english: "It's a beautiful day, isn't it?", arabic: "إنه يوم جميل، أليس كذلك؟" },
-      { english: "You haven't seen my keys, have you?", arabic: "لم تر مفاتيحي، أليس كذلك؟" },
-      { english: "She can speak French, can't she?", arabic: "هي تستطيع التحدث بالفرنسية، أليس كذلك؟" },
-      { english: "He won't be late, will he?", arabic: "هو لن يتأخر، أليس كذلك؟" },
-      { english: "You went to the meeting, didn't you?", arabic: "لقد ذهبت إلى الاجتماع، أليس كذلك؟" },
-      { english: "They don't like spicy food, do they?", arabic: "هم لا يحبون الطعام الحار، أليس كذلك؟" },
-      { english: "We should leave now, shouldn't we?", arabic: "يجب أن نغادر الآن، أليس كذلك؟" },
-      { english: "You're a student, aren't you?", arabic: "أنت طالب، أليس كذلك؟" },
-      { english: "He has finished his work, hasn't he?", arabic: "لقد أنهى عمله، أليس كذلك؟" },
-      { english: "I'm right, aren't I?", arabic: "أنا على حق، أليس كذلك؟" }
-    ],
-    mcqs: [
-      { question: "He's from Canada, ___?", options: ["is he", "isn't he", "does he", "doesn't he"], answer: "isn't he" },
-      { question: "You can drive, ___?", options: ["can you", "can't you", "do you", "don't you"], answer: "can't you" },
-      { question: "They didn't come, ___?", options: ["did they", "didn't they", "do they", "don't they"], answer: "did they" },
-      { question: "She works in a bank, ___?", options: ["is she", "isn't she", "does she", "doesn't she"], answer: "doesn't she" },
-      { question: "Let's go for a walk, ___?", options: ["shall we", "will we", "do we", "don't we"], answer: "shall we" }
-    ]
-  },
-  {
-    type: 'lesson',
-    title: "الكلام المنقول (Reported Speech)",
-    explanation: "يُستخدم الكلام المنقول لنقل ما قاله شخص آخر. عند النقل، غالبًا ما نغير زمن الفعل (خطوة إلى الوراء في الماضي)، والضمائر، وبعض الكلمات التي تشير إلى الزمان والمكان.",
-    examples: [
-      { english: "She said, 'I am tired.' -> She said that she was tired.", arabic: "قالت: 'أنا متعبة'. -> قالت إنها كانت متعبة." },
-      { english: "He said, 'I will call you tomorrow.' -> He said he would call me the next day.", arabic: "قال: 'سأتصل بك غدًا'. -> قال إنه سيتصل بي في اليوم التالي." },
-      { english: "She asked, 'Where do you live?' -> She asked me where I lived.", arabic: "سألت: 'أين تعيش؟' -> سألتني أين أعيش." },
-      { english: "He told me, 'Stop making a noise.' -> He told me to stop making a noise.", arabic: "قال لي: 'توقف عن إحداث ضوضاء'. -> طلب مني التوقف عن إحداث ضوضاء." },
-      { english: "'I've finished my work,' he said. -> He said he had finished his work.", arabic: "قال: 'لقد أنهيت عملي'. -> قال إنه قد أنهى عمله." },
-      { english: "'Can you help me?' she asked. -> She asked if I could help her.", arabic: "سألت: 'هل يمكنك مساعدتي؟' -> سألت ما إذا كان بإمكاني مساعدتها." },
-      { english: "'Don't be late,' my father said. -> My father told me not to be late.", arabic: "قال أبي: 'لا تتأخر'. -> طلب مني أبي ألا أتأخر." },
-      { english: "'I was at home yesterday,' Tom said. -> Tom said he had been at home the day before.", arabic: "قال توم: 'كنت في المنزل أمس'. -> قال توم إنه كان في المنزل في اليوم السابق." },
-      { english: "'We are going on holiday,' they said. -> They said they were going on holiday.", arabic: "قالوا: 'نحن ذاهبون في إجازة'. -> قالوا إنهم ذاهبون في إجازة." },
-      { english: "'I may come back later,' she said. -> She said she might come back later.", arabic: "قالت: 'قد أعود لاحقًا'. -> قالت إنها قد تعود لاحقًا." }
-    ],
-    mcqs: [
-      { question: "'I like ice cream.' -> She said that she ___ ice cream.", options: ["likes", "liked", "is liking", "has liked"], answer: "liked" },
-      { question: "'I'm leaving now.' -> He told me he ___ then.", options: ["is leaving", "was leaving", "left", "leaves"], answer: "was leaving" },
-      { question: "'Where is Tom?' -> He asked me where ___.", options: ["is Tom", "Tom is", "was Tom", "Tom was"], answer: "Tom was" },
-      { question: "'I'll see you tomorrow.' -> She said she would see me ___.", options: ["tomorrow", "the next day", "yesterday", "the day before"], answer: "the next day" },
-      { question: "'Don't talk in the library.' -> The librarian told us ___ in the library.", options: ["don't talk", "not to talk", "to not talk", "no talk"], answer: "not to talk" }
-    ]
-  },
-  // Adding many more lessons to reach the target of 80. This is a representative sample.
-  {
-    type: 'lesson',
-    title: "مراجعة شاملة للأزمنة",
-    explanation: "مراجعة مركزة لجميع أزمنة الفعل الرئيسية (المضارع، الماضي، المستقبل بأنواعها البسيطة والمستمرة والتامة) وكيفية التمييز بينها في الاستخدام.",
-    examples: [
-      { english: "He works from home.", arabic: "هو يعمل من المنزل. (مضارع بسيط)" },
-      { english: "He is working from home today.", arabic: "هو يعمل من المنزل اليوم. (مضارع مستمر)" },
-      { english: "He worked from home yesterday.", arabic: "هو عمل من المنزل أمس. (ماضي بسيط)" },
-      { english: "He was working when I called.", arabic: "كان يعمل عندما اتصلت. (ماضي مستمر)" },
-      { english: "He has worked from home for a year.", arabic: "هو يعمل من المنزل لمدة عام. (مضارع تام)" },
-      { english: "He has been working since 8 AM.", arabic: "هو يعمل منذ الساعة 8 صباحًا. (مضارع تام مستمر)" },
-      { english: "He had worked there before he moved.", arabic: "كان قد عمل هناك قبل أن ينتقل. (ماضي تام)" },
-      { english: "He will work from home tomorrow.", arabic: "سيعمل من المنزل غدًا. (مستقبل بسيط)" },
-      { english: "He is going to work from home.", arabic: "سوف يعمل من المنزل. (خطة مستقبلية)" },
-      { english: "This time next week, he will be working.", arabic: "في مثل هذا الوقت الأسبوع القادم، سيكون يعمل. (مستقبل مستمر)" }
-    ],
-    mcqs: [
-      { question: "Choose the correct tense: I ___ a new car last week.", options: ["buy", "have bought", "bought", "am buying"], answer: "bought" },
-      { question: "Choose the correct tense: Look! It ___.", options: ["snows", "is snowing", "has snowed", "snowed"], answer: "is snowing" },
-      { question: "Choose the correct tense: By the time we arrived, the movie ___.", options: ["started", "had started", "was starting", "has started"], answer: "had started" },
-      { question: "Choose the correct tense: She ___ English for five years.", options: ["learns", "is learning", "has been learning", "learned"], answer: "has been learning" },
-      { question: "Choose the correct tense: I promise I ___ you tomorrow.", options: ["call", "am calling", "am going to call", "will call"], answer: "will call" }
-    ]
-  },
-  {
-    type: 'lesson',
-    title: "الصفات والأحوال (Adjectives and Adverbs)",
-    explanation: "الصفات تصف الأسماء (e.g., a beautiful day). الأحوال تصف الأفعال أو الصفات أو أحوال أخرى، وغالبًا ما تنتهي بـ '-ly' (e.g., he speaks slowly).",
-    examples: [
-      { english: "She is a careful driver.", arabic: "هي سائقة حذرة." },
-      { english: "She drives carefully.", arabic: "هي تقود بحذر." },
-      { english: "The music is too loud.", arabic: "الموسيقى صاخبة جدًا." },
-      { english: "Please speak more quietly.", arabic: "من فضلك تحدث بهدوء أكثر." },
-      { english: "He is a good student.", arabic: "إنه طالب جيد." },
-      { english: "He studies well.", arabic: "إنه يدرس جيدًا. (well هو حال شاذ)" },
-      { english: "It was an easy test.", arabic: "لقد كان اختبارًا سهلاً." },
-      { english: "He passed the test easily.", arabic: "لقد اجتاز الاختبار بسهولة." },
-      { english: "The train was fast.", arabic: "كان القطار سريعًا. (fast صفة وحال)" },
-      { english: "She learns quickly.", arabic: "هي تتعلم بسرعة." }
-    ],
-    mcqs: [
-      { question: "He runs very ___.", options: ["quick", "quicker", "quickly", "quickest"], answer: "quickly" },
-      { question: "This is an ___ book.", options: ["interesting", "interestingly", "interest", "interested"], answer: "interesting" },
-      { question: "She sang ___.", options: ["beautiful", "beauty", "beautifully", "beautify"], answer: "beautifully" },
-      { question: "He is a ___ person.", options: ["seriously", "seriousness", "serious", "more serious"], answer: "serious" },
-      { question: "Please be ___.", options: ["quiet", "quietly", "quieter", "quietness"], answer: "quiet" }
-    ]
-  },
+  }
 ];
 
 
@@ -710,42 +441,21 @@ const stories: Story[] = [
       title: "قصة: الغراب والإبريق",
       content: `A thirsty crow found a pitcher with a little water in it. But the pitcher was high and had a narrow neck, and no matter how he tried, he could not reach the water. The poor thing felt as if he must die of thirst. Then an idea came to him. He took a pebble and dropped it into the pitcher. Then he took another pebble and dropped it into the pitcher. He took another and another and dropped them in. At last, he saw the water rise, and after casting in a few more pebbles, he was able to quench his thirst and save his life.`
     },
+    {
+      type: 'story',
+      title: "قصة: مدينة الفئران وريف الفئران",
+      content: `A country mouse invited a town mouse to dinner. The town mouse came, but was not impressed with the simple food. He said, "You live a poor life, cousin. Come with me and I will show you how to live!" So they went to the town. The town mouse led him to a great dining hall. They feasted on cakes and jellies. Suddenly, they heard a great barking. Two huge dogs rushed in. The mice scampered away. "Goodbye, cousin," said the country mouse. "Better beans and bacon in peace than cakes and ale in fear."`
+    }
 ];
 
-// This is a placeholder for the remaining 60+ lessons for brevity
-// In a real scenario, all 80 lessons would be fully populated here.
-const placeholderLessons: Lesson[] = Array.from({ length: 62 }, (_, i) => ({
-    type: 'lesson',
-    title: `درس إضافي ${i + 1}`,
-    explanation: `هذا شرح للدرس الإضافي رقم ${i + 1}. يركز هذا الدرس على جانب مهم من قواعد اللغة الإنجليزية، ويقدم رؤى عميقة للمساعدة في الفهم.`,
-    examples: [
-        { english: `Example 1 for lesson ${i + 1}`, arabic: `مثال 1 للدرس ${i + 1}` },
-        { english: `Example 2 for lesson ${i + 1}`, arabic: `مثال 2 للدرس ${i + 1}` },
-        { english: `Example 3 for lesson ${i + 1}`, arabic: `مثال 3 للدرس ${i + 1}` },
-        { english: `Example 4 for lesson ${i + 1}`, arabic: `مثال 4 للدرس ${i + 1}` },
-        { english: `Example 5 for lesson ${i + 1}`, arabic: `مثال 5 للدرس ${i + 1}` },
-        { english: `Example 6 for lesson ${i + 1}`, arabic: `مثال 6 للدرس ${i + 1}` },
-        { english: `Example 7 for lesson ${i + 1}`, arabic: `مثال 7 للدرس ${i + 1}` },
-        { english: `Example 8 for lesson ${i + 1}`, arabic: `مثال 8 للدرس ${i + 1}` },
-        { english: `Example 9 for lesson ${i + 1}`, arabic: `مثال 9 للدرس ${i + 1}` },
-        { english: `Example 10 for lesson ${i + 1}`, arabic: `مثال 10 للدرس ${i + 1}` },
-    ],
-    mcqs: [
-        { question: `Question 1 for lesson ${i + 1}?`, options: ["Option A", "Option B", "Option C", "Option D"], answer: "Option A" },
-        { question: `Question 2 for lesson ${i + 1}?`, options: ["Option A", "Option B", "Option C", "Option D"], answer: "Option B" },
-        { question: `Question 3 for lesson ${i + 1}?`, options: ["Option A", "Option B", "Option C", "Option D"], answer: "Option C" },
-        { question: `Question 4 for lesson ${i + 1}?`, options: ["Option A", "Option B", "Option C", "Option D"], answer: "Option D" },
-        { question: `Question 5 for lesson ${i + 1}?`, options: ["Option A", "Option B", "Option C", "Option D"], answer: "Option A" },
-    ],
-}));
-
-const allLessons = [...lessons, ...additionalLessons, ...placeholderLessons];
+const allLessons = [...lessons];
 
 const combinedItems: LearningItem[] = [];
 let lessonIndex = 0;
 let storyIndex = 0;
 
-while (lessonIndex < allLessons.length) {
+// Interleave stories with lessons
+while (lessonIndex < allLessons.length || storyIndex < stories.length) {
     // Add up to 3 lessons
     for (let i = 0; i < 3 && lessonIndex < allLessons.length; i++) {
         combinedItems.push(allLessons[lessonIndex]);
@@ -760,3 +470,5 @@ while (lessonIndex < allLessons.length) {
 
 
 export const learningItems: LearningItem[] = combinedItems;
+
+    
