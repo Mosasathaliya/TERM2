@@ -6,8 +6,11 @@ import React, { useState, useEffect } from 'react';
 
 export function BackgroundShapes() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+
     const handleMouseMove = (event: MouseEvent) => {
       setMousePosition({ x: event.clientX, y: event.clientY });
     };
@@ -20,7 +23,10 @@ export function BackgroundShapes() {
   }, []);
 
   const getTransform = (strength: number) => {
-    if (typeof window === 'undefined') return 'translate(0px, 0px)';
+    // Only calculate the transform if the component is mounted and we are on the client
+    if (!isMounted || typeof window === 'undefined') {
+        return 'translate(0px, 0px)';
+    }
     const x = (mousePosition.x - window.innerWidth / 2) / strength;
     const y = (mousePosition.y - window.innerHeight / 2) / strength;
     return `translate(${x}px, ${y}px)`;
