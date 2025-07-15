@@ -65,7 +65,21 @@ const lessons = [
     { title: "الطلبات والعروض", explanation: "كيفية طلب الأشياء أو عرض المساعدة بأدب.", example: "Could you help me? / Shall I help you?" },
     { title: "مفردات الطقس", explanation: "كلمات لوصف أحوال الطقس المختلفة.", example: "It's sunny today, but it might be windy tomorrow." },
     { title: "الصفات القوية والأساسية", explanation: "استخدام كلمات مثل 'good' مقابل 'wonderful'.", example: "The film wasn't just good, it was wonderful." },
+    { title: "أجزاء الكلام", explanation: "فهم دور الكلمات (فعل، اسم، صفة).", example: "He was eating his popcorn loudly." },
+    { title: "تكوين الكلمات", explanation: "إضافة لاحقات مثل -or, -ion, -ive.", example: "My brother is an actor." },
+    { title: "الكلمات المتلازمة (Collocations)", explanation: "كلمات تأتي معًا بشكل شائع.", example: "You paint a picture, but read a poem." },
+    { title: "كلمات الجنسية", explanation: "الفرق بين البلد والصفة والشعب.", example: "I am from France. I am French. The French love cheese." },
+    { title: "تقديم الاقتراحات", explanation: "عبارات لتقديم الأفكار.", example: "Why don't you ask your parents?" },
+    { title: "الأسماء والأفعال المتلازمة", explanation: "أفعال وأسماء معينة تستخدم معًا.", example: "You whistle a tune or lick an ice-cream." },
+    { title: "تصحيح الأخطاء", explanation: "مهارة العثور على الأخطاء اللغوية وتصحيحها.", example: "Incorrect: I am liking this. Correct: I like this." },
+    { title: "كتابة الرسائل ورسائل البريد الإلكتروني", explanation: "هياكل وعبارات للرسائل الرسمية وغير الرسمية.", example: "Dear Sir/Madam, I am writing to apply for..." },
+    { title: "كتابة السرد (Narrative)", explanation: "كيفية سرد قصة بترتيب منطقي.", example: "First, we went to the park. Then, we saw a movie." },
+    { title: "كتابة المقالات (For and Against)", explanation: "عرض الحجج المؤيدة والمعارضة لموضوع ما.", example: "On the one hand, technology connects us. On the other hand, it can isolate us." },
+    { title: "وصف مكان أو شخص", explanation: "استخدام الصفات والتفاصيل لإنشاء صورة حية.", example: "New York is a bustling city with towering skyscrapers." },
+    { title: "كتابة السيرة الذاتية (Biography)", explanation: "سرد قصة حياة شخص ما بترتيب زمني.", example: "Picasso was born in 1881 and showed genius from a young age." },
+    { title: "ربط الأفكار", explanation: "استخدام كلمات الربط مثل 'and', 'but', 'so', 'because'.", example: "I was tired, so I went to bed early." },
 ];
+
 
 export function BookScreen() {
     return (
