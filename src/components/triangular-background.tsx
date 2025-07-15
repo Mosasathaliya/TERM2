@@ -47,7 +47,7 @@ export function BackgroundShapes() {
             ></div>
             <div
                 style={{ transform: getTransform(40), '--tx': '40px', '--ty': '-150px' } as React.CSSProperties}
-                className="absolute bottom-[10%] left-[30%] h-48 w-48 bg-secondary/20 opacity-40 blur-3xl animate-[morph_20s_ease-in-out_infinite_2s] transition-transform duration-500 ease-out"
+                className="absolute bottom-[10%] left-[30%] h-48 w-48 bg-primary/20 opacity-40 blur-3xl animate-[morph_20s_ease-in-out_infinite_2s] transition-transform duration-500 ease-out"
             ></div>
         </div>
     </div>
