@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Volume2, MessageSquare, BookOpen, BrainCircuit, Send, User, Bot, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { Volume2, MessageSquare, BookOpen, BrainCircuit, Send, User, Bot, Sparkles, Image as ImageIcon, Mic, Square } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import type { LearningItem, Lesson, Story } from '@/lib/lessons';
 import { textToSpeech } from '@/ai/flows/tts-flow';
@@ -37,6 +37,8 @@ function Chatbot({ lesson }: { lesson: Lesson }) {
     const [isLoading, setIsLoading] = React.useState(false);
     const { toast } = useToast();
     const scrollAreaRef = React.useRef<HTMLDivElement>(null);
+    const [isRecording, setIsRecording] = React.useState(false);
+    const recognitionRef = React.useRef<any>(null);
 
     React.useEffect(() => {
         if (scrollAreaRef.current) {
@@ -46,11 +48,77 @@ function Chatbot({ lesson }: { lesson: Lesson }) {
             }
         }
     }, [history]);
+    
+    React.useEffect(() => {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            recognitionRef.current = new SpeechRecognition();
+            recognitionRef.current.continuous = false;
+            recognitionRef.current.lang = 'ar-SA';
+            recognitionRef.current.interimResults = false;
 
-    const handleSendMessage = async () => {
-        if (!input.trim() || isLoading) return;
+            recognitionRef.current.onresult = (event: any) => {
+                const transcript = event.results[0][0].transcript;
+                setInput(transcript);
+                handleSendMessage(transcript);
+            };
 
-        const newUserMessage: Message = { role: 'user', content: input };
+            recognitionRef.current.onerror = (event: any) => {
+                console.error('Speech recognition error:', event.error);
+                toast({
+                    variant: "destructive",
+                    title: "خطأ في التعرف على الكلام",
+                    description: "لم نتمكن من التعرف على صوتك. الرجاء المحاولة مرة أخرى.",
+                });
+                setIsRecording(false);
+            };
+            
+            recognitionRef.current.onend = () => {
+                setIsRecording(false);
+            };
+        }
+    }, [toast]);
+    
+    const toggleRecording = () => {
+        if (!recognitionRef.current) {
+            toast({
+                variant: "destructive",
+                title: "المتصفح غير مدعوم",
+                description: "ميزة التعرف على الكلام غير مدعومة في هذا المتصفح.",
+            });
+            return;
+        }
+
+        if (isRecording) {
+            recognitionRef.current.stop();
+        } else {
+            recognitionRef.current.start();
+        }
+        setIsRecording(!isRecording);
+    };
+
+    const playAudio = async (text: string) => {
+        try {
+            const result = await textToSpeech(text);
+            if (result && result.media) {
+                const audio = new Audio(result.media);
+                audio.play();
+            }
+        } catch (error) {
+            console.error('TTS Error:', error);
+            toast({
+                variant: "destructive",
+                title: "حدث خطأ",
+                description: "لم نتمكن من تشغيل الصوت.",
+            });
+        }
+    };
+    
+    const handleSendMessage = async (messageToSend?: string) => {
+        const currentMessage = messageToSend || input;
+        if (!currentMessage.trim() || isLoading) return;
+
+        const newUserMessage: Message = { role: 'user', content: currentMessage };
         const newHistory = [...history, newUserMessage];
         setHistory(newHistory);
         setInput('');
@@ -60,14 +128,14 @@ function Chatbot({ lesson }: { lesson: Lesson }) {
             const chatInput: ExpertChatInput = {
                 lessonTitle: lesson.title,
                 lessonExplanation: lesson.explanation,
-                history: newHistory.slice(0, -1), // Send history without the latest user message
-                question: input,
+                history: newHistory.slice(0, -1),
+                question: currentMessage,
             };
             const result = await expertChat(chatInput);
             const aiMessage: Message = { role: 'model', content: result.answer };
             setHistory(prev => [...prev, aiMessage]);
-        } catch (error)
-        {
+            await playAudio(result.answer);
+        } catch (error) {
             console.error('Expert chat error:', error);
             toast({
                 variant: "destructive",
@@ -115,10 +183,18 @@ function Chatbot({ lesson }: { lesson: Lesson }) {
                 </div>
             </ScrollArea>
             <div className="p-4 border-t flex items-center gap-2">
+                <Button 
+                    size="icon" 
+                    variant={isRecording ? "destructive" : "outline"}
+                    onClick={toggleRecording}
+                    disabled={isLoading}
+                >
+                    {isRecording ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                </Button>
                 <Textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="اكتب سؤالك هنا..."
+                    placeholder="اكتب سؤالك أو استخدم الميكروفون..."
                     rows={1}
                     className="w-full p-2 rounded-md focus:ring-2 focus:ring-primary outline-none transition resize-none"
                     disabled={isLoading}
@@ -129,7 +205,7 @@ function Chatbot({ lesson }: { lesson: Lesson }) {
                         }
                     }}
                 />
-                <Button size="icon" onClick={handleSendMessage} disabled={isLoading || !input.trim()}>
+                <Button size="icon" onClick={() => handleSendMessage()} disabled={isLoading || !input.trim()}>
                     <Send className="h-5 w-5" />
                 </Button>
             </div>
@@ -139,11 +215,12 @@ function Chatbot({ lesson }: { lesson: Lesson }) {
 
 function StoryReader({ story }: { story: Story }) {
     const [imageUrl, setImageUrl] = React.useState<string | null>(null);
-    const [isLoading, setIsLoading] = React.useState(false);
+    const [isLoadingImage, setIsLoadingImage] = React.useState(false);
+    const [isLoadingAudio, setIsLoadingAudio] = React.useState(false);
     const { toast } = useToast();
 
     const handleGenerateImage = async () => {
-        setIsLoading(true);
+        setIsLoadingImage(true);
         try {
             const result = await generateStoryImage({ story: story.content });
             setImageUrl(result.imageUrl);
@@ -155,23 +232,51 @@ function StoryReader({ story }: { story: Story }) {
                 description: 'حدث خطأ أثناء إنشاء الصورة. الرجاء المحاولة مرة أخرى.',
             });
         } finally {
-            setIsLoading(false);
+            setIsLoadingImage(false);
+        }
+    };
+    
+    const playAudio = async (text: string) => {
+        setIsLoadingAudio(true);
+        try {
+          const result = await textToSpeech(text);
+          if (result && result.media) {
+            const audio = new Audio(result.media);
+            audio.play();
+          }
+        } catch (error) {
+          console.error('TTS Error:', error);
+        } finally {
+            setIsLoadingAudio(false);
         }
     };
 
     return (
         <ScrollArea className="h-full">
             <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold">{story.title}</h3>
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => playAudio(story.content)}
+                        disabled={isLoadingAudio}
+                        aria-label="Listen to story"
+                    >
+                        <Volume2 className="h-5 w-5" />
+                    </Button>
+                </div>
+
                 <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap mb-6">{story.content}</p>
                 
-                {!imageUrl && !isLoading && (
+                {!imageUrl && !isLoadingImage && (
                     <Button onClick={handleGenerateImage}>
                         <Sparkles className="mr-2 h-4 w-4" />
                         تخيل القصة
                     </Button>
                 )}
 
-                {isLoading && (
+                {isLoadingImage && (
                     <div className="flex items-center justify-center p-4 rounded-md bg-muted">
                         <div className="flex items-center space-x-2" dir="rtl">
                             <div className="h-2 w-2 bg-primary rounded-full animate-pulse [animation-delay:-0.3s]"></div>
@@ -327,5 +432,3 @@ function TabButton({ icon, label, isActive, onClick }: { icon: React.ReactNode, 
         </button>
     )
 }
-
-    
