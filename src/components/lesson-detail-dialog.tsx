@@ -218,7 +218,8 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
     const [isLoadingImage, setIsLoadingImage] = React.useState(false);
     const [isLoadingAudio, setIsLoadingAudio] = React.useState(false);
     const { toast } = useToast();
-    const storyContent = 'content' in story ? story.content : story.summary;
+    const storyContent = 'summary' in story ? story.summary : story.content;
+    const storyTitle = 'title' in story ? story.title : '';
 
     const handleGenerateImage = async () => {
         setIsLoadingImage(true);
@@ -244,9 +245,20 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
           if (result && result.media) {
             const audio = new Audio(result.media);
             audio.play();
+          } else {
+             toast({
+                variant: 'destructive',
+                title: 'فشل تشغيل الصوت',
+                description: 'لم نتمكن من إنشاء الصوت لهذه القصة.',
+            });
           }
         } catch (error) {
           console.error('TTS Error:', error);
+           toast({
+                variant: 'destructive',
+                title: 'فشل تشغيل الصوت',
+                description: 'حدث خطأ أثناء إنشاء الصوت.',
+            });
         } finally {
             setIsLoadingAudio(false);
         }
@@ -256,7 +268,7 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
         <ScrollArea className="h-full">
             <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold">{story.title}</h3>
+                    <h3 className="text-xl font-semibold">{storyTitle}</h3>
                     <Button 
                         variant="ghost" 
                         size="icon" 
@@ -292,7 +304,7 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
                     <div className="mt-4 border rounded-lg overflow-hidden">
                         <Image
                             src={imageUrl}
-                            alt={`Illustration for ${story.title}`}
+                            alt={`Illustration for ${storyTitle}`}
                             width={500}
                             height={500}
                             className="w-full h-auto object-cover"
