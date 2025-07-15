@@ -43,13 +43,19 @@ const expertChatFlow = ai.defineFlow(
     Answer the user's questions based on this topic. Be friendly, clear, and concise. Use the provided conversation history to understand the context of the user's new question.
     Keep your answers in Arabic unless the user asks for something in English.`;
 
-    const { output } = await ai.generate({
+    const response = await ai.generate({
         system: systemPrompt,
         prompt: question,
         history,
     });
     
-    return { answer: output!.text! };
+    const text = response.text;
+    if (!text) {
+        // Handle cases where the model might not return text, e.g., due to safety filters.
+        return { answer: "عذراً، لم أتمكن من إنشاء رد. الرجاء المحاولة مرة أخرى." };
+    }
+    
+    return { answer: text };
   }
 );
 
