@@ -1,9 +1,11 @@
+
 'use server';
 /**
  * @fileOverview A Genkit flow for generating an image based on a story's content.
  */
 
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'zod';
 
 const StoryImageInputSchema = z.object({
@@ -30,10 +32,13 @@ const storyImageFlow = ai.defineFlow(
     const prompt = `Generate a simple, colorful, and friendly illustration for the following short story. The style should be suitable for language learners. Focus on the main characters and setting. Story: "${story}"`;
     
     const {media} = await ai.generate({
-      model: 'googleai/gemini-2.0-flash-preview-image-generation',
+      model: googleAI.model('imagen-3.0-generate-002'),
       prompt: prompt,
       config: {
-        responseModalities: ['TEXT', 'IMAGE'],
+        responseMimeType: 'image/jpeg',
+        personGeneration: 'ALLOW_ADULT',
+        aspectRatio: '9:16',
+        numberOfImages: 1,
       },
     });
 
