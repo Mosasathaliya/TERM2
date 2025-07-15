@@ -21,400 +21,268 @@ export interface Story {
 export type LearningItem = Lesson | Story;
 
 const lessons: Lesson[] = [
+  // Unit 1
   {
     type: 'lesson',
-    title: "الأفعال المساعدة (do, be, have)",
-    explanation: `الأفعال المساعدة (Auxiliary Verbs) 'do', 'be', و 'have' هي حجر الأساس في بناء الجمل الإنجليزية. هي لا تحمل معنى بمفردها غالبًا، بل تساعد الفعل الرئيسي في الجملة.
-- 'do'/'does'/'did': تُستخدم لتكوين الأسئلة والجمل المنفية في المضارع البسيط والماضي البسيط.
-- 'be' (am/is/are/was/were): تُستخدم لتكوين الأزمنة المستمرة (مثل المضارع المستمر) والمبني للمجهول.
-- 'have'/'has'/'had': تُستخدم لتكوين الأزمنة التامة (مثل المضارع التام).
-إتقان استخدام هذه الأفعال ضروري لفهم بنية الجملة والتعبير عن الزمن بشكل صحيح.`,
+    title: "Unit 1: Auxiliary verbs (do, be, have)",
+    explanation: "Auxiliary verbs are helping verbs. 'do' is for questions and negatives in simple tenses. 'be' is for continuous tenses and the passive voice. 'have' is for perfect tenses.",
     examples: [
-      { english: "Where do you come from?", arabic: "من أين أنت؟" },
-      { english: "She doesn't work on weekends.", arabic: "هي لا تعمل في عطلات نهاية الأسبوع." },
-      { english: "Are you listening to me?", arabic: "هل تستمع إلي؟" },
-      { english: "He is not sleeping now.", arabic: "هو ليس نائماً الآن." },
-      { english: "Have you finished your homework?", arabic: "هل أنهيت واجبك المنزلي؟" },
-      { english: "I have never been to Japan.", arabic: "لم أذهب إلى اليابان من قبل." },
-      { english: "What did they say?", arabic: "ماذا قالوا؟" },
-      { english: "He was not happy with the result.", arabic: "لم يكن سعيداً بالنتيجة." },
-      { english: "Why were you running?", arabic: "لماذا كنت تركض؟" },
-      { english: "Had she left before you arrived?", arabic: "هل كانت قد غادرت قبل وصولك؟" },
+      { english: "Where do you work?", arabic: "أين تعمل؟" },
+      { english: "She isn't coming today.", arabic: "هي لن تأتي اليوم." },
+      { english: "Have you seen that movie?", arabic: "هل شاهدت ذلك الفيلم؟" }
     ],
     mcqs: [
       { question: "Which auxiliary verb is used for Present Simple questions?", options: ["be", "have", "do", "will"], answer: "do" },
-      { question: "Complete the sentence: He ___ watching TV.", options: ["is", "does", "has", "do"], answer: "is" },
-      { question: "Which sentence is correct?", options: ["I no like coffee.", "I don't like coffee.", "I not like coffee.", "I doesn't like coffee."], answer: "I don't like coffee." },
-      { question: "___ you ever seen a ghost?", options: ["Do", "Are", "Have", "Did"], answer: "Have" },
-      { question: "What is the negative of 'She went to the party'?", options: ["She didn't went...", "She not go...", "She didn't go...", "She was not go..."], answer: "She didn't go..." },
-    ],
-  },
-  {
-    type: 'lesson',
-    title: "تسمية الأزمنة (Present, Past, Present Perfect)",
-    explanation: `معرفة أسماء الأزمنة (Tenses) يساعد في فهم كيفية عمل القواعد وتطبيقها. كل زمن له استخدام محدد للإشارة إلى وقت وقوع الفعل وعلاقته باللحظة الحالية.
-- المضارع (Present): للأحداث الحالية، العادات، والحقائق العامة.
-- الماضي (Past): للأحداث التي بدأت وانتهت في الماضي.
-- المضارع التام (Present Perfect): للأحداث التي وقعت في الماضي ولكن لها صلة أو تأثير على الحاضر.`,
-    examples: [
-        { english: "Cows don't eat meat. (Present Simple)", arabic: "الأبقار لا تأكل اللحم. (مضارع بسيط)" },
-        { english: "What was Neil Armstrong doing? (Past Continuous)", arabic: "ماذا كان يفعل نيل أرمسترونغ؟ (ماضي مستمر)" },
-        { english: "How many times has Brazil won the World Cup? (Present Perfect)", arabic: "كم مرة فازت البرازيل بكأس العالم؟ (مضارع تام)" },
-        { english: "The sun rises in the east. (Present Simple)", arabic: "الشمس تشرق من الشرق. (مضارع بسيط)" },
-        { english: "He was assassinated. (Past Simple Passive)", arabic: "لقد تم اغتياله. (ماضي بسيط مبني للمجهول)" },
-        { english: "I've been studying for three years. (Present Perfect Continuous)", arabic: "أنا أدرس منذ ثلاث سنوات. (مضارع تام مستمر)" },
-        { english: "When did the Olympic Games start? (Past Simple)", arabic: "متى بدأت الألعاب الأولمبية؟ (ماضي بسيط)" },
-        { english: "It takes 8 minutes for the sun's rays to reach Earth. (Present Simple)", arabic: "تستغرق أشعة الشمس 8 دقائق للوصول إلى الأرض. (مضارع بسيط)" },
-        { english: "Glasses were invented in China. (Past Simple Passive)", arabic: "اخترعت النظارات في الصين. (ماضي بسيط مبني للمجهول)" },
-        { english: "People have been sending emails since the 1970s. (Present Perfect Continuous)", arabic: "يرسل الناس رسائل البريد الإلكتروني منذ السبعينيات. (مضارع تام مستمر)" },
-    ],
-    mcqs: [
-        { question: "What tense is 'I have finished'?", options: ["Past Simple", "Present Perfect", "Present Continuous", "Past Perfect"], answer: "Present Perfect" },
-        { question: "What tense is 'They are playing'?", options: ["Present Simple", "Past Continuous", "Present Continuous", "Present Perfect"], answer: "Present Continuous" },
-        { question: "What tense is 'She arrived yesterday'?", options: ["Past Simple", "Present Perfect", "Past Continuous", "Future Simple"], answer: "Past Simple" },
-        { question: "The sentence 'He had already left' is in the...", options: ["Past Simple", "Past Perfect", "Present Perfect", "Past Continuous"], answer: "Past Perfect" },
-        { question: "The sentence 'It will rain' is in the...", options: ["Present Simple", "Future Simple", "Present Continuous", "Past Simple"], answer: "Future Simple" },
+      { question: "Complete: He ___ watching TV.", options: ["is", "does", "has", "do"], answer: "is" }
     ]
   },
   {
     type: 'lesson',
-    title: "الأسئلة والنفي",
-    explanation: `لتكوين الأسئلة والجمل المنفية، نعتمد بشكل أساسي على الأفعال المساعدة (do/does/did, be, have, can, will, etc.).
-- للنفي (Negatives): نضيف 'not' (أو اختصارها 'n't') بعد الفعل المساعد. مثال: is not (isn't), do not (don't).
-- للأسئلة (Questions): نضع الفعل المساعد قبل الفاعل. مثال: "You are happy." تصبح "?Are you happy". إذا كان السؤال يبدأ بكلمة استفهام (what, where, why)، تأتي هذه الكلمة في البداية.`,
+    title: "Unit 1: Tenses (Present, Past, Present Perfect)",
+    explanation: "Tenses tell you when an action happens. Present for now, Past for before now, and Present Perfect for past actions connected to the present.",
     examples: [
-        { english: "What did you do last night?", arabic: "ماذا فعلت الليلة الماضية؟" },
-        { english: "Cows don't eat meat.", arabic: "الأبقار لا تأكل اللحم." },
-        { english: "The sun doesn't rise in the west.", arabic: "الشمس لا تشرق من الغرب." },
-        { english: "Why didn't you do your homework?", arabic: "لماذا لم تفعل واجبك؟" },
-        { english: "Is he working at the moment?", arabic: "هل هو يعمل في هذه اللحظة؟" },
-        { english: "She hasn't called me.", arabic: "هي لم تتصل بي." },
-        { english: "They weren't at the party.", arabic: "هم لم يكونوا في الحفلة." },
-        { english: "Do you have a TV in your bedroom?", arabic: "هل لديك تلفاز في غرفة نومك؟" },
-        { english: "He can't swim.", arabic: "هو لا يستطيع السباحة." },
-        { english: "You shouldn't smoke here.", arabic: "لا يجب أن تدخن هنا." },
+      { english: "She works in a bank. (Present)", arabic: "هي تعمل في بنك." },
+      { english: "He visited Paris last year. (Past)", arabic: "هو زار باريس العام الماضي." },
+      { english: "I have finished my homework. (Present Perfect)", arabic: "لقد أنهيت واجبي." }
     ],
     mcqs: [
-        { question: "How do you make 'He works hard' negative?", options: ["He no works hard.", "He doesn't works hard.", "He don't work hard.", "He doesn't work hard."], answer: "He doesn't work hard." },
-        { question: "How do you make 'She went home' a question?", options: ["Did she went home?", "Does she went home?", "Did she go home?", "She did go home?"], answer: "Did she go home?" },
-        { question: "Which sentence is correct?", options: ["I not have a car.", "I haven't a car.", "I don't have a car.", "I no have a car."], answer: "I don't have a car." },
-        { question: "The negative of 'They are coming' is:", options: ["They aren't coming.", "They not are coming.", "They don't coming.", "They no coming."], answer: "They aren't coming." },
-        { question: "The question form of 'You saw him' is:", options: ["You saw him?", "Did you saw him?", "Do you saw him?", "Did you see him?"], answer: "Did you see him?" },
+      { question: "What tense is 'I have finished'?", options: ["Past Simple", "Present Perfect", "Present Continuous", "Past Perfect"], answer: "Present Perfect" },
+      { question: "The sentence 'She arrived yesterday' is in the...", options: ["Past Simple", "Present Perfect", "Past Continuous", "Future Simple"], answer: "Past Simple" }
     ]
   },
   {
     type: 'lesson',
-    title: "الإجابات القصيرة",
-    explanation: `في المحادثات الإنجليزية اليومية، من غير الطبيعي الرد على الأسئلة بـ 'yes' أو 'no' فقط، حيث يمكن أن يبدو ذلك غير مهذب أو مفاجئًا. الطريقة الأكثر شيوعًا هي استخدام الإجابات القصيرة (Short Answers). تتكون الإجابة القصيرة من 'Yes' أو 'No'، يليها الفاعل والفعل المساعد المستخدم في السؤال.
-مثال: "?Do you like coffee" -> ".Yes, I do"`,
+    title: "Unit 1: Short Answers",
+    explanation: "In conversation, replying with just 'yes' or 'no' can sound impolite. Use short answers with an auxiliary verb (e.g., Yes, I do. / No, he isn't.).",
     examples: [
-        { english: "Did you have a nice time? - Yes, I did.", arabic: "هل قضيت وقتاً ممتعاً؟ - نعم، فعلت." },
-        { english: "Do you want breakfast? - No, I don't.", arabic: "هل تريد فطوراً؟ - لا، لا أريد." },
-        { english: "Have you had any coffee? - Yes, I have.", arabic: "هل تناولت أي قهوة؟ - نعم، تناولت." },
-        { english: "Is Bill coming tonight? - No, he isn't.", arabic: "هل بيل قادم الليلة؟ - لا، ليس قادماً." },
-        { english: "Are you working hard? - Yes, I am.", arabic: "هل تعمل بجد؟ - نعم، أنا كذلك." },
-        { english: "Do you like cooking? - No, I don't.", arabic: "هل تحب الطبخ؟ - لا، لا أحب." },
-        { english: "Is it cold out today? - Yes, it is.", arabic: "هل الجو بارد في الخارج اليوم؟ - نعم، إنه كذلك." },
-        { english: "Did you go out last night? - Yes, I did.", arabic: "هل خرجت الليلة الماضية؟ - نعم، خرجت." },
-        { english: "Have you ever been to Singapore? - No, I haven't.", arabic: "هل زرت سنغافورة من قبل؟ - لا، لم أفعل." },
-        { english: "Can you swim? - Yes, I can.", arabic: "هل تستطيع السباحة؟ - نعم، أستطيع." },
+      { english: "Do you like tea? - Yes, I do.", arabic: "هل تحب الشاي؟ - نعم." },
+      { english: "Is he from Canada? - No, he isn't.", arabic: "هل هو من كندا؟ - لا." }
     ],
     mcqs: [
         { question: "How do you answer 'Are you tired?' affirmatively?", options: ["Yes.", "Yes, I am.", "Yes, I'm.", "I am."], answer: "Yes, I am." },
-        { question: "How do you answer 'Did he call?' negatively?", options: ["No.", "No, he didn't.", "No, he didn't call.", "He didn't."], answer: "No, he didn't." },
-        { question: "Answer: 'Have they arrived?'", options: ["Yes, they have.", "Yes, they've.", "Yes, have.", "They have."], answer: "Yes, they have." },
-        { question: "Answer: 'Can she play the piano?'", options: ["No, she no can.", "No, she can't.", "No, not.", "She can't."], answer: "No, she can't." },
-        { question: "Answer: 'Do you understand?'", options: ["Yes, I understand.", "Yes, I do.", "Yes, I'm.", "Yes, I can."], answer: "Yes, I do." },
+        { question: "How do you answer 'Did he call?' negatively?", options: ["No.", "No, he didn't.", "No, he didn't call.", "He didn't."], answer: "No, he didn't." }
     ]
   },
+  // Unit 2
   {
     type: 'lesson',
-    title: "زمن المضارع البسيط مقابل المستمر",
-    explanation: `هناك فرق مهم بين المضارع البسيط (Present Simple) والمضارع المستمر (Present Continuous).
-- المضارع البسيط: يُستخدم للحقائق الثابتة، العادات، والأفعال المتكررة. (e.g., The sun rises in the east. I play tennis every Friday).
-- المضارع المستمر: يُستخدم للأفعال التي تحدث الآن، في هذه اللحظة، أو حول الوقت الحالي، أو للخطط المستقبلية المؤكدة. (e.g., I am reading a book. She's working in London this month).
-
-بعض الأفعال التي تصف الحالات (State Verbs) مثل 'know', 'like', 'want', 'understand' لا تُستخدم عادةً في الصيغة المستمرة.`,
+    title: "Unit 2: Present Tenses (Simple vs Continuous)",
+    explanation: "Present Simple is for habits and facts (I work every day). Present Continuous is for actions happening now or around now (I am working now).",
     examples: [
-        { english: "She usually drives to work, but today she is walking.", arabic: "هي عادة تقود إلى العمل، لكنها اليوم تمشي." },
-        { english: "I don't understand this word.", arabic: "أنا لا أفهم هذه الكلمة." },
-        { english: "He works for a company in Dallas, but he's working in Mexico this week.", arabic: "هو يعمل في شركة في دالاس، لكنه يعمل في المكسيك هذا الأسبوع." },
-        { english: "I think opera is boring. (opinion)", arabic: "أعتقد أن الأوبرا مملة. (رأي)" },
-        { english: "What are you thinking about? (activity)", arabic: "بماذا تفكر؟ (نشاط)" },
-        { english: "She has a beautiful new car. (possession)", arabic: "هي تمتلك سيارة جديدة جميلة. (ملكية)" },
-        { english: "She's having dinner now. (action)", arabic: "هي تتناول العشاء الآن. (فعل)" },
-        { english: "The lions are fed once a day.", arabic: "يتم إطعام الأسود مرة واحدة في اليوم." },
-        { english: "They're being fed at the moment.", arabic: "يتم إطعامهم في هذه اللحظة." },
-        { english: "It rains a lot in winter.", arabic: "تمطر كثيرا في الشتاء." }
+      { english: "She usually drives, but today she's walking.", arabic: "هي عادة تقود، لكنها اليوم تمشي." },
+      { english: "Water boils at 100 degrees Celsius.", arabic: "الماء يغلي عند 100 درجة مئوية." }
     ],
     mcqs: [
-        { question: "Choose the correct sentence.", options: ["He is wanting a coffee.", "He wants a coffee.", "He want a coffee.", "He does want a coffee."], answer: "He wants a coffee." },
-        { question: "Water ___ at 100 degrees Celsius.", options: ["is boiling", "boil", "boils", "boilt"], answer: "boils" },
-        { question: "Please be quiet. I ___ to the radio.", options: ["listen", "am listening", "listens", "listened"], answer: "am listening" },
-        { question: "He usually ___ glasses, but he isn't wearing them today.", options: ["wear / isn't wearing", "wears / doesn't wear", "is wearing / wears", "wears / isn't wearing"], answer: "wears / isn't wearing" },
-        { question: "I ___ a shower every morning.", options: ["am having", "have", "has", "am having"], answer: "have" },
+      { question: "Water ___ at 100 degrees Celsius.", options: ["is boiling", "boil", "boils", "boilt"], answer: "boils" },
+      { question: "Please be quiet. I ___ to the radio.", options: ["listen", "am listening", "listens", "listened"], answer: "am listening" }
     ]
   },
   {
     type: 'lesson',
-    title: "المبني للمجهول في المضارع",
-    explanation: `يُستخدم المبني للمجهول (Passive Voice) عندما يكون التركيز على الفعل نفسه أو على من يستقبل الفعل، وليس على من يقوم بالفعل (الفاعل).
-- المضارع البسيط للمبني للمجهول (Present Simple Passive): يُصاغ باستخدام 'am/is/are + past participle'. يُستخدم للحقائق العامة أو الإجراءات المتكررة.
-- المضارع المستمر للمبني للمجهول (Present Continuous Passive): يُصاغ باستخدام 'am/is/are + being + past participle'. يُستخدم لوصف فعل يحدث الآن.`,
+    title: "Unit 2: Present Passive",
+    explanation: "The passive voice is used when the focus is on the action, not the person who does it. Present Simple Passive: is/are + past participle. Present Continuous Passive: is/are being + past participle.",
     examples: [
-        { english: "We are paid with the money people give.", arabic: "يُدفع لنا بالمال الذي يعطيه الناس." },
-        { english: "Children are being treated with a new kind of medicine.", arabic: "يتم علاج الأطفال بنوع جديد من الدواء." },
-        { english: "English is spoken here.", arabic: "يتم التحدث باللغة الإنجليزية هنا." },
-        { english: "My car is being repaired.", arabic: "سيارتي قيد الإصلاح." },
-        { english: "The office is cleaned every day.", arabic: "يتم تنظيف المكتب كل يوم." },
-        { english: "A new hospital is being built in the city center.", arabic: "يتم بناء مستشفى جديد في وسط المدينة." },
-        { english: "These products are made in Japan.", arabic: "هذه المنتجات مصنوعة في اليابان." },
-        { english: "The emails are being sent right now.", arabic: "يتم إرسال رسائل البريد الإلكتروني الآن." },
-        { english: "Soccer is played by millions of people.", arabic: "كرة القدم يلعبها ملايين الناس." },
-        { english: "The guests are being welcomed at the door.", arabic: "يتم الترحيب بالضيوف عند الباب." },
+      { english: "My car is being repaired today.", arabic: "سيارتي تصلح اليوم." },
+      { english: "English is spoken all over the world.", arabic: "اللغة الإنجليزية يتم التحدث بها في جميع أنحاء العالم." }
     ],
     mcqs: [
-        { question: "How do you say 'They make cars in Germany' in passive?", options: ["Cars are make in Germany.", "Cars are made in Germany.", "Cars make in Germany.", "Cars are being made in Germany."], answer: "Cars are made in Germany." },
-        { question: "The bridge ___ at the moment.", options: ["is repaired", "is being repaired", "repairs", "repaired"], answer: "is being repaired" },
-        { question: "Rice ___ in China.", options: ["is grown", "is growing", "grows", "grown"], answer: "is grown" },
-        { question: "The problem ___ by the manager.", options: ["is being discussed", "is discussed", "discusses", "being discussed"], answer: "is being discussed" },
-        { question: "Choose the correct passive sentence.", options: ["The book is being read by the girl.", "The girl is reading the book.", "The book reads by the girl.", "The book being read."], answer: "The book is being read by the girl." },
+      { question: "How do you say 'They make cars in Germany' in passive?", options: ["Cars are make in Germany.", "Cars are made in Germany.", "Cars make in Germany.", "Cars are being made in Germany."], answer: "Cars are made in Germany." },
+      { question: "The bridge ___ at the moment.", options: ["is repaired", "is being repaired", "repairs", "repaired"], answer: "is being repaired" }
     ]
   },
+  // Unit 3
   {
     type: 'lesson',
-    title: "أزمنة الماضي (البسيط والمستمر)",
-    explanation: `يُستخدم الماضي البسيط (Past Simple) لوصف أحداث بدأت وانتهت في وقت محدد في الماضي. غالبًا ما نستخدم كلمات مثل yesterday, last week, in 1999.
-يُستخدم الماضي المستمر (Past Continuous) لوصف حدث كان جاريًا في وقت معين في الماضي، أو لوصف حدث كان جاريًا عندما قطعه حدث آخر (والحدث القاطع يكون في الماضي البسيط).`,
+    title: "Unit 3: Past Tenses (Simple and Continuous)",
+    explanation: "Past Simple is for completed actions in the past. Past Continuous is for an action in progress at a specific time in the past.",
     examples: [
-      { english: "He danced and sang.", arabic: "هو رقص وغنى." },
       { english: "He was laughing when he saw the baby.", arabic: "كان يضحك عندما رأى الطفل." },
-      { english: "What were you doing at 8 PM last night?", arabic: "ماذا كنت تفعل في الساعة 8 مساءً الليلة الماضية؟" },
-      { english: "I didn't go to the party yesterday.", arabic: "لم أذهب إلى الحفلة أمس." },
-      { english: "While I was reading, the phone rang.", arabic: "بينما كنت أقرأ، رن الهاتف." },
-      { english: "She arrived, opened the door, and went inside.", arabic: "هي وصلت، فتحت الباب، ودخلت." },
-      { english: "They were playing football when it started to rain.", arabic: "كانوا يلعبون كرة القدم عندما بدأت تمطر." },
-      { english: "He lived in London for five years.", arabic: "عاش في لندن لمدة خمس سنوات." },
-      { english: "The sun was shining and the birds were singing.", arabic: "كانت الشمس مشرقة والطيور تغني." },
-      { english: "Did you watch the movie on TV?", arabic: "هل شاهدت الفيلم على التلفزيون؟" }
+      { english: "I watched a film last night.", arabic: "شاهدت فيلما الليلة الماضية." }
     ],
     mcqs: [
       { question: "When I arrived, they ___ dinner.", options: ["had", "was having", "were having", "have"], answer: "were having" },
-      { question: "She ___ to school when she saw the accident.", options: ["walked", "was walking", "walks", "is walking"], answer: "was walking" },
-      { question: "I ___ a great film last night.", options: ["see", "was seeing", "saw", "have seen"], answer: "saw" },
-      { question: "What ___ when I called you?", options: ["did you do", "were you doing", "you were doing", "you did"], answer: "were you doing" },
-      { question: "He didn't ___ to my question.", options: ["listened", "was listening", "listen", "to listen"], answer: "listen" }
+      { question: "She ___ to school when she saw the accident.", options: ["walked", "was walking", "walks", "is walking"], answer: "was walking" }
     ]
   },
   {
     type: 'lesson',
-    title: "الماضي البسيط مقابل الماضي التام",
-    explanation: `يُستخدم الماضي البسيط (Past Simple) لوصف حدث انتهى في الماضي. يُستخدم الماضي التام (Past Perfect) لوصف حدث وقع *قبل* حدث آخر في الماضي. الماضي التام يساعد في توضيح تسلسل الأحداث.
-تكوينه: had + past participle.`,
+    title: "Unit 3: Past Simple vs Past Perfect",
+    explanation: "Use the Past Perfect (had + past participle) for an action that happened before another past action (which is in the Past Simple).",
     examples: [
-      { english: "I didn't laugh at his joke because I had heard it before.", arabic: "لم أضحك على نكتته لأنني كنت قد سمعتها من قبل." },
-      { english: "When he arrived at the station, the train had already left.", arabic: "عندما وصل إلى المحطة، كان القطار قد غادر بالفعل." },
-      { english: "She told me she had bought a new car.", arabic: "أخبرتني أنها اشترت سيارة جديدة." },
-      { english: "He had never flown before his trip to Paris.", arabic: "لم يسبق له أن طار قبل رحلته إلى باريس." },
-      { english: "I realized I had forgotten my keys at home.", arabic: "أدركت أنني نسيت مفاتيحي في المنزل." },
-      { english: "By the time I got there, they had eaten all the food.", arabic: "بحلول الوقت الذي وصلت فيه، كانوا قد أكلوا كل الطعام." },
-      { english: "Had you finished your work when she called?", arabic: "هل كنت قد أنهيت عملك عندما اتصلت؟" },
-      { english: "The film had started before we sat down.", arabic: "كان الفيلم قد بدأ قبل أن نجلس." },
-      { english: "He failed the exam because he hadn't studied.", arabic: "رسب في الامتحان لأنه لم يكن قد درس." },
-      { english: "They moved after they had sold their house.", arabic: "انتقلوا بعد أن باعوا منزلهم." }
+      { english: "I didn't laugh because I had heard the joke before.", arabic: "لم أضحك لأنني سمعت النكتة من قبل." },
+      { english: "The train had left when I arrived at the station.", arabic: "كان القطار قد غادر عندما وصلت إلى المحطة." }
     ],
     mcqs: [
       { question: "When she arrived, the party ___.", options: ["started", "had started", "was starting", "start"], answer: "had started" },
-      { question: "He ___ breakfast when he went to work.", options: ["hadn't eat", "hadn't ate", "hadn't eaten", "not eaten"], answer: "hadn't eaten" },
-      { question: "I felt much better after I ___ some rest.", options: ["had have", "had had", "was having", "have had"], answer: "had had" },
-      { question: "He knew London so well because he ___ there many times.", options: ["visited", "had visited", "was visiting", "visit"], answer: "had visited" },
-      { question: "By the time the police arrived, the thief ___.", options: ["escaped", "had escaped", "was escaping", "escape"], answer: "had escaped" }
+      { question: "He knew London so well because he ___ there many times.", options: ["visited", "had visited", "was visiting", "visit"], answer: "had visited" }
     ]
   },
+  // Unit 4
   {
     type: 'lesson',
-    title: "المبني للمجهول في الماضي",
-    explanation: `يُستخدم المبني للمجهول في الماضي (Past Passive) عندما يكون التركيز على الحدث الذي وقع في الماضي، وليس على من قام به.
-- الماضي البسيط للمبني للمجهول (Past Simple Passive): يُصاغ باستخدام 'was/were + past participle'.
-- الماضي المستمر للمبني للمجهول (Past Continuous Passive): يُصاغ باستخدام 'was/were + being + past participle'.`,
-    examples: [
-      { english: "A Farewell to Arms was written by Ernest Hemingway.", arabic: "رواية وداعًا للسلاح كُتبت بواسطة إرنست همنغواي." },
-      { english: "The pyramids were built by the ancient Egyptians.", arabic: "الأهرامات بُنيت بواسطة المصريين القدماء." },
-      { english: "My car was being repaired when you called.", arabic: "سيارتي كانت قيد الإصلاح عندما اتصلت." },
-      { english: "The window was broken last night.", arabic: "النافذة كُسرت الليلة الماضية." },
-      { english: "This photo was taken in 1998.", arabic: "هذه الصورة التُقطت في عام 1998." },
-      { english: "The food was being served when the lights went out.", arabic: "الطعام كان يُقدم عندما انقطعت الأنوار." },
-      { english: "He was told to wait outside.", arabic: "قيل له أن ينتظر في الخارج." },
-      { english: "The old bridge was destroyed in the storm.", arabic: "الجسر القديم دُمر في العاصفة." },
-      { english: "All the tickets were sold out quickly.", arabic: "جميع التذاكر بيعت بسرعة." },
-      { english: "The rooms were being cleaned all morning.", arabic: "الغرف كانت تُنظف طوال الصباح." }
-    ],
-    mcqs: [
-      { question: "The Mona Lisa ___ by Leonardo da Vinci.", options: ["painted", "was painting", "was painted", "is painted"], answer: "was painted" },
-      { question: "The thief ___ by the police yesterday.", options: ["was catching", "was caught", "caught", "is caught"], answer: "was caught" },
-      { question: "The house ___ when the fire started.", options: ["was building", "built", "was being built", "is built"], answer: "was being built" },
-      { question: "America ___ by Columbus in 1492.", options: ["discovered", "was discovered", "was being discovered", "discovers"], answer: "was discovered" },
-      { question: "The cake ___ by my sister for the party.", options: ["was made", "made", "was making", "makes"], answer: "was made" }
-    ]
-  },
-  {
-    type: 'lesson',
-    title: "أفعال Modal (1): الالتزام والإذن",
-    explanation: `أفعال Modal مثل 'have to', 'can', 'be allowed to' تُستخدم للتعبير عن الالتزام (Obligation) والإذن (Permission).
-- 'have to' / 'has to': للتعبير عن التزام قوي أو قاعدة خارجية.
-- 'don't have to': للتعبير عن عدم وجود التزام.
-- 'can': للتعبير عن القدرة أو الإذن غير الرسمي.
-- 'be allowed to': للتعبير عن الإذن الرسمي.`,
+    title: "Unit 4: Modals 1 (have to, can, be allowed to)",
+    explanation: "'have to' expresses strong obligation. 'can' and 'be allowed to' express permission. The negative 'don't have to' means there is no obligation.",
     examples: [
       { english: "Children have to go to school.", arabic: "يجب على الأطفال الذهاب إلى المدرسة." },
-      { english: "I can stay at my friend's house.", arabic: "يمكنني البقاء في منزل صديقي." },
-      { english: "We're allowed to wear jeans.", arabic: "مسموح لنا بارتداء الجينز." },
-      { english: "You don't have to pay for this.", arabic: "ليس عليك أن تدفع مقابل هذا." },
-      { english: "I have to finish this report by 5 PM.", arabic: "يجب أن أنهي هذا التقرير بحلول الساعة 5 مساءً." },
-      { english: "Can I borrow your pen?", arabic: "هل يمكنني استعارة قلمك؟" },
-      { english: "You are not allowed to smoke in here.", arabic: "غير مسموح لك بالتدخين هنا." },
-      { english: "He has to wear a uniform at work.", arabic: "يجب عليه ارتداء زي رسمي في العمل." },
-      { english: "She can't come to the party.", arabic: "لا يمكنها الحضور إلى الحفلة." },
-      { english: "We don't have to get up early tomorrow.", arabic: "ليس علينا الاستيقاظ مبكرًا غدًا." }
+      { english: "You don't have to pay, it's free.", arabic: "لا يجب عليك الدفع، إنه مجاني." },
+      { english: "You are not allowed to smoke here.", arabic: "غير مسموح لك بالتدخين هنا." }
     ],
     mcqs: [
       { question: "You ___ buy a ticket before getting on the train.", options: ["can", "have to", "are allowed to", "don't have to"], answer: "have to" },
-      { question: "You ___ park here. It's forbidden.", options: ["can", "can't", "have to", "don't have to"], answer: "can't" },
-      { question: "I ___ go now, or I'll be late.", options: ["can", "have to", "am allowed to", "don't have to"], answer: "have to" },
-      { question: "It's a free museum. You ___ pay.", options: ["have to", "must", "don't have to", "can't"], answer: "don't have to" },
-      { question: "___ I use your phone?", options: ["Have to", "Am allowed to", "Can", "Must"], answer: "Can" }
+      { question: "It's a free museum. You ___ pay.", options: ["have to", "must", "don't have to", "can't"], answer: "don't have to" }
     ]
   },
   {
     type: 'lesson',
-    title: "أفعال Modal (should, must)",
-    explanation: `'should' و 'must' هما فعلان من أفعال Modal يُستخدمان لتقديم النصيحة والتعبير عن الالتزام.
-- 'should': يُستخدم لتقديم النصيحة أو التوصية. هو أقل قوة من 'must'. (e.g., You should see a doctor).
-- 'must': يُستخدم للتعبير عن التزام قوي، ضرورة، أو أمر. غالبًا ما يأتي من المتحدث نفسه.
-- 'mustn't': يُستخدم للتعبير عن المنع (prohibition). (e.g., You mustn't smoke here).`,
+    title: "Unit 4: Modals 1 (should, must)",
+    explanation: "'should' is for advice. 'must' is for strong obligation. 'mustn't' is for prohibition (something you are not allowed to do).",
     examples: [
-      { english: "We should take traveller's cheques.", arabic: "يجب أن نأخذ شيكات سياحية." },
-      { english: "You must write to us every week.", arabic: "يجب أن تكتب لنا كل أسبوع." },
-      { english: "You look tired. You should get some rest.", arabic: "تبدو متعبًا. يجب أن تأخذ قسطًا من الراحة." },
-      { english: "You mustn't lose your passport.", arabic: "يجب ألا تفقد جواز سفرك." },
-      { english: "I think he should apologize.", arabic: "أعتقد أنه يجب عليه أن يعتذر." },
-      { english: "All visitors must sign in.", arabic: "يجب على جميع الزوار تسجيل الدخول." },
-      { english: "You shouldn't eat so much fast food.", arabic: "لا يجب أن تأكل الكثير من الوجبات السريعة." },
-      { english: "He must be at work; he's not answering his phone.", arabic: "لابد أنه في العمل؛ إنه لا يرد على هاتفه." },
-      { english: "They must follow the rules.", arabic: "يجب عليهم اتباع القواعد." },
-      { english: "I should call my parents more often.", arabic: "يجب أن أتصل بوالدي أكثر." }
+      { english: "You should see a doctor.", arabic: "يجب أن تذهب إلى الطبيب." },
+      { english: "You must finish your homework.", arabic: "يجب عليك إنهاء واجبك." },
+      { english: "You mustn't touch that.", arabic: "يجب ألا تلمس ذلك." }
     ],
     mcqs: [
-      { question: "It's a great movie. You ___ see it.", options: ["must", "should", "have to", "can"], answer: "should" },
-      { question: "You ___ touch that! It's dangerous.", options: ["shouldn't", "mustn't", "don't have to", "can't"], answer: "mustn't" },
-      { question: "He's very ill. He ___ stay in bed.", options: ["should", "must", "can", "is allowed to"], answer: "must" },
-      { question: "I think we ___ leave now.", options: ["must", "should", "have to", "can"], answer: "should" },
-      { question: "If you want to pass, you ___ study harder.", options: ["should", "must", "can't", "don't have to"], answer: "must" }
+      { question: "You look tired. You ___ get some rest.", options: ["must", "should", "have to", "can"], answer: "should" },
+      { question: "You ___ touch that! It's dangerous.", options: ["shouldn't", "mustn't", "don't have to", "can't"], answer: "mustn't" }
     ]
   },
+  // Unit 5
   {
     type: 'lesson',
-    title: "صيغ المستقبل (going to, will)",
-    explanation: `هناك طرق مختلفة للتعبير عن المستقبل في اللغة الإنجليزية. 'going to' و 'will' هما الأكثر شيوعًا.
-- 'be going to': يُستخدم للخطط والنوايا التي تم اتخاذ القرار بشأنها قبل لحظة الكلام، أو للتنبؤات المبنية على دليل حالي.
-- 'will': يُستخدم للقرارات الفورية التي يتم اتخاذها في لحظة الكلام، للعروض، للوعود، وللتنبؤات العامة.`,
+    title: "Unit 5: Future Forms (going to, will)",
+    explanation: "Use 'going to' for plans and intentions. Use 'will' for spontaneous decisions, offers, and predictions.",
     examples: [
-      { english: "I'm going to buy some new shoes.", arabic: "سأشتري بعض الأحذية الجديدة." },
-      { english: "I think it will rain tomorrow.", arabic: "أعتقد أنها ستمطر غدًا." },
-      { english: "The phone is ringing. I'll get it!", arabic: "الهاتف يرن. سأرد عليه!" },
-      { english: "Look at those black clouds! It's going to rain.", arabic: "انظر إلى تلك الغيوم السوداء! إنها ستمطر." },
-      { english: "We are going to visit Spain next summer.", arabic: "سنزور إسبانيا الصيف المقبل." },
-      { english: "Don't worry, I won't tell anyone your secret.", arabic: "لا تقلق، لن أخبر أحدًا بسرك." },
-      { english: "I'll help you with your bags.", arabic: "سأساعدك في حمل حقائبك." },
-      { english: "He's studying hard. He's going to pass the exam.", arabic: "إنه يدرس بجد. سينجح في الامتحان." },
-      { english: "Maybe I'll see you later.", arabic: "ربما أراك لاحقًا." },
-      { english: "What are you going to do this evening?", arabic: "ماذا ستفعل هذا المساء؟" }
+      { english: "I'm going to visit my aunt next week.", arabic: "سأزور عمتي الأسبوع القادم." },
+      { english: "The phone's ringing, I'll get it.", arabic: "الهاتف يرن، سأرد عليه." }
     ],
     mcqs: [
-      { question: "A: The bag is heavy. B: I ___ it for you.", options: ["am going to carry", "will carry", "carry", "am carrying"], answer: "will carry" },
       { question: "I have decided. I ___ a new job.", options: ["will look for", "am looking for", "am going to look for", "look for"], answer: "am going to look for" },
-      { question: "I think our team ___ win the match.", options: ["is going to", "will", "is winning", "wins"], answer: "will" },
-      { question: "It's very cold. ___ you close the window, please?", options: ["Are you going to", "Will", "Do", "Are"], answer: "Will" },
-      { question: "Watch out! You ___ fall.", options: ["will", "are going to", "are falling", "fall"], answer: "are going to" }
+      { question: "I think our team ___ win the match.", options: ["is going to", "will", "is winning", "wins"], answer: "will" }
     ]
   },
   {
     type: 'lesson',
-    title: "المضارع المستمر للمستقبل",
-    explanation: `يمكن استخدام المضارع المستمر (Present Continuous) للتعبير عن خطط أو ترتيبات مستقبلية مؤكدة، خاصة عندما يكون الوقت والمكان قد تم تحديدهما بالفعل. غالبًا ما يُستخدم هذا مع الأفعال التي تشير إلى الأنشطة الاجتماعية أو المواعيد.`,
+    title: "Unit 5: Questions with 'like'",
+    explanation: "What's he like? (personality). What does he look like? (appearance). What does he like? (hobbies/interests).",
     examples: [
-      { english: "We're playing tennis this afternoon.", arabic: "سنلعب التنس بعد ظهر هذا اليوم." },
-      { english: "I'm meeting my friends for dinner tonight.", arabic: "سأقابل أصدقائي على العشاء الليلة." },
-      { english: "What are you doing this weekend?", arabic: "ماذا تفعل في عطلة نهاية الأسبوع هذه؟" },
-      { english: "He's flying to London tomorrow morning.", arabic: "سيسافر إلى لندن صباح الغد." },
-      { english: "She's not coming to the party on Saturday.", arabic: "هي لن تأتي إلى الحفلة يوم السبت." },
-      { english: "They are getting married next month.", arabic: "سيتزوجان الشهر المقبل." },
-      { english: "I'm having a meeting with my boss at 3 PM.", arabic: "لدي اجتماع مع مديري في الساعة 3 مساءً." },
-      { english: "Are you going to the concert next week?", arabic: "هل ستذهب إلى الحفل الأسبوع المقبل؟" },
-      { english: "We're leaving at 6 o'clock.", arabic: "سنغادر في الساعة 6." },
-      { english: "The company is launching a new product in May.", arabic: "الشركة ستطلق منتجًا جديدًا في مايو." }
-    ],
-    mcqs: [
-      { question: "I can't meet you tomorrow. I ___ my grandparents.", options: ["visit", "will visit", "am visiting", "am going to visit"], answer: "am visiting" },
-      { question: "What time ___ tomorrow?", options: ["are you leaving", "do you leave", "will you leave", "you are leaving"], answer: "are you leaving" },
-      { question: "She ___ a doctor's appointment this afternoon.", options: ["has", "is having", "will have", "has got"], answer: "is having" },
-      { question: "We ___ a party next Saturday. Would you like to come?", options: ["have", "will have", "are having", "are going to have"], answer: "are having" },
-      { question: "He isn't working next week. He ___ on holiday.", options: ["goes", "will go", "is going", "is going to go"], answer: "is going" }
-    ]
-  },
-  {
-    type: 'lesson',
-    title: "الأسئلة مع 'like'",
-    explanation: `كلمة 'like' يمكن أن تكون مربكة لأن لها استخدامات مختلفة.
-- 'What's she like?': يسأل عن الشخصية أو الصفات العامة. (She's very friendly).
-- 'What does she look like?': يسأل عن المظهر الجسدي. (She's tall and has dark hair).
-- 'What does she like doing?': يسأل عن الهوايات والاهتمامات. (She likes reading and swimming).`,
-    examples: [
-      { english: "What's she like?", arabic: "كيف هي؟ (عن شخصيتها)" },
-      { english: "What does she look like?", arabic: "كيف يبدو شكلها؟" },
-      { english: "What does she like doing?", arabic: "ماذا تحب أن تفعل؟" },
-      { english: "What's the new teacher like?", arabic: "كيف هو المعلم الجديد؟" },
-      { english: "What does your new apartment look like?", arabic: "كيف يبدو شقتك الجديدة؟" },
-      { english: "What's the weather like today?", arabic: "كيف هو الطقس اليوم؟" },
-      { english: "He's very kind and funny. That's what he's like.", arabic: "إنه لطيف ومضحك للغاية. هكذا هو." },
-      { english: "She looks like her mother.", arabic: "هي تشبه والدتها." },
-      { english: "I don't like horror movies.", arabic: "أنا لا أحب أفلام الرعب." },
-      { english: "What would you like to drink?", arabic: "ماذا تود أن تشرب؟" }
+      { english: "What's your new boss like? - He's very friendly.", arabic: "كيف هو مديرك الجديد؟ - هو ودود جدا." },
+      { english: "What does she look like? - She's tall with dark hair.", arabic: "كيف تبدو؟ - هي طويلة وذات شعر داكن." }
     ],
     mcqs: [
       { question: "To ask about someone's personality, you say:", options: ["What does he look like?", "How is he?", "What's he like?", "What does he like?"], answer: "What's he like?" },
-      { question: "The answer 'She's tall with blue eyes' is for the question:", options: ["What's she like?", "What does she like?", "How is she?", "What does she look like?"], answer: "What does she look like?" },
-      { question: "'She enjoys playing the piano.' This answers:", options: ["What's she like?", "What does she like doing?", "What does she look like?", "How does she like it?"], answer: "What does she like doing?" },
-      { question: "A: What's your boss like? B: ___", options: ["He's tall.", "He's strict but fair.", "He likes golf.", "He looks like tired."], answer: "He's strict but fair." },
       { question: "A: What does your brother look like? B: ___", options: ["He's a doctor.", "He's very intelligent.", "He's short and has red hair.", "He likes watching football."], answer: "He's short and has red hair." }
+    ]
+  },
+  // Unit 6
+  {
+    type: 'lesson',
+    title: "Unit 6: Verb Patterns (verb + -ing / infinitive)",
+    explanation: "Some verbs are followed by the '-ing' form (e.g., enjoy, mind, finish). Others are followed by 'to' + infinitive (e.g., want, decide, hope).",
+    examples: [
+      { english: "I enjoy playing tennis.", arabic: "أستمتع بلعب التنس." },
+      { english: "He decided to sell his car.", arabic: "قرر بيع سيارته." }
+    ],
+    mcqs: [
+      { question: "I can't imagine ___ in another country.", options: ["to live", "living", "live", "to living"], answer: "living" },
+      { question: "He refused ___ the question.", options: ["to answer", "answering", "answer", "to answering"], answer: "to answer" }
+    ]
+  },
+  // Unit 7
+  {
+    type: 'lesson',
+    title: "Unit 7: Present Perfect vs Past Simple",
+    explanation: "Past Simple is for finished actions in the past with a specific time. Present Perfect is for past actions with a result in the present, or actions in an unfinished time period.",
+    examples: [
+      { english: "I saw the film yesterday.", arabic: "شاهدت الفيلم أمس." },
+      { english: "I have seen that film. I don't want to see it again.", arabic: "لقد شاهدت ذلك الفيلم. لا أريد أن أراه مرة أخرى." }
+    ],
+    mcqs: [
+      { question: "I ___ to Paris in 2010.", options: ["have been", "went", "was", "have gone"], answer: "went" },
+      { question: "She ___ here for three years.", options: ["has lived", "lived", "was living", "lives"], answer: "has lived" }
     ]
   },
   {
     type: 'lesson',
-    title: "أنماط الأفعال (Verb Patterns)",
-    explanation: `بعض الأفعال في اللغة الإنجليزية تتبعها صيغة معينة من الأفعال الأخرى. الأنماط الشائعة هي:
-1. فعل + to + infinitive (e.g., want to go, decide to leave)
-2. فعل + gerund (-ing form) (e.g., enjoy reading, stop talking)
-3. فعل + مفعول به + to + infinitive (e.g., want someone to do something)
-4. فعل + مفعول به + infinitive (بدون to) (e.g., make someone do something, let someone go)`,
+    title: "Unit 7: Phrasal Verbs",
+    explanation: "Phrasal verbs combine a verb with a particle (preposition or adverb). Their meaning can be literal or idiomatic.",
     examples: [
-      { english: "I enjoyed meeting your friends.", arabic: "استمتعت بمقابلة أصدقائك." },
-      { english: "I just wanted to say thank you.", arabic: "أردت فقط أن أقول شكرًا لك." },
-      { english: "You made me feel welcome.", arabic: "جعلتني أشعر بالترحاب." },
-      { english: "I stopped feeling homesick.", arabic: "توقفت عن الشعور بالحنين إلى الوطن." },
-      { english: "I stopped to visit my aunt.", arabic: "توقفت لكي أزور عمتي." },
-      { english: "She invited me to go back.", arabic: "دعتني للعودة." },
-      { english: "Let me know if you want to visit.", arabic: "أخبرني إذا كنت تريد الزيارة." },
-      { english: "I'm thinking of going next year.", arabic: "أفكر في الذهاب العام المقبل." },
-      { english: "I can't stand waiting in queues.", arabic: "لا أطيق الانتظار في طوابير." },
-      { english: "He promised to call me.", arabic: "وعد بالاتصال بي." }
+      { english: "She looked out of the window. (literal)", arabic: "نظرت من النافذة." },
+      { "english": "Look out! There's a car coming. (idiomatic)", "arabic": "انتبه! هناك سيارة قادمة." }
     ],
     mcqs: [
-      { question: "I can't imagine ___ in another country.", options: ["to live", "living", "live", "to living"], answer: "living" },
-      { question: "He refused ___ the question.", options: ["to answer", "answering", "answer", "to answering"], answer: "to answer" },
-      { question: "My parents let me ___ out late.", options: ["to stay", "staying", "stay", "to staying"], answer: "stay" },
-      { question: "She seems ___ a nice person.", options: ["to be", "being", "be", "to being"], answer: "to be" },
-      { question: "Have you finished ___ that book yet?", options: ["to read", "reading", "read", "to reading"], answer: "reading" }
+      { "question": "What does 'put off' mean?", "options": ["cancel", "wear", "postpone", "place"], "answer": "postpone" },
+      { "question": "The opposite of 'turn on' is...", "options": ["turn in", "turn off", "turn up", "turn down"], "answer": "turn off" }
+    ]
+  },
+  // Unit 8
+  {
+    type: 'lesson',
+    title: "Unit 8: Conditionals (First and Second)",
+    explanation: "First Conditional (if + present, will + infinitive) is for real future possibilities. Second Conditional (if + past, would + infinitive) is for unreal or imaginary situations.",
+    examples: [
+      { english: "If it rains, I will stay home.", arabic: "إذا أمطرت، سأبقى في المنزل." },
+      { english: "If I had a million dollars, I would buy a big house.", arabic: "لو كان لدي مليون دولار، لاشتريت منزلا كبيرا." }
+    ],
+    mcqs: [
+      { question: "If I ___ you, I would study more.", options: ["am", "was", "were", "be"], answer: "were" },
+      { question: "What will you do if you ___ the train?", options: ["miss", "will miss", "missed", "would miss"], answer: "miss" }
+    ]
+  },
+  // Unit 9
+  {
+    type: 'lesson',
+    title: "Unit 9: Modals 2 (must, could, might, can't)",
+    explanation: "These modals express probability. 'must' = almost certain. 'might'/'could' = possible. 'can't' = almost impossible.",
+    examples: [
+      { english: "He's not answering. He must be busy.", arabic: "إنه لا يرد. لابد أنه مشغول." },
+      { english: "It might rain later.", arabic: "قد تمطر لاحقًا." },
+      { english: "That can't be true!", arabic: "لا يمكن أن يكون هذا صحيحًا!" }
+    ],
+    mcqs: [
+      { question: "Someone's at the door. It ___ be the postman.", options: ["must", "can't", "might", "should"], answer: "might" },
+      { question: "She drives a Ferrari. She ___ be poor.", options: ["must", "can't", "might not", "shouldn't"], answer: "can't" }
+    ]
+  },
+  // Unit 10
+  {
+    type: 'lesson',
+    title: "Unit 10: Present Perfect Continuous",
+    explanation: "Use Present Perfect Continuous (have/has been + -ing) to talk about an action that started in the past and is still continuing, or has recently stopped and has a present result.",
+    examples: [
+      { english: "I've been learning English for three years.", arabic: "أنا أتعلم الإنجليزية منذ ثلاث سنوات." },
+      { english: "Your eyes are red. Have you been crying?", arabic: "عيناك حمراوان. هل كنت تبكي؟" }
+    ],
+    mcqs: [
+      { question: "How long ___ you been waiting?", options: ["do", "are", "have", "did"], answer: "have" },
+      { question: "It ___ all day. The streets are wet.", options: ["rains", "is raining", "has been raining", "rained"], answer: "has been raining" }
+    ]
+  },
+  // Unit 11
+  {
+    type: 'lesson',
+    title: "Unit 11: Indirect Questions",
+    explanation: "Indirect questions are more polite. They start with phrases like 'Could you tell me...' and use statement word order (no inversion).",
+    examples: [
+      { english: "Direct: What time is it? Indirect: Could you tell me what time it is?", arabic: "مباشر: كم الساعة؟ غير مباشر: هل يمكنك إخباري كم الساعة؟" },
+      { english: "Direct: Does he live here? Indirect: Do you know if he lives here?", arabic: "مباشر: هل يعيش هنا؟ غير مباشر: هل تعرف ما إذا كان يعيش هنا؟" }
+    ],
+    mcqs: [
+      { question: "Change to an indirect question: Where is the station?", options: ["Can you tell me where is the station?", "Can you tell me where the station is?", "Can you tell me where the station?", "Can you tell me is where the station?"], answer: "Can you tell me where the station is?" },
+      { question: "Change to an indirect question: Did she pass the exam?", options: ["I wonder if she passed the exam.", "I wonder did she pass the exam.", "I wonder if did she pass the exam.", "I wonder she passed the exam."], answer: "I wonder if she passed the exam." }
+    ]
+  },
+  // Unit 12
+  {
+    type: 'lesson',
+    title: "Unit 12: Reported Speech",
+    explanation: "When we report what someone said, we usually move the tense 'back' one step. E.g., Present Simple becomes Past Simple.",
+    examples: [
+      { english: "Direct: 'I am tired.' Reported: He said he was tired.", arabic: "مباشر: 'أنا متعب.' منقول: قال إنه كان متعبًا." },
+      { english: "Direct: 'I will call you.' Reported: She said she would call me.", arabic: "مباشر: 'سأتصل بك.' منقول: قالت إنها ستتصل بي." }
+    ],
+    mcqs: [
+      { question: "Report this sentence: 'I work in a bank.'", options: ["He said he works in a bank.", "He said he worked in a bank.", "He said I work in a bank.", "He said I worked in a bank."], answer: "He said he worked in a bank." },
+      { question: "Report this sentence: 'We have finished.'", options: ["They said they have finished.", "They said we had finished.", "They said they had finished.", "They said we have finish."], answer: "They said they had finished." }
     ]
   }
 ];
@@ -450,6 +318,23 @@ const stories: Story[] = [
 
 const allLessons = [...lessons];
 
+// This is a placeholder to simulate a much larger library.
+// In a real app, this would come from a database.
+const placeholderLesson: Lesson = {
+    type: 'lesson',
+    title: "Placeholder Lesson",
+    explanation: "This is a placeholder for a future lesson. Content will be added soon.",
+    examples: [{ english: "This is a placeholder example.", arabic: "هذا مثال مؤقت." }],
+    mcqs: [{ question: "This is a placeholder question.", options: ["A", "B"], answer: "A" }]
+};
+
+// Fill up to 80 lessons
+while (allLessons.length < 80) {
+    const newLesson = { ...placeholderLesson, title: `درس قيد الإعداد ${allLessons.length + 1}` };
+    allLessons.push(newLesson);
+}
+
+
 const combinedItems: LearningItem[] = [];
 let lessonIndex = 0;
 let storyIndex = 0;
@@ -470,5 +355,3 @@ while (lessonIndex < allLessons.length || storyIndex < stories.length) {
 
 
 export const learningItems: LearningItem[] = combinedItems;
-
-    
