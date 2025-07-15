@@ -78,7 +78,7 @@ export default function Home() {
             size="icon"
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="rounded-full text-foreground/80 hover:text-foreground hover:bg-foreground/10"
-            aria-label={isDarkMode ? "Activate Light Mode" : "Activate Dark Mode"}
+            aria-label={isDarkMode ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن"}
           >
             {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
@@ -92,10 +92,10 @@ export default function Home() {
 
         <nav className="fixed bottom-0 left-0 right-0 h-16 backdrop-blur-lg bg-background/50 border-t z-20">
           <div className="flex justify-around max-w-lg mx-auto h-full">
-            <NavItem icon={<HomeIcon />} label="Home" isActive={activeTab === "home"} onClick={() => setActiveTab("home")} />
-            <NavItem icon={<BookOpen />} label="Book" isActive={activeTab === "book"} onClick={() => setActiveTab("book")} />
-            <NavItem icon={<Bot />} label="AI" isActive={activeTab === "ai"} onClick={() => setActiveTab("ai")} />
-            <NavItem icon={<BarChart3 />} label="Progress" isActive={activeTab === "progress"} onClick={() => setActiveTab("progress")} />
+            <NavItem icon={<HomeIcon />} label="الرئيسية" isActive={activeTab === "home"} onClick={() => setActiveTab("home")} />
+            <NavItem icon={<BookOpen />} label="كتبي" isActive={activeTab === "book"} onClick={() => setActiveTab("book")} />
+            <NavItem icon={<Bot />} label="الذكاء الاصطناعي" isActive={activeTab === "ai"} onClick={() => setActiveTab("ai")} />
+            <NavItem icon={<BarChart3 />} label="التقدم" isActive={activeTab === "progress"} onClick={() => setActiveTab("progress")} />
           </div>
         </nav>
       </div>

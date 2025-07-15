@@ -27,17 +27,17 @@ export function AiScreen() {
       if (result.error) {
         toast({
           variant: "destructive",
-          title: "AI Error",
+          title: "خطأ في الذكاء الاصطناعي",
           description: result.error,
         });
       } else {
-        setResponse(result.answer || "Sorry, I couldn't find an answer.");
+        setResponse(result.answer || "عذراً، لم أتمكن من العثور على إجابة.");
       }
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "An error occurred",
-        description: "Please try again later.",
+        title: "حدث خطأ ما",
+        description: "الرجاء المحاولة مرة أخرى لاحقًا.",
       });
     } finally {
       setIsLoading(false);
@@ -47,21 +47,21 @@ export function AiScreen() {
 
   return (
     <section className="max-w-2xl mx-auto">
-      <h2 className="text-3xl font-bold tracking-tighter mb-6 text-center">Ask the AI</h2>
+      <h2 className="text-3xl font-bold tracking-tighter mb-6 text-center">اسأل الذكاء الاصطناعي</h2>
       <Card className="bg-card/80 backdrop-blur-sm shadow-lg">
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="flex items-start gap-4">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your question here..."
+              placeholder="اكتب سؤالك هنا..."
               rows={3}
               className="flex-grow bg-background/50 focus:ring-2 focus:ring-primary/50"
               disabled={isLoading}
             />
             <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
-              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-              <span className="sr-only">Ask AI</span>
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5 -scale-x-100" />}
+              <span className="sr-only">اسأل الذكاء الاصطناعي</span>
             </Button>
           </form>
         </CardContent>
@@ -70,7 +70,7 @@ export function AiScreen() {
       {isLoading && (
          <div className="mt-6 flex items-center justify-center gap-2 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
-            <span>Thinking...</span>
+            <span>يفكر...</span>
         </div>
       )}
 
