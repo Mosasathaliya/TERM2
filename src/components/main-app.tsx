@@ -3,7 +3,7 @@
  */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { Home, Book, Bot, BarChart, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,11 @@ function NavItem({ icon, label, isActive, onClick }: NavItemProps) {
 export function MainApp() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("home");
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const renderScreen = () => {
     switch (activeTab) {
@@ -64,7 +69,7 @@ export function MainApp() {
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="p-2 rounded-full hover:bg-accent"
         >
-          {theme === "dark" ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
+          {mounted && (theme === "dark" ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />)}
           <span className="sr-only">تبديل الوضع</span>
         </Button>
       </header>
