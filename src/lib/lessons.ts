@@ -1,4 +1,5 @@
 
+
 /**
  * @fileoverview Defines the structure and content for all English lessons and stories.
  * Content is based on the "New Headway Intermediate Student's Book".
@@ -1156,33 +1157,562 @@ const lessons: Lesson[] = [
       { question: "A person who writes books is an...", options: ["artist", "author", "actor", "architect"], answer: "author" },
       { question: "A famous painting like the Mona Lisa is called a...", options: ["sketch", "sculpture", "masterpiece", "portrait"], answer: "masterpiece" }
     ]
-  }
+  },
+  {
+    type: 'lesson',
+    title: "Writing: A Description (1)",
+    explanation: "Focuses on using descriptive adjectives and sensory language (what you see, hear, smell) to paint a vivid picture of a place or person for the reader.",
+    examples: [
+        { english: "The old house stood on a windswept hill.", arabic: "كان البيت القديم يقف على تل تعصف به الرياح." },
+        { english: "She has sparkling blue eyes and a warm smile.", arabic: "لديها عينان زرقاوان متلألئتان وابتسامة دافئة." },
+        { english: "The air smelled of fresh-cut grass and rain.", arabic: "كان الهواء يفوح برائحة العشب المقطوع حديثًا والمطر." },
+        { english: "The city was a bustling metropolis, full of towering skyscrapers.", arabic: "كانت المدينة حاضرة صاخبة، مليئة بناطحات السحاب الشاهقة." },
+        { english: "He wore a worn leather jacket that felt soft to the touch.", arabic: "كان يرتدي سترة جلدية بالية كانت ناعمة الملمس." },
+        { english: "The roaring sound of the waterfall filled the valley.", arabic: "ملأ صوت الشلال الهادر الوادي." },
+        { english: "The market was a vibrant explosion of color and noise.", arabic: "كان السوق انفجارًا حيويًا من الألوان والضوضاء." },
+        { english: "Her voice was as gentle as a whisper.", arabic: "كان صوتها رقيقًا كالهمس." },
+        { english: "The beach had fine, white sand and crystal-clear water.", arabic: "كان الشاطئ يحتوي على رمال بيضاء ناعمة ومياه صافية كالبلور." },
+        { english: "The pizza had a crispy crust and was topped with gooey, melted cheese.", arabic: "كانت البيتزا ذات قشرة مقرمشة ومغطاة بجبنة ذائبة لزجة." }
+    ],
+    mcqs: [
+        { question: "To describe a sound, you might use an adjective like...", options: ["sparkling", "bustling", "roaring", "vibrant"], answer: "roaring" },
+        { question: "Which adjective appeals to the sense of smell?", options: ["soft", "fresh-cut", "towering", "gentle"], answer: "fresh-cut" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Writing: A Letter of Application",
+    explanation: "Learn the formal structure and language required for a job application letter. This includes outlining your qualifications, explaining your interest in the job, and using polite, professional language.",
+    examples: [
+        { english: "I am writing to apply for the position of [Job Title], as advertised on [Platform].", arabic: "أكتب لأتقدم لوظيفة [المسمى الوظيفي]، كما هو معلن على [المنصة]." },
+        { english: "I believe my skills and experience are an excellent match for your requirements.", arabic: "أعتقد أن مهاراتي وخبرتي تتوافق بشكل ممتاز مع متطلباتكم." },
+        { english: "As you can see from my enclosed CV, I have [number] years of experience in...", arabic: "كما ترون من سيرتي الذاتية المرفقة، لدي [عدد] سنوات من الخبرة في..." },
+        { english: "During my time at [Previous Company], I was responsible for...", arabic: "خلال فترة عملي في [الشركة السابقة]، كنت مسؤولاً عن..." },
+        { english: "I am a highly motivated and results-oriented individual.", arabic: "أنا شخص متحمس للغاية وموجه نحو النتائج." },
+        { english: "I have excellent communication and teamwork skills.", arabic: "لدي مهارات تواصل وعمل جماعي ممتازة." },
+        { english: "Thank you for your time and consideration.", arabic: "شكرا لوقتكم واهتمامكم." },
+        { english: "I have attached my CV for your review.", arabic: "لقد أرفقت سيرتي الذاتية لمراجعتكم." },
+        { english: "I am available for an interview at your earliest convenience.", arabic: "أنا متاح للمقابلة في أقرب وقت يناسبكم." },
+        { english: "I look forward to hearing from you soon.", arabic: "أتطلع إلى الاستماع منكم قريبا." }
+    ],
+    mcqs: [
+        { question: "What is a common opening line for a letter of application?", options: ["What's up?", "I want this job.", "I am writing to apply for the position of...", "Here is my CV."], answer: "I am writing to apply for the position of..." },
+        { question: "What does 'CV' stand for?", options: ["Course Version", "Curriculum Vitae", "Company Volume", "Corrected Version"], answer: "Curriculum Vitae" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Writing: A Narrative (2)",
+    explanation: "Building on the first narrative lesson, this introduces more complex storytelling techniques, such as using different past tenses (Past Simple, Continuous, Perfect) to show the sequence and timing of events.",
+    examples: [
+        { english: "The sun was shining and the birds were singing. (Setting the scene)", arabic: "كانت الشمس مشرقة والطيور تغني. (وصف المشهد)" },
+        { english: "He had never seen anything like it before. (Using Past Perfect for earlier past)", arabic: "لم يكن قد رأى شيئًا كهذا من قبل. (استخدام الماضي التام للماضي الأسبق)" },
+        { english: "While they were walking, they heard a strange noise. (Interrupted action)", arabic: "بينما كانوا يمشون، سمعوا ضوضاء غريبة. (فعل مقطوع)" },
+        { english: "After he had finished breakfast, he went for a walk.", arabic: "بعد أن أنهى فطوره، ذهب في نزهة." },
+        { english: "He realized he had left his keys inside the house.", arabic: "أدرك أنه قد ترك مفاتيحه داخل المنزل." },
+        { english: "It had been raining for hours, so the ground was very wet.", arabic: "كانت تمطر لساعات، لذا كانت الأرض مبللة جدًا." },
+        { english: "First he knocked on the door, then he called her name.", arabic: "أولاً طرق الباب، ثم نادى باسمها." },
+        { english: "She was tired because she had been working all day.", arabic: "كانت متعبة لأنها كانت تعمل طوال اليوم." },
+        { english: "The police arrived, but the thief had already escaped.", arabic: "وصلت الشرطة، لكن اللص كان قد هرب بالفعل." },
+        { english: "By the time I got there, the party had nearly finished.", arabic: "بحلول الوقت الذي وصلت فيه، كانت الحفلة قد انتهت تقريبًا." }
+    ],
+    mcqs: [
+        { question: "To describe a background action that was interrupted, you use...", options: ["Past Simple", "Past Continuous", "Past Perfect", "Present Perfect"], answer: "Past Continuous" },
+        { question: "To describe an action that happened *before* another past action, you use...", options: ["Past Simple", "Past Continuous", "Past Perfect", "Present Perfect"], answer: "Past Perfect" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Writing: A Description (2)",
+    explanation: "This lesson expands on describing people, focusing on character and personality. It involves using a range of character adjectives and providing examples of behavior to support the description.",
+    examples: [
+        { english: "He is a very determined person; once he makes up his mind, he never gives up.", arabic: "هو شخص مصمم جداً؛ بمجرد أن يتخذ قراره، لا يستسلم أبدًا." },
+        { english: "She has a great sense of humor and is always making people laugh.", arabic: "لديها حس فكاهة رائع ودائماً ما تجعل الناس يضحكون." },
+        { english: "My uncle is incredibly generous; for example, he once gave a stranger his coat.", arabic: "عمي كريم بشكل لا يصدق؛ على سبيل المثال، أعطى مرة معطفه لغريب." },
+        { english: "He can be a bit pessimistic and always expects the worst to happen.", arabic: "يمكن أن يكون متشائمًا بعض الشيء ودائمًا يتوقع حدوث الأسوأ." },
+        { english: "She is adventurous and loves to travel to exotic places.", arabic: "هي مغامرة وتحب السفر إلى أماكن غريبة." },
+        { english: "He's very practical and down-to-earth.", arabic: "إنه عملي جدًا وواقعي." },
+        { english: "She is a loyal friend who will always support you.", arabic: "هي صديقة مخلصة ستدعمك دائمًا." },
+        { english: "He is quite reserved and doesn't say much in meetings.", arabic: "إنه متحفظ تمامًا ولا يتحدث كثيرًا في الاجتماعات." },
+        { english: "She is very organized and plans everything in detail.", arabic: "هي منظمة جدًا وتخطط لكل شيء بالتفصيل." },
+        { english: "He has a curious mind and is always asking questions.", arabic: "لديه عقل فضولي ودائمًا ما يطرح الأسئلة." }
+    ],
+    mcqs: [
+        { question: "A person who is 'down-to-earth' is...", options: ["adventurous", "funny", "practical and sensible", "unfriendly"], answer: "practical and sensible" },
+        { question: "To support a description of someone's character, it is good to...", options: ["describe their appearance", "give examples of their behavior", "list their hobbies", "say their age"], answer: "give examples of their behavior" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Writing: A Biography",
+    explanation: "Learn how to write a short biography of a person. This involves organizing key life events chronologically, using past tenses, and highlighting important achievements.",
+    examples: [
+        { english: "Nelson Mandela was born in South Africa in 1918.", arabic: "ولد نيلسون مانديلا في جنوب أفريقيا عام 1918." },
+        { english: "As a young man, he studied law at university.", arabic: "عندما كان شابًا، درس القانون في الجامعة." },
+        { english: "He became a key figure in the fight against apartheid.", arabic: "أصبح شخصية رئيسية في الكفاح ضد الفصل العنصري." },
+        { english: "He spent 27 years in prison for his political activities.", arabic: "قضى 27 عامًا في السجن بسبب أنشطته السياسية." },
+        { english: "After his release in 1990, he worked to end apartheid.", arabic: "بعد إطلاق سراحه في عام 1990، عمل على إنهاء الفصل العنصري." },
+        { english: "In 1994, he was elected as the first black president of South Africa.", arabic: "في عام 1994، انتخب كأول رئيس أسود لجنوب أفريقيا." },
+        { english: "He is remembered for his leadership and his work for reconciliation.", arabic: "يُذكر لقيادته وعمله من أجل المصالحة." },
+        { english: "Marie Curie is famous for her research on radioactivity.", arabic: "تشتهر ماري كوري بأبحاثها حول النشاط الإشعاعي." },
+        { english: "She was awarded the Nobel Prize in two different scientific fields.", arabic: "حصلت على جائزة نوبل في مجالين علميين مختلفين." },
+        { english: "She died in 1934 from an illness caused by her long exposure to radiation.", arabic: "توفت في عام 1934 بسبب مرض ناتج عن تعرضها الطويل للإشعاع." }
+    ],
+    mcqs: [
+        { question: "A biography is usually written in which tense?", options: ["Present Simple", "Future", "Past Simple", "Present Continuous"], answer: "Past Simple" },
+        { question: "What is the main purpose of a biography?", options: ["To tell a fictional story", "To describe a person's life and achievements", "To argue a point", "To give instructions"], answer: "To describe a person's life and achievements" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Writing: Words that Join Ideas",
+    explanation: "Focuses on using conjunctions and linking phrases (e.g., 'although', 'however', 'because', 'so', 'in addition') to connect ideas smoothly within sentences and between paragraphs.",
+    examples: [
+        { english: "He was tired, so he went to bed early.", arabic: "كان متعبًا، لذا ذهب إلى الفراش مبكرًا." },
+        { english: "Although it was raining, we went for a walk.", arabic: "على الرغم من أنها كانت تمطر، ذهبنا في نزهة." },
+        { english: "I couldn't go to the party because I was sick.", arabic: "لم أستطع الذهاب إلى الحفلة لأنني كنت مريضًا." },
+        { english: "She is very smart. In addition, she is a talented musician.", arabic: "هي ذكية جدًا. بالإضافة إلى ذلك، هي موسيقية موهوبة." },
+        { english: "He studied hard; however, he didn't pass the exam.", arabic: "درس بجد؛ ومع ذلك، لم ينجح في الامتحان." },
+        { english: "The restaurant was expensive. Furthermore, the service was slow.", arabic: "كان المطعم باهظ الثمن. علاوة على ذلك، كانت الخدمة بطيئة." },
+        { english: "You can have tea or coffee.", arabic: "يمكنك تناول الشاي أو القهوة." },
+        { english: "I like him, but I don't trust him.", arabic: "أنا معجب به، لكنني لا أثق به." },
+        { english: "We need to leave now, otherwise we will be late.", arabic: "نحن بحاجة إلى المغادرة الآن، وإلا فسوف نتأخر." },
+        { english: "He is not only a good student but also a great athlete.", arabic: "إنه ليس فقط طالبًا جيدًا ولكن أيضًا رياضيًا رائعًا." }
+    ],
+    mcqs: [
+        { question: "Which word shows a reason?", options: ["so", "but", "although", "because"], answer: "because" },
+        { question: "Which word shows a contrast?", options: ["and", "so", "however", "in addition"], answer: "however" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Writing: Correcting Mistakes (2) - Advanced",
+    explanation: "This lesson tackles more complex and common errors, such as incorrect verb patterns, prepositional mistakes, and errors with reported speech, helping to refine writing accuracy.",
+    examples: [
+        { english: "Incorrect: I am agree with you. Correct: I agree with you.", arabic: "خطأ: I am agree with you. صحيح: I agree with you." },
+        { english: "Incorrect: It depends of the weather. Correct: It depends on the weather.", arabic: "خطأ: It depends of the weather. صحيح: It depends on the weather." },
+        { english: "Incorrect: He is good in English. Correct: He is good at English.", arabic: "خطأ: He is good in English. صحيح: He is good at English." },
+        { english: "Incorrect: I suggest you to go. Correct: I suggest that you go / I suggest going.", arabic: "خطأ: I suggest you to go. صحيح: I suggest that you go / I suggest going." },
+        { english: "Incorrect: I've been here since three hours. Correct: I've been here for three hours.", arabic: "خطأ: I've been here since three hours. صحيح: I've been here for three hours." },
+        { english: "Incorrect: She said me that she was tired. Correct: She told me that she was tired.", arabic: "خطأ: She said me that she was tired. صحيح: She told me that she was tired." },
+        { english: "Incorrect: Everybody are happy. Correct: Everybody is happy.", arabic: "خطأ: Everybody are happy. صحيح: Everybody is happy." },
+        { english: "Incorrect: I have a good news. Correct: I have good news.", arabic: "خطأ: I have a good news. صحيح: I have good news." },
+        { english: "Incorrect: We discussed about the problem. Correct: We discussed the problem.", arabic: "خطأ: We discussed about the problem. صحيح: We discussed the problem." },
+        { english: "Incorrect: If I will see him, I will tell him. Correct: If I see him, I will tell him.", arabic: "خطأ: If I will see him, I will tell him. صحيح: If I see him, I will tell him." }
+    ],
+    mcqs: [
+        { question: "Which is correct?", options: ["I'm looking forward to see you.", "I'm looking forward to seeing you.", "I look forward for seeing you.", "I'm looking forward see you."], answer: "I'm looking forward to seeing you." },
+        { question: "Which preposition follows 'interested'?", options: ["on", "at", "about", "in"], answer: "in" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Vocabulary: Collocations",
+    explanation: "Collocations are words that frequently appear together (e.g., 'make a mistake', 'heavy rain'). This lesson focuses on learning common verb-noun and adjective-noun pairings to make your English sound more natural.",
+    examples: [
+      { english: "It's important not to make a mistake.", arabic: "من المهم ألا ترتكب خطأ." },
+      { english: "You need to do your homework every day.", arabic: "تحتاج إلى أداء واجبك المنزلي كل يوم." },
+      { english: "She has a shower in the morning.", arabic: "تستحم في الصباح." },
+      { english: "We had a great time at the party.", arabic: "قضينا وقتًا رائعًا في الحفلة." },
+      { english: "He is trying to save money for a new car.", arabic: "يحاول توفير المال لسيارة جديدة." },
+      { english: "Can you give me some advice?", arabic: "هل يمكنك أن تعطيني بعض النصائح؟" },
+      { english: "I need to take a break from work.", arabic: "أحتاج إلى أخذ استراحة من العمل." },
+      { english: "The doctor told me to get some exercise.", arabic: "أخبرني الطبيب أن أمارس بعض التمارين." },
+      { english: "It's starting to rain heavily. We are expecting heavy rain.", arabic: "بدأت تمطر بغزارة. نحن نتوقع هطول أمطار غزيرة." },
+      { english: "He told a funny joke.", arabic: "قال نكتة مضحكة." }
+    ],
+    mcqs: [
+      { question: "Which verb collocates with 'a photo'?", options: ["make", "do", "take", "give"], answer: "take" },
+      { question: "Which adjective collocates with 'traffic'?", options: ["strong", "heavy", "big", "hard"], answer: "heavy" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Vocabulary: Phrasal Verbs (Literal vs. Idiomatic)",
+    explanation: "This lesson introduces phrasal verbs and the difference between their literal meaning (e.g., 'She looked out of the window') and their idiomatic meaning (e.g., 'Look out!').",
+    examples: [
+      { english: "He picked up the book from the floor. (Literal)", arabic: "التقط الكتاب من على الأرض. (حرفي)" },
+      { english: "He picked up some Italian on his trip to Rome. (Idiomatic - learned)", arabic: "تعلم بعض الإيطالية في رحلته إلى روما. (اصطلاحي - تعلم)" },
+      { english: "She ran across the road. (Literal)", arabic: "ركضت عبر الطريق. (حرفي)" },
+      { english: "I ran across an old friend yesterday. (Idiomatic - met by chance)", arabic: "صادفت صديقًا قديمًا أمس. (اصطلاحي - التقيت به صدفة)" },
+      { english: "The plane took off from the runway. (Literal)", arabic: "أقلعت الطائرة من المدرج. (حرفي)" },
+      { english: "His career really took off after that film. (Idiomatic - became successful)", arabic: "انطلقت مسيرته المهنية حقًا بعد ذلك الفيلم. (اصطلاحي - أصبح ناجحًا)" },
+      { english: "Can you turn on the light? (Literal)", arabic: "هل يمكنك إشعال الضوء؟ (حرفي)" },
+      { english: "The audience turned on the speaker. (Idiomatic - became hostile)", arabic: "أصبح الجمهور عدائيًا تجاه المتحدث. (اصطلاحي - أصبح عدائيًا)" },
+      { english: "He looked up the word in a dictionary. (Idiomatic - searched for information)", arabic: "بحث عن الكلمة في القاموس. (اصطلاحي - بحث عن معلومات)" },
+      { english: "Things are looking up. (Idiomatic - improving)", arabic: "الأمور تتحسن. (اصطلاحي - تتحسن)" }
+    ],
+    mcqs: [
+      { question: "What does 'give up' mean in 'Don't give up smoking'?", options: ["start", "continue", "stop", "reduce"], answer: "stop" },
+      { question: "In 'He made up a story', does 'made up' mean built or invented?", options: ["Built", "Invented"], answer: "Invented" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Vocabulary: Phrasal Verbs (Separable vs. Inseparable)",
+    explanation: "Learn the rules for separable and inseparable phrasal verbs. Separable verbs allow the object to come between the verb and particle ('turn the TV on' or 'turn it on'), while inseparable verbs do not ('look after the baby').",
+    examples: [
+      { english: "Separable: Please turn on the light. / Please turn the light on.", arabic: "قابل للفصل: من فضلك أشعل الضوء. / من فضلك أشعل الضوء." },
+      { english: "Separable with pronoun: Please turn it on. (NOT turn on it)", arabic: "قابل للفصل مع ضمير: من فضلك أشعله. (وليس turn on it)" },
+      { english: "Inseparable: I will look after the children.", arabic: "غير قابل للفصل: سأعتني بالأطفال." },
+      { english: "Inseparable with pronoun: I will look after them. (NOT look them after)", arabic: "غير قابل للفصل مع ضمير: سأعتني بهم. (وليس look them after)" },
+      { english: "Separable: She threw away the old newspapers. / She threw the old newspapers away.", arabic: "قابل للفصل: رمت الصحف القديمة. / رمت الصحف القديمة بعيدًا." },
+      { english: "Separable with pronoun: She threw them away.", arabic: "قابل للفصل مع ضمير: رمتهم بعيدًا." },
+      { english: "Inseparable: He got on the bus.", arabic: "غير قابل للفصل: ركب الحافلة." },
+      { english: "Inseparable: I ran into an old friend.", arabic: "غير قابل للفصل: صادفت صديقًا قديمًا." },
+      { english: "Separable: Can you pick up my parcel? / Can you pick my parcel up?", arabic: "قابل للفصل: هل يمكنك استلام طردي؟ / هل يمكنك استلام طردي؟" },
+      { english: "Separable with pronoun: Can you pick it up?", arabic: "قابل للفصل مع ضمير: هل يمكنك استلامه؟" }
+    ],
+    mcqs: [
+      { question: "Which sentence is correct?", options: ["I look after them.", "I look them after.", "Both are correct.", "Neither is correct."], answer: "I look after them." },
+      { question: "Which sentence is INCORRECT?", options: ["Take off your coat.", "Take your coat off.", "Take it off.", "Take off it."], answer: "Take off it." }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Vocabulary: Modifying Adverbs",
+    explanation: "Learn how to use adverbs like 'very', 'really', and 'absolutely' to modify adjectives. 'Very' is used with base adjectives ('very tired'), while 'absolutely' is used with strong adjectives ('absolutely exhausted').",
+    examples: [
+      { english: "The film was very good.", arabic: "كان الفيلم جيدًا جدًا." },
+      { english: "The film was absolutely brilliant.", arabic: "كان الفيلم رائعًا للغاية." },
+      { english: "It's a bit cold today.", arabic: "الجو بارد قليلاً اليوم." },
+      { english: "It's absolutely freezing!", arabic: "الجو متجمد تمامًا!" },
+      { english: "I'm quite tired.", arabic: "أنا متعب تمامًا." },
+      { english: "I'm completely exhausted.", arabic: "أنا منهك تمامًا." },
+      { english: "The house is really big.", arabic: "المنزل كبير حقًا." },
+      { english: "The house is absolutely enormous.", arabic: "المنزل ضخم للغاية." },
+      { english: "She was slightly surprised.", arabic: "كانت متفاجئة قليلاً." },
+      { english: "She was utterly amazed.", arabic: "كانت مندهشة تمامًا." }
+    ],
+    mcqs: [
+      { question: "Which phrase is correct?", options: ["very exhausted", "absolutely tired", "absolutely exhausted", "very brilliant"], answer: "absolutely exhausted" },
+      { question: "You can say 'very big' or...", options: ["absolutely big", "absolutely huge", "very huge", "slightly big"], answer: "absolutely huge" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Vocabulary: Verbs and Nouns that Go Together",
+    explanation: "This lesson focuses on common verb-noun collocations that might not be obvious, such as 'whistle a tune', 'lick an ice-cream', or 'hold your breath'.",
+    examples: [
+      { english: "He was whistling a happy tune.", arabic: "كان يصفر لحنًا سعيدًا." },
+      { english: "The cat was licking its paws.", arabic: "كانت القطة تلعق كفوفها." },
+      { english: "She held her breath and dived into the water.", arabic: "حبست أنفاسها وغطست في الماء." },
+      { english: "Can you keep a secret?", arabic: "هل يمكنك الاحتفاظ بسر؟" },
+      { english: "He broke his promise.", arabic: "لقد أخلف وعده." },
+      { english: "Don't waste your time on that.", arabic: "لا تضيع وقتك في ذلك." },
+      { english: "I need to catch the bus.", arabic: "أنا بحاجة للحاق بالحافلة." },
+      { english: "She always tells the truth.", arabic: "هي دائما تقول الحقيقة." },
+      { english: "Let's raise money for charity.", arabic: "دعونا نجمع المال للأعمال الخيرية." },
+      { english: "He paid me a compliment.", arabic: "لقد أثنى علي." }
+    ],
+    mcqs: [
+      { question: "Which verb do you use with 'a secret'?", options: ["tell", "say", "hold", "keep"], answer: "keep" },
+      { question: "Which verb do you use with 'a promise'?", options: ["break", "smash", "cut", "tear"], answer: "break" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Vocabulary: Birth, Marriage, and Death",
+    explanation: "Learn the key vocabulary associated with major life events, such as 'to be born', 'get engaged', 'get married', 'funeral', and 'to pass away'.",
+    examples: [
+      { english: "My nephew was born last week.", arabic: "ولد ابن أخي الأسبوع الماضي." },
+      { english: "They are going to have a baby in June.", arabic: "سينجبون طفلاً في يونيو." },
+      { english: "My sister got engaged last month.", arabic: "خطبت أختي الشهر الماضي." },
+      { english: "They got married in a beautiful church.", arabic: "تزوجا في كنيسة جميلة." },
+      { english: "The wedding reception was held in a hotel.", arabic: "أقيم حفل الزفاف في فندق." },
+      { english: "Sadly, his grandfather passed away last year.", arabic: "للأسف، توفي جده العام الماضي." },
+      { english: "The funeral will take place on Friday.", arabic: "ستقام الجنازة يوم الجمعة." },
+      { english: "She is a widow; her husband died five years ago.", arabic: "هي أرملة؛ توفي زوجها قبل خمس سنوات." },
+      { english: "They are celebrating their 50th wedding anniversary.", arabic: "يحتفلون بالذكرى الخمسين لزواجهم." },
+      { english: "She is pregnant with her first child.", arabic: "هي حامل بطفلها الأول." }
+    ],
+    mcqs: [
+      { question: "What is the event called when two people get married?", options: ["A funeral", "A birthday", "A wedding", "An engagement"], answer: "A wedding" },
+      { question: "What is a more polite way to say 'died'?", options: ["expired", "passed away", "finished", "ended"], answer: "passed away" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Grammar Reference: Tenses Overview",
+    explanation: "A summary of the main English tenses (Present, Past, Perfect, Continuous) and their primary uses. This serves as a quick reference guide.",
+    examples: [
+      { english: "Present Simple: I work in London. (Fact/Habit)", arabic: "المضارع البسيط: أعمل في لندن. (حقيقة/عادة)" },
+      { english: "Present Continuous: I am working now. (Action in progress)", arabic: "المضارع المستمر: أنا أعمل الآن. (فعل قيد التقدم)" },
+      { english: "Past Simple: I worked yesterday. (Finished past action)", arabic: "الماضي البسيط: عملت أمس. (فعل ماضٍ منتهٍ)" },
+      { english: "Past Continuous: I was working when you called. (Action in progress in the past)", arabic: "الماضي المستمر: كنت أعمل عندما اتصلت. (فعل قيد التقدم في الماضي)" },
+      { english: "Present Perfect: I have worked here for five years. (Past action with connection to present)", arabic: "المضارع التام: لقد عملت هنا لمدة خمس سنوات. (فعل ماضٍ له صلة بالحاضر)" },
+      { english: "Past Perfect: I had worked there before I moved. (Action before another past action)", arabic: "الماضي التام: كنت قد عملت هناك قبل أن أنتقل. (فعل قبل فعل ماضٍ آخر)" },
+      { english: "Future with 'will': I will help you. (Instant decision/Offer)", arabic: "المستقبل بـ 'will': سأساعدك. (قرار فوري/عرض)" },
+      { english: "Future with 'going to': I am going to work tomorrow. (Plan/Intention)", arabic: "المستقبل بـ 'going to': سأعمل غدًا. (خطة/نية)" },
+      { english: "Passive Voice: The report was written by John. (Focus on the action)", arabic: "المبني للمجهول: تمت كتابة التقرير بواسطة جون. (التركيز على الفعل)" },
+      { english: "Conditional: If I had time, I would work more. (Hypothetical situation)", arabic: "الشرط: لو كان لدي وقت، لعملت أكثر. (موقف افتراضي)" }
+    ],
+    mcqs: [
+      { question: "Which tense is used for an action happening at the moment of speaking?", options: ["Present Simple", "Present Continuous", "Present Perfect", "Past Simple"], answer: "Present Continuous" },
+      { question: "Which tense is used for an action that happened before another action in the past?", options: ["Past Simple", "Past Continuous", "Present Perfect", "Past Perfect"], answer: "Past Perfect" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Grammar Reference: Modal Verbs Overview",
+    explanation: "A summary of modal auxiliary verbs (can, could, will, would, shall, should, may, might, must) and their functions, including ability, permission, obligation, and probability.",
+    examples: [
+      { english: "Ability: I can speak three languages.", arabic: "القدرة: أستطيع التحدث بثلاث لغات." },
+      { english: "Permission: Can I borrow your pen?", arabic: "الإذن: هل يمكنني استعارة قلمك؟" },
+      { english: "Advice: You should see a doctor.", arabic: "النصيحة: يجب أن تراجع طبيبًا." },
+      { english: "Obligation: You must finish your homework.", arabic: "الالتزام: يجب عليك إنهاء واجبك." },
+      { english: "Possibility: It might rain later.", arabic: "الإمكانية: قد تمطر لاحقًا." },
+      { english: "Request: Could you help me, please?", arabic: "الطلب: هل يمكنك مساعدتي، من فضلك؟" },
+      { english: "Offer: I'll carry that for you.", arabic: "العرض: سأحمل ذلك عنك." },
+      { english: "Logical deduction (strong probability): He must be tired.", arabic: "استنتاج منطقي (احتمالية قوية): لا بد أنه متعب." },
+      { english: "Logical deduction (impossibility): That can't be true.", arabic: "استنتاج منطقي (استحالة): لا يمكن أن يكون ذلك صحيحًا." },
+      { english: "Hypothetical situation: If I won, I would travel the world.", arabic: "موقف افتراضي: لو فزت، لسافرت حول العالم." }
+    ],
+    mcqs: [
+      { question: "Which modal verb expresses strong obligation?", options: ["should", "can", "must", "might"], answer: "must" },
+      { question: "Which modal verb is best for giving advice?", options: ["must", "should", "can", "may"], answer: "should" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Grammar Reference: Passive Voice Overview",
+    explanation: "A summary of how to form the passive voice in different tenses (e.g., is done, was done, has been done, will be done) and when to use it.",
+    examples: [
+      { english: "Present Simple: The office is cleaned every day.", arabic: "المضارع البسيط: يتم تنظيف المكتب كل يوم." },
+      { english: "Present Continuous: The office is being cleaned now.", arabic: "المضارع المستمر: يتم تنظيف المكتب الآن." },
+      { english: "Past Simple: The office was cleaned yesterday.", arabic: "الماضي البسيط: تم تنظيف المكتب أمس." },
+      { english: "Past Continuous: The office was being cleaned when I arrived.", arabic: "الماضي المستمر: كان يتم تنظيف المكتب عندما وصلت." },
+      { english: "Present Perfect: The office has been cleaned.", arabic: "المضارع التام: لقد تم تنظيف المكتب." },
+      { english: "Past Perfect: The office had been cleaned before they left.", arabic: "الماضي التام: كان قد تم تنظيف المكتب قبل مغادرتهم." },
+      { english: "Future (will): The office will be cleaned tomorrow.", arabic: "المستقبل (will): سيتم تنظيف المكتب غدًا." },
+      { english: "Future (going to): The office is going to be cleaned.", arabic: "المستقبل (going to): سيتم تنظيف المكتب." },
+      { english: "Modals: The office must be cleaned.", arabic: "الأفعال المساعدة: يجب تنظيف المكتب." },
+      { english: "The passive is used when the action is more important than the agent.", arabic: "يستخدم المبني للمجهول عندما يكون الفعل أكثر أهمية من الفاعل." }
+    ],
+    mcqs: [
+      { question: "How do you make 'They build houses' passive?", options: ["Houses are build.", "Houses are built.", "Houses are being built.", "Houses were built."], answer: "Houses are built." },
+      { question: "How do you make 'She has written a book' passive?", options: ["A book is written.", "A book has written.", "A book has been written.", "A book was written."], answer: "A book has been written." }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Grammar Reference: Conditionals Overview",
+    explanation: "A summary of the main conditional structures (Zero, First, Second, Third) and their uses for talking about real, hypothetical, and past hypothetical situations.",
+    examples: [
+      { english: "Zero Conditional (General truth): If you heat water, it boils.", arabic: "الشرط الصفري (حقيقة عامة): إذا سخنت الماء، فإنه يغلي." },
+      { english: "First Conditional (Real future possibility): If it rains, we will stay home.", arabic: "الشرط الأول (إمكانية مستقبلية حقيقية): إذا أمطرت، سنبقى في المنزل." },
+      { english: "Second Conditional (Hypothetical present/future): If I had money, I would travel.", arabic: "الشرط الثاني (افتراضي في الحاضر/المستقبل): لو كان لدي مال، لسافرت." },
+      { english: "Third Conditional (Hypothetical past): If I had studied, I would have passed.", arabic: "الشرط الثالث (افتراضي في الماضي): لو كنت قد درست، لكنت قد نجحت." },
+      { english: "First: If you study, you will pass the exam.", arabic: "الأول: إذا درست، ستنجح في الامتحان." },
+      { english: "Second: If I were you, I would tell the truth.", arabic: "الثاني: لو كنت مكانك، لقلت الحقيقة." },
+      { english: "Third: She would have come if you had invited her.", arabic: "الثالث: كانت ستأتي لو كنت قد دعوتها." },
+      { english: "Zero: When the sun goes down, it gets dark.", arabic: "الصفري: عندما تغرب الشمس، يحل الظلام." },
+      { english: "First: I'll call you if I have time.", arabic: "الأول: سأتصل بك إذا كان لدي وقت." },
+      { english: "Second: What would you do if you won the lottery?", arabic: "الثاني: ماذا كنت ستفعل لو ربحت اليانصيب؟" }
+    ],
+    mcqs: [
+      { question: "Which conditional is for hypothetical past situations?", options: ["First", "Second", "Third", "Zero"], answer: "Third" },
+      { question: "Which conditional is for real future possibilities?", options: ["First", "Second", "Third", "Zero"], answer: "First" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Grammar Reference: Reported Speech Overview",
+    explanation: "A quick reference guide to the rules of reported speech, including tense backshift, changes to pronouns and time expressions, and the structure for reporting statements, questions, and commands.",
+    examples: [
+      { english: "Statement: 'I am happy.' -> He said he was happy.", arabic: "جملة خبرية: 'أنا سعيد.' -> قال إنه كان سعيدًا." },
+      { english: "Question: 'Where are you?' -> She asked where I was.", arabic: "سؤال: 'أين أنت؟' -> سألت أين كنت." },
+      { english: "Command: 'Sit down.' -> He told me to sit down.", arabic: "أمر: 'اجلس.' -> أخبرني أن أجلس." },
+      { english: "Request: 'Please wait.' -> She asked me to wait.", arabic: "طلب: 'من فضلك انتظر.' -> طلبت مني أن أنتظر." },
+      { english: "Pronoun change: 'I like your coat.' -> He said he liked my coat.", arabic: "تغيير الضمير: 'أنا أحب معطفك.' -> قال إنه أحب معطفي." },
+      { english: "Tense backshift: 'I will call you.' -> She said she would call me.", arabic: "تغيير الزمن للوراء: 'سأتصل بك.' -> قالت إنها ستتصل بي." },
+      { english: "Time change: 'I'll see you tomorrow.' -> He said he would see me the next day.", arabic: "تغيير الزمن: 'سأراك غدًا.' -> قال إنه سيراني في اليوم التالي." },
+      { english: "'Yes/No' question: 'Are you busy?' -> She asked if I was busy.", arabic: "سؤال نعم/لا: 'هل أنت مشغول؟' -> سألت إذا كنت مشغولاً." },
+      { english: "Negative command: 'Don't shout.' -> He told them not to shout.", arabic: "أمر منفي: 'لا تصرخ.' -> أخبرهم ألا يصرخوا." },
+      { english: "The reporting verb 'said' doesn't take an object, 'told' does: He told me... (NOT He said me...)", arabic: "فعل النقل 'قال' لا يأخذ مفعولاً به، بينما 'أخبر' يأخذ: أخبرني... (وليس قال لي...)" }
+    ],
+    mcqs: [
+      { question: "How do you report the question 'What are you doing?'", options: ["He asked what I was doing.", "He asked what was I doing.", "He asked what are you doing.", "He asked what I am doing."], answer: "He asked what I was doing." },
+      { question: "How do you report the command 'Don't go!'", options: ["She told me don't go.", "She told me to not go.", "She told me not to go.", "She said me not to go."], answer: "She told me not to go." }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Grammar Reference: Verb Patterns Overview",
+    explanation: "A summary chart of common verbs and the patterns that follow them (verb + -ing, verb + to-infinitive, etc.). This is a useful tool for avoiding common mistakes.",
+    examples: [
+      { english: "Verb + -ing: I enjoy reading.", arabic: "فعل + -ing: أستمتع بالقراءة." },
+      { english: "Verb + to-infinitive: I want to leave.", arabic: "فعل + to-infinitive: أريد أن أغادر." },
+      { english: "Verb + object + to-infinitive: I asked him to help.", arabic: "فعل + مفعول به + to-infinitive: طلبت منه المساعدة." },
+      { english: "Verb + object + infinitive (no to): She made me laugh.", arabic: "فعل + مفعول به + infinitive (بدون to): جعلتني أضحك." },
+      { english: "Verb + that-clause: I think that you are right.", arabic: "فعل + جملة that: أعتقد أنك على حق." },
+      { english: "Preposition + -ing: I'm good at playing chess.", arabic: "حرف جر + -ing: أنا جيد في لعب الشطرنج." },
+      { english: "Verbs like 'love', 'hate', 'start' can take -ing or to-infinitive.", arabic: "أفعال مثل 'أحب'، 'أكره'، 'أبدأ' يمكن أن تأخذ -ing أو to-infinitive." },
+      { english: "'Stop' has different meanings: He stopped smoking. (quit) / He stopped to smoke. (paused to do something)", arabic: "'توقف' لها معان مختلفة: توقف عن التدخين. (أقلع) / توقف ليدخن. (توقف مؤقتًا للقيام بشيء ما)" },
+      { english: "Avoid, finish, mind are followed by -ing.", arabic: "تجنب، أنهى، مانع يتبعها -ing." },
+      { english: "Decide, hope, promise are followed by to-infinitive.", arabic: "قرر، أمل، وعد يتبعها to-infinitive." }
+    ],
+    mcqs: [
+      { question: "Which pattern follows the verb 'enjoy'?", options: ["to-infinitive", "-ing", "infinitive (no to)"], answer: "-ing" },
+      { question: "Which pattern follows the verb 'decide'?", options: ["to-infinitive", "-ing", "infinitive (no to)"], answer: "to-infinitive" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Phonetic Symbols: Vowels",
+    explanation: "An introduction to the phonetic symbols used to represent vowel sounds in English, helping to improve pronunciation accuracy.",
+    examples: [
+      { english: "/i:/ as in see, meet, eat", arabic: "/i:/ كما في see, meet, eat" },
+      { english: "/ɪ/ as in sit, his, big", arabic: "/ɪ/ كما في sit, his, big" },
+      { english: "/e/ as in ten, bed, said", arabic: "/e/ كما في ten, bed, said" },
+      { english: "/æ/ as in cat, stamp, happy", arabic: "/æ/ كما في cat, stamp, happy" },
+      { english: "/ɑː/ as in father, car, park", arabic: "/ɑː/ كما في father, car, park" },
+      { english: "/ɒ/ as in hot, got, watch (in British English)", arabic: "/ɒ/ كما في hot, got, watch (في الإنجليزية البريطانية)" },
+      { english: "/ɔː/ as in four, morning, walk", arabic: "/ɔː/ كما في four, morning, walk" },
+      { english: "/ʊ/ as in put, good, football", arabic: "/ʊ/ كما في put, good, football" },
+      { english: "/uː/ as in you, food, blue", arabic: "/uː/ كما في you, food, blue" },
+      { english: "/ʌ/ as in sun, but, come", arabic: "/ʌ/ كما في sun, but, come" }
+    ],
+    mcqs: [
+      { question: "Which symbol represents the vowel sound in 'sheep'?", options: ["/ɪ/", "/e/", "/i:/", "/aɪ/"], answer: "/i:/" },
+      { question: "Which symbol represents the vowel sound in 'ship'?", options: ["/ɪ/", "/e/", "/i:/", "/aɪ/"], answer: "/ɪ/" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Phonetic Symbols: Consonants",
+    explanation: "An introduction to the phonetic symbols used to represent consonant sounds in English, including sounds that can be tricky for learners.",
+    examples: [
+      { english: "/p/ as in pen, happy, stop", arabic: "/p/ كما في pen, happy, stop" },
+      { english: "/b/ as in big, table, job", arabic: "/b/ كما في big, table, job" },
+      { english: "/t/ as in tea, student, get", arabic: "/t/ كما في tea, student, get" },
+      { english: "/d/ as in do, middle, good", arabic: "/d/ كما في do, middle, good" },
+      { english: "/k/ as in cat, back, school", arabic: "/k/ كما في cat, back, school" },
+      { english: "/g/ as in go, bigger, bag", arabic: "/g/ كما في go, bigger, bag" },
+      { english: "/θ/ as in thanks, nothing, bath (voiceless 'th')", arabic: "/θ/ كما في thanks, nothing, bath ('th' غير صوتي)" },
+      { english: "/ð/ as in the, other, with (voiced 'th')", arabic: "/ð/ كما في the, other, with ('th' صوتي)" },
+      { english: "/ʃ/ as in she, station, fish ('sh' sound)", arabic: "/ʃ/ كما في she, station, fish (صوت 'sh')" },
+      { english: "/tʃ/ as in child, teacher, watch ('ch' sound)", arabic: "/tʃ/ كما في child, teacher, watch (صوت 'ch')" }
+    ],
+    mcqs: [
+      { question: "Which symbol represents the first sound in 'think'?", options: ["/t/", "/s/", "/ð/", "/θ/"], answer: "/θ/" },
+      { question: "Which symbol represents the last sound in 'wash'?", options: ["/s/", "/z/", "/ʃ/", "/tʃ/"], answer: "/ʃ/" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Phonetic Symbols: Diphthongs",
+    explanation: "Learn to recognize and pronounce diphthongs, which are two vowel sounds combined in a single syllable (e.g., the sounds in 'name', 'my', 'boy').",
+    examples: [
+      { english: "/eɪ/ as in name, paid, play", arabic: "/eɪ/ كما في name, paid, play" },
+      { english: "/aɪ/ as in my, time, buy", arabic: "/aɪ/ كما في my, time, buy" },
+      { english: "/ɔɪ/ as in boy, noise, point", arabic: "/ɔɪ/ كما في boy, noise, point" },
+      { english: "/əʊ/ as in no, go, road (in British English)", arabic: "/əʊ/ كما في no, go, road (في الإنجليزية البريطانية)" },
+      { english: "/aʊ/ as in how, now, town", arabic: "/aʊ/ كما في how, now, town" },
+      { english: "/ɪə/ as in hear, near, beer", arabic: "/ɪə/ كما في hear, near, beer" },
+      { english: "/eə/ as in where, bear, hair", arabic: "/eə/ كما في where, bear, hair" },
+      { english: "/ʊə/ as in tour, poor, sure", arabic: "/ʊə/ كما في tour, poor, sure" },
+      { english: "A diphthong is a glide from one vowel to another.", arabic: "الديفثونج هو انزلاق من حرف علة إلى آخر." },
+      { english: "Understanding diphthongs is key to a natural accent.", arabic: "فهم الديفثونجات هو مفتاح اللكنة الطبيعية." }
+    ],
+    mcqs: [
+      { question: "Which symbol represents the vowel sound in 'house'?", options: ["/əʊ/", "/ɔɪ/", "/aʊ/", "/u:/"], answer: "/aʊ/" },
+      { question: "Which symbol represents the vowel sound in 'train'?", options: ["/e/", "/æ/", "/aɪ/", "/eɪ/"], answer: "/eɪ/" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Irregular Verbs List (A-G)",
+    explanation: "Study and practice the past simple and past participle forms of common irregular verbs from 'be' to 'grow'.",
+    examples: [
+      { english: "be, was/were, been", arabic: "be, was/were, been" },
+      { english: "begin, began, begun", arabic: "begin, began, begun" },
+      { english: "break, broke, broken", arabic: "break, broke, broken" },
+      { english: "bring, brought, brought", arabic: "bring, brought, brought" },
+      { english: "buy, bought, bought", arabic: "buy, bought, bought" },
+      { english: "catch, caught, caught", arabic: "catch, caught, caught" },
+      { english: "come, came, come", arabic: "come, came, come" },
+      { english: "do, did, done", arabic: "do, did, done" },
+      { english: "drink, drank, drunk", arabic: "drink, drank, drunk" },
+      { english: "eat, ate, eaten", arabic: "eat, ate, eaten" },
+      { english: "find, found, found", arabic: "find, found, found" },
+      { english: "go, went, gone", arabic: "go, went, gone" }
+    ],
+    mcqs: [
+      { question: "What is the past participle of 'go'?", options: ["goed", "went", "gone", "wented"], answer: "gone" },
+      { question: "What is the past simple of 'begin'?", options: ["begun", "began", "begined", "begon"], answer: "began" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Irregular Verbs List (H-P)",
+    explanation: "Study and practice the past simple and past participle forms of common irregular verbs from 'hang' to 'put'.",
+    examples: [
+      { english: "have, had, had", arabic: "have, had, had" },
+      { english: "hear, heard, heard", arabic: "hear, heard, heard" },
+      { english: "know, knew, known", arabic: "know, knew, known" },
+      { english: "leave, left, left", arabic: "leave, left, left" },
+      { english: "let, let, let", arabic: "let, let, let" },
+      { english: "lose, lost, lost", arabic: "lose, lost, lost" },
+      { english: "make, made, made", arabic: "make, made, made" },
+      { english: "meet, met, met", arabic: "meet, met, met" },
+      { english: "pay, paid, paid", arabic: "pay, paid, paid" },
+      { english: "put, put, put", arabic: "put, put, put" }
+    ],
+    mcqs: [
+      { question: "What is the past participle of 'know'?", options: ["knew", "knowed", "known", "knewed"], answer: "known" },
+      { question: "What is the past simple of 'lose'?", options: ["losed", "losed", "lost", "leaved"], answer: "lost" }
+    ]
+  },
+  {
+    type: 'lesson',
+    title: "Irregular Verbs List (Q-Z)",
+    explanation: "Study and practice the past simple and past participle forms of common irregular verbs from 'read' to 'write'.",
+    examples: [
+      { english: "read, read, read (pronunciation changes)", arabic: "read, read, read (يتغير النطق)" },
+      { english: "run, ran, run", arabic: "run, ran, run" },
+      { english: "say, said, said", arabic: "say, said, said" },
+      { english: "see, saw, seen", arabic: "see, saw, seen" },
+      { english: "sell, sold, sold", arabic: "sell, sold, sold" },
+      { english: "send, sent, sent", arabic: "send, sent, sent" },
+      { english: "sing, sang, sung", arabic: "sing, sang, sung" },
+      { english: "speak, spoke, spoken", arabic: "speak, spoke, spoken" },
+      { english: "take, took, taken", arabic: "take, took, taken" },
+      { english: "tell, told, told", arabic: "tell, told, told" },
+      { english: "think, thought, thought", arabic: "think, thought, thought" },
+      { english: "write, wrote, written", arabic: "write, wrote, written" }
+    ],
+    mcqs: [
+      { question: "What is the past participle of 'speak'?", options: ["spoke", "speaked", "spoken", "spoke"], answer: "spoken" },
+      { question: "What is the past simple of 'write'?", options: ["written", "wrote", "writed", "wroten"], answer: "wrote" }
+    ]
+  },
 ];
 
 const stories: Story[] = [
     {
       type: 'story',
-      title: "قصة: الثعلب والعنب",
+      title: "The Fox and the Grapes",
       content: `One hot summer's day, a fox was strolling through an orchard. He saw a bunch of delicious-looking grapes hanging from a high branch. "Just the thing to quench my thirst," he thought. He backed up a few paces, took a run and a jump, but just missed the hanging grapes. Again and again he tried, but he could not reach them. At last, he gave up and walked away with his nose in the air, saying, "I am sure they are sour."`
     },
     {
       type: 'story',
-      title: "قصة: الأسد والفأر",
+      title: "The Lion and the Mouse",
       content: `A lion was sleeping in his lair. A little mouse began running up and down on him. This soon wakened the lion, who placed his huge paw on him and opened his big jaws to swallow him. "Pardon, O King!" cried the little mouse. "Forgive me this time. I shall never repeat it and I shall never forget your kindness. Who knows, I may be able to do you a good turn one of these days?" The lion was so tickled by the idea of the mouse being able to help him that he lifted his paw and let him go. Some time later, the lion was caught in a trap, and the hunters who desired to carry him alive to the King, tied him to a tree while they went in search of a wagon to carry him on. Just then the little mouse happened to pass by, and seeing the sad plight in which the lion was, went up to him and soon gnawed away the ropes that bound the King of the Beasts. "Was I not right?" said the little mouse, very happy to help the lion.`
     },
     {
       type: 'story',
-      title: "قصة: السلحفاة والأرنب",
+      title: "The Tortoise and the Hare",
       content: `An hare was making fun of the tortoise one day for being so slow. "Do you ever get anywhere?" he asked with a mocking laugh. "Yes," replied the tortoise, "and I get there sooner than you think. I'll run you a race and prove it." The hare was much amused at the idea of running a race with the tortoise, but for the fun of the thing he agreed. So the fox, who had consented to act as judge, marked the distance and started the runners off. The hare was soon far out of sight, and to make the tortoise feel very deeply how ridiculous it was for him to try a race with a hare, he lay down beside the course to take a nap until the tortoise should catch up. The tortoise meanwhile kept going slowly but steadily, and, after a time, passed the place where the hare was sleeping. The hare slept on very peacefully; and when at last he did wake up, the tortoise was near the goal. The hare now ran his swiftest, but he could not overtake the tortoise in time.`
     },
      {
       type: 'story',
-      title: "قصة: الغراب والإبريق",
+      title: "The Crow and the Pitcher",
       content: `A thirsty crow found a pitcher with a little water in it. But the pitcher was high and had a narrow neck, and no matter how he tried, he could not reach the water. The poor thing felt as if he must die of thirst. Then an idea came to him. He took a pebble and dropped it into the pitcher. Then he took another pebble and dropped it into the pitcher. He took another and another and dropped them in. At last, he saw the water rise, and after casting in a few more pebbles, he was able to quench his thirst and save his life.`
     },
     {
       type: 'story',
-      title: "قصة: مدينة الفئران وريف الفئران",
+      title: "The Town Mouse and the Country Mouse",
       content: `A country mouse invited a town mouse to dinner. The town mouse came, but was not impressed with the simple food. He said, "You live a poor life, cousin. Come with me and I will show you how to live!" So they went to the town. The town mouse led him to a great dining hall. They feasted on cakes and jellies. Suddenly, they heard a great barking. Two huge dogs rushed in. The mice scampered away. "Goodbye, cousin," said the country mouse. "Better beans and bacon in peace than cakes and ale in fear."`
     },
     {
@@ -1219,25 +1749,14 @@ const availableStories = [...stories];
 
 // This loop interleaves stories with lessons to create a varied learning path.
 // It will add a story after approximately every 3-4 lessons.
-while (fullLessonPlan.length < 80) {
+while (lessonIndex < lessons.length || storyIndex < stories.length) {
     // Add a batch of lessons
-    for (let i = 0; i < 4; i++) {
-        if (availableLessons.length > 0) {
-            fullLessonPlan.push(availableLessons.shift()!);
-             if (fullLessonPlan.length >= 80) break;
-        }
+    for (let i = 0; i < 4 && lessonIndex < lessons.length; i++) {
+        fullLessonPlan.push(lessons[lessonIndex++]);
     }
-    if (fullLessonPlan.length >= 80) break;
-
     // Add a story
-    if (availableStories.length > 0) {
-        fullLessonPlan.push(availableStories.shift()!);
-         if (fullLessonPlan.length >= 80) break;
-    }
-
-    // If we've run out of unique lessons and stories, break.
-    if (availableLessons.length === 0 && availableStories.length === 0) {
-        break;
+    if (storyIndex < stories.length) {
+        fullLessonPlan.push(stories[storyIndex++]);
     }
 }
 
@@ -1259,4 +1778,5 @@ while (fullLessonPlan.length < 80) {
 
 
 export const learningItems: LearningItem[] = fullLessonPlan.slice(0, 80);
+
 
