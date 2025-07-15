@@ -366,8 +366,9 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
   };
 
   React.useEffect(() => {
-    // Reset translation when the item changes
+    // Reset translation and active tab when the item changes
     setTranslatedExplanation(null);
+    setActiveTab('explanation');
   }, [item]);
 
 
@@ -500,7 +501,3 @@ function TabButton({ icon, label, isActive, onClick }: { icon: React.ReactNode, 
         </button>
     )
 }
-
-    
-
-    
