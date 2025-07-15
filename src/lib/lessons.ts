@@ -12,7 +12,13 @@ export interface Lesson {
 export const lessons: Lesson[] = [
   {
     title: "أزمنة الأفعال المساعدة (do, be, have)",
-    explanation: "الأفعال المساعدة 'do', 'be', 'have' هي أساس تكوين الأزمنة المختلفة في اللغة الإنجليزية. تُستخدم في تكوين الأسئلة، والجمل المنفية، والأزمنة المستمرة والتامة، وهي ضرورية لفهم بنية الجملة بشكل صحيح.",
+    explanation: `الأفعال المساعدة (Auxiliary Verbs) 'do', 'be', و 'have' هي حجر الأساس في بناء الجمل الإنجليزية. هي لا تحمل معنى بمفردها غالبًا، بل تساعد الفعل الرئيسي في الجملة.
+
+- 'do'/'does'/'did': تُستخدم لتكوين الأسئلة والجمل المنفية في المضارع البسيط والماضي البسيط.
+- 'be' (am/is/are/was/were): تُستخدم لتكوين الأزمنة المستمرة (مثل المضارع المستمر) والمبني للمجهول.
+- 'have'/'has'/'had': تُستخدم لتكوين الأزمنة التامة (مثل المضارع التام).
+
+إتقان استخدام هذه الأفعال ضروري لفهم بنية الجملة والتعبير عن الزمن بشكل صحيح.`,
     examples: [
       { english: "Where do you come from?", arabic: "من أين أنت؟" },
       { english: "She doesn't work on weekends.", arabic: "هي لا تعمل في عطلات نهاية الأسبوع." },
@@ -35,7 +41,10 @@ export const lessons: Lesson[] = [
   },
   {
     title: "تسمية الأزمنة (Present, Past, Present Perfect)",
-    explanation: "معرفة أسماء الأزمنة (المضارع، الماضي، المضارع التام) يساعد في فهم كيفية عمل القواعد وتطبيقها. كل زمن له استخدام محدد للإشارة إلى وقت وقوع الفعل.",
+    explanation: `معرفة أسماء الأزمنة (Tenses) يساعد في فهم كيفية عمل القواعد وتطبيقها. كل زمن له استخدام محدد للإشارة إلى وقت وقوع الفعل وعلاقته باللحظة الحالية.
+- المضارع (Present): للأحداث الحالية، العادات، والحقائق العامة.
+- الماضي (Past): للأحداث التي بدأت وانتهت في الماضي.
+- المضارع التام (Present Perfect): للأحداث التي وقعت في الماضي ولكن لها صلة أو تأثير على الحاضر.`,
     examples: [
         { english: "Cows don't eat meat. (Present Simple)", arabic: "الأبقار لا تأكل اللحم. (مضارع بسيط)" },
         { english: "What was Neil Armstrong doing? (Past Continuous)", arabic: "ماذا كان يفعل نيل أرمسترونغ؟ (ماضي مستمر)" },
@@ -58,7 +67,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الأسئلة والنفي",
-    explanation: "لتكوين الأسئلة والجمل المنفية، نستخدم الأفعال المساعدة (do/does, be, have). في حالة النفي، نضيف 'not' بعد الفعل المساعد. وفي حالة السؤال، نضع الفعل المساعد قبل الفاعل.",
+    explanation: `لتكوين الأسئلة والجمل المنفية، نعتمد بشكل أساسي على الأفعال المساعدة (do/does/did, be, have, can, will, etc.).
+- للنفي (Negatives): نضيف 'not' (أو اختصارها 'n't') بعد الفعل المساعد. مثال: is not (isn't), do not (don't).
+- للأسئلة (Questions): نضع الفعل المساعد قبل الفاعل. مثال: "You are happy." تصبح "?Are you happy". إذا كان السؤال يبدأ بكلمة استفهام (what, where, why)، تأتي هذه الكلمة في البداية.`,
     examples: [
         { english: "What did you do last night?", arabic: "ماذا فعلت الليلة الماضية؟" },
         { english: "Cows don't eat meat.", arabic: "الأبقار لا تأكل اللحم." },
@@ -81,7 +92,8 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الإجابات القصيرة",
-    explanation: "في المحادثات الإنجليزية، استخدام 'yes' أو 'no' بمفردهما قد يبدو غير مهذب. الإجابات القصيرة (Yes, I did / No, I haven't) هي الطريقة الأكثر شيوعًا وطبيعية للرد على الأسئلة التي تبدأ بفعل مساعد.",
+    explanation: `في المحادثات الإنجليزية اليومية، من غير الطبيعي الرد على الأسئلة بـ 'yes' أو 'no' فقط، حيث يمكن أن يبدو ذلك غير مهذب أو مفاجئًا. الطريقة الأكثر شيوعًا هي استخدام الإجابات القصيرة (Short Answers). تتكون الإجابة القصيرة من 'Yes' أو 'No'، يليها الفاعل والفعل المساعد المستخدم في السؤال.
+مثال: "?Do you like coffee" -> ".Yes, I do"`,
     examples: [
         { english: "Did you have a nice time? - Yes, I did.", arabic: "هل قضيت وقتاً ممتعاً؟ - نعم، فعلت." },
         { english: "Do you want breakfast? - No, I don't.", arabic: "هل تريد فطوراً؟ - لا، لا أريد." },
@@ -104,15 +116,19 @@ export const lessons: Lesson[] = [
   },
   {
     title: "زمن المضارع البسيط مقابل المستمر",
-    explanation: "يُستخدم المضارع البسيط للحقائق والعادات، بينما يُستخدم المضارع المستمر للأفعال التي تحدث الآن أو بشكل مؤقت. بعض الأفعال (State Verbs) مثل 'know', 'like', 'want' لا تُستخدم عادةً في الصيغة المستمرة.",
+    explanation: `هناك فرق مهم بين المضارع البسيط (Present Simple) والمضارع المستمر (Present Continuous).
+- المضارع البسيط: يُستخدم للحقائق الثابتة، العادات، والأفعال المتكررة. (e.g., The sun rises in the east. I play tennis every Friday).
+- المضارع المستمر: يُستخدم للأفعال التي تحدث الآن، في هذه اللحظة، أو حول الوقت الحالي، أو للخطط المستقبلية المؤكدة. (e.g., I am reading a book. She's working in London this month).
+
+بعض الأفعال التي تصف الحالات (State Verbs) مثل 'know', 'like', 'want', 'understand' لا تُستخدم عادةً في الصيغة المستمرة.`,
     examples: [
         { english: "She usually drives to work, but today she's walking.", arabic: "هي عادة تقود إلى العمل، لكنها اليوم تمشي." },
         { english: "I don't understand this word.", arabic: "أنا لا أفهم هذه الكلمة." },
         { english: "He works for a company in Dallas, but he's working in Mexico this week.", arabic: "هو يعمل في شركة في دالاس، لكنه يعمل في المكسيك هذا الأسبوع." },
-        { english: "I think opera is boring.", arabic: "أعتقد أن الأوبرا مملة." },
-        { english: "What are you thinking about?", arabic: "بماذا تفكر؟" },
-        { english: "She has a beautiful new car.", arabic: "هي تمتلك سيارة جديدة جميلة." },
-        { english: "She's having dinner now.", arabic: "هي تتناول العشاء الآن." },
+        { english: "I think opera is boring. (opinion)", arabic: "أعتقد أن الأوبرا مملة. (رأي)" },
+        { english: "What are you thinking about? (activity)", arabic: "بماذا تفكر؟ (نشاط)" },
+        { english: "She has a beautiful new car. (possession)", arabic: "هي تمتلك سيارة جديدة جميلة. (ملكية)" },
+        { english: "She's having dinner now. (action)", arabic: "هي تتناول العشاء الآن. (فعل)" },
         { english: "The lions are fed once a day.", arabic: "يتم إطعام الأسود مرة واحدة في اليوم." },
         { english: "They're being fed at the moment.", arabic: "يتم إطعامهم في هذه اللحظة." },
         { english: "It rains a lot in winter.", arabic: "تمطر كثيرا في الشتاء." }
@@ -127,7 +143,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "المبني للمجهول في المضارع",
-    explanation: "يُستخدم المبني للمجهول في المضارع لوصف أحداث أو حقائق عامة حيث الفاعل غير مهم أو غير معروف. يُصاغ باستخدام (am/is/are + past participle) للمضارع البسيط، و(am/is/are + being + past participle) للمضارع المستمر.",
+    explanation: `يُستخدم المبني للمجهول (Passive Voice) عندما يكون التركيز على الفعل نفسه أو على من يستقبل الفعل، وليس على من يقوم بالفعل (الفاعل).
+- المضارع البسيط للمبني للمجهول (Present Simple Passive): يُصاغ باستخدام 'am/is/are + past participle'. يُستخدم للحقائق العامة أو الإجراءات المتكررة.
+- المضارع المستمر للمبني للمجهول (Present Continuous Passive): يُصاغ باستخدام 'am/is/are + being + past participle'. يُستخدم لوصف فعل يحدث الآن.`,
     examples: [
         { english: "We are paid with the money people give.", arabic: "يُدفع لنا بالمال الذي يعطيه الناس." },
         { english: "Children are being treated with a new kind of medicine.", arabic: "يتم علاج الأطفال بنوع جديد من الدواء." },
@@ -150,7 +168,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الماضي البسيط مقابل الماضي المستمر",
-    explanation: "يُستخدم الماضي البسيط للأفعال المكتملة في الماضي. يُستخدم الماضي المستمر لوصف فعل كان قيد التقدم في الماضي، وغالبًا ما يُستخدم لوضع خلفية لحدث آخر (في الماضي البسيط) قطعه.",
+    explanation: `يُستخدم الماضي البسيط (Past Simple) لوصف أفعال مكتملة في الماضي. يُستخدم الماضي المستمر (Past Continuous) لوصف فعل كان قيد التقدم في نقطة معينة في الماضي.
+غالبًا ما يُستخدم الزمنان معًا: الماضي المستمر يصف 'الفعل الخلفي' الطويل، والماضي البسيط يصف 'الفعل القصير' الذي قاطعه.
+مثال: "I was having a shower (فعل طويل) when the phone rang (فعل قصير قاطعه)".`,
     examples: [
         { english: "He danced and sang.", arabic: "هو رقص وغنى." },
         { english: "He was laughing when he saw the baby.", arabic: "كان يضحك عندما رأى الطفل." },
@@ -173,7 +193,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الماضي البسيط مقابل الماضي التام",
-    explanation: "يُستخدم الماضي التام (had + past participle) للإشارة إلى فعل حدث قبل فعل آخر في الماضي (الذي يكون في الماضي البسيط). إنه 'الماضي قبل الماضي'.",
+    explanation: `الماضي التام (Past Perfect) يُستخدم للإشارة إلى فعل حدث قبل فعل آخر في الماضي. إنه 'الماضي قبل الماضي'. يُصاغ باستخدام 'had + past participle'.
+عندما نروي قصة، نستخدم الماضي البسيط للأحداث الرئيسية بالترتيب، ونستخدم الماضي التام للإشارة إلى حدث وقع قبل تلك الأحداث.
+مثال: "When I arrived (ماضي بسيط), the train had already left (ماضي تام)". مغادرة القطار حدثت قبل وصولي.`,
     examples: [
         { english: "I didn't laugh at his joke. Why? Had you heard it before?", arabic: "لم أضحك على نكتته. لماذا؟ هل كنت قد سمعتها من قبل؟" },
         { english: "When I arrived, the train had already left.", arabic: "عندما وصلت، كان القطار قد غادر بالفعل." },
@@ -196,7 +218,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "المبني للمجهول في الماضي",
-    explanation: "يُستخدم المبني للمجهول في الماضي عندما يكون التركيز على الحدث الذي وقع في الماضي، وليس على من قام به. يُصاغ باستخدام (was/were + past participle).",
+    explanation: `يُستخدم المبني للمجهول في الماضي (Past Simple Passive) عندما يكون التركيز على الحدث الذي وقع في الماضي، وليس على من قام به. غالبًا ما يكون الفاعل غير مهم أو غير معروف. يُصاغ باستخدام 'was/were + past participle'.
+مثال: "The window was broken." (نحن لا نعرف من كسرها، أو لا يهمنا).
+يمكن ذكر الفاعل باستخدام 'by': "Hamlet was written by Shakespeare."`,
     examples: [
         { english: "A Farewell to Arms was written by Ernest Hemingway.", arabic: "وداعًا للسلاح كُتبت بواسطة إرنست همنغواي." },
         { english: "The Pyramids were built by the ancient Egyptians.", arabic: "بُنيت الأهرامات على يد المصريين القدماء." },
@@ -219,7 +243,11 @@ export const lessons: Lesson[] = [
   },
   {
     title: "أفعال Modal للإلزام والإذن (1)",
-    explanation: "تُستخدم الأفعال المساعدة (Modal Verbs) للتعبير عن الإلزام (have to, must) أو الإذن (can, be allowed to). 'Must' تعبر عن إلزام قوي من المتحدث، بينما 'have to' تعبر عن قاعدة خارجية. 'Can' و 'be allowed to' تُستخدمان للتعبير عن السماح بفعل شيء ما.",
+    explanation: `تُستخدم الأفعال المساعدة (Modal Verbs) للتعبير عن الإلزام (Obligation) أو الإذن (Permission).
+- الإلزام: 'must' (إلزام شخصي قوي من المتحدث)، 'have to' (إلزام خارجي، قاعدة أو قانون).
+- الإذن: 'can' (يمكنني/تستطيع)، 'be allowed to' (يُسمح لي/لك).
+- عدم الإلزام: 'don't have to' (ليس من الضروري).
+- المنع: 'mustn't' / 'can't' (ممنوع).`,
     examples: [
         { english: "Children have to go to school.", arabic: "يجب على الأطفال الذهاب إلى المدرسة." },
         { english: "I can stay at my friend's house.", arabic: "يمكنني البقاء في منزل صديقي." },
@@ -242,7 +270,10 @@ export const lessons: Lesson[] = [
   },
   {
     title: "should و must",
-    explanation: "'Should' تُستخدم لتقديم النصيحة أو التعبير عن رأي حول ما هو صحيح أو الأفضل فعله. 'Must' تُستخدم للتعبير عن إلزام قوي أو ضرورة ملحة، وغالباً ما تأتي من المتحدث نفسه.",
+    explanation: `'should' و 'must' كلاهما يعبر عن الإلزام ولكن بدرجات مختلفة.
+- 'should': تُستخدم لتقديم النصيحة (advice) أو التوصية. هي أقل قوة من 'must'. "You look tired. You should go to bed."
+- 'must': تُستخدم للتعبير عن إلزام قوي أو ضرورة ملحة، وغالباً ما يأتي هذا الإلزام من المتحدث نفسه أو شعور داخلي قوي. "I must finish this today."
+- 'mustn't': تُستخدم للمنع الصارم. "You mustn't smoke here."`,
     examples: [
         { english: "We should take traveller's cheques.", arabic: "يجب أن نأخذ شيكات سياحية." },
         { english: "You must write to us every week.", arabic: "يجب عليك أن تكتب لنا كل أسبوع." },
@@ -265,7 +296,10 @@ export const lessons: Lesson[] = [
   },
   {
     title: "صيغ المستقبل (going to و will)",
-    explanation: "'going to' تُستخدم للخطط والنوايا التي تم التفكير فيها مسبقًا، وللتنبؤات المبنية على دليل حالي. 'will' تُستخدم للقرارات الفورية التي تتخذ في لحظة الكلام، وللعروض، والوعود، والتنبؤات العامة.",
+    explanation: `هناك طرق متعددة للحديث عن المستقبل في اللغة الإنجليزية.
+- 'will': تُستخدم للقرارات الفورية التي تتخذ في لحظة الكلام، وللعروض، والوعود، والتنبؤات العامة المبنية على الرأي.
+- 'be going to': تُستخدم للخطط والنوايا التي تم التفكير فيها مسبقًا، وللتنبؤات المبنية على دليل حالي واضح.
+- المضارع المستمر: يمكن استخدامه أيضًا للترتيبات والخطط المستقبلية المؤكدة، خاصة مع تحديد الوقت.`,
     examples: [
         { english: "I'm going to buy some new shoes.", arabic: "سأشتري حذاءً جديدًا. (خطة)" },
         { english: "The phone's ringing. I'll get it.", arabic: "الهاتف يرن. سأرد عليه. (قرار فوري)" },
@@ -276,7 +310,7 @@ export const lessons: Lesson[] = [
         { english: "I'm tired. I think I'll go to bed.", arabic: "أنا متعب. أعتقد أنني سأذهب إلى الفراش." },
         { english: "Don't worry, I won't forget.", arabic: "لا تقلق، لن أنسى. (وعد)" },
         { english: "Are you going to watch the match tonight?", arabic: "هل ستشاهد المباراة الليلة؟" },
-        { english: "Maybe I'll see you there.", arabic: "ربما سأراك هناك." },
+        { english: "We're playing tennis this afternoon. (Arrangement)", arabic: "سنلعب التنس بعد ظهر هذا اليوم. (ترتيب)" },
     ],
     mcqs: [
         { question: "For a plan you made last week, you should use:", options: ["will", "going to", "Present Continuous", "would"], answer: "going to" },
@@ -288,7 +322,13 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الأسئلة مع 'like'",
-    explanation: "'What's she like?' يسأل عن الشخصية. 'What does she look like?' يسأل عن المظهر الجسدي. 'What does she like doing?' يسأل عن الهوايات والاهتمامات. من المهم التمييز بين هذه الصيغ لفهم السؤال بشكل صحيح.",
+    explanation: `كلمة 'like' يمكن أن تكون مربكة لأن لها استخدامات متعددة.
+- للسؤال عن الشخصية (personality): نستخدم '?What is/are ... like'.
+  مثال: "?What's your new boss like" -> ".He's very friendly"
+- للسؤال عن المظهر الجسدي (appearance): نستخدم '?What do/does ... look like'.
+  مثال: "?What does he look like" -> ".He's tall with dark hair"
+- للسؤال عن الهوايات والاهتمامات (hobbies/interests): نستخدم '?What do/does ... like doing/eating/etc'.
+  مثال: "?What do you like doing" -> ".I like playing football"`,
     examples: [
         { english: "What's she like? - She's really nice and friendly.", arabic: "كيف هي (شخصيتها)؟ - هي لطيفة وودودة حقًا." },
         { english: "What does she look like? - She has long, dark hair.", arabic: "كيف يبدو شكلها؟ - لديها شعر داكن طويل." },
@@ -299,7 +339,7 @@ export const lessons: Lesson[] = [
         { english: "What do they like eating?", arabic: "ماذا يحبون أن يأكلوا؟" },
         { english: "What's your new apartment like?", arabic: "كيف هي شقتك الجديدة؟" },
         { english: "What do you like to do on weekends?", arabic: "ماذا تحب أن تفعل في عطلات نهاية الأسبوع؟" },
-        { english: "What would you like to drink?", arabic: "ماذا تود أن تشرب؟ (للتفضيل)" },
+        { english: "What would you like to drink? (preference)", arabic: "ماذا تود أن تشرب؟ (للتفضيل)" },
     ],
     mcqs: [
         { question: "To ask about someone's personality, you say:", options: ["How is she?", "What does she look like?", "What's she like?", "What does she like?"], answer: "What's she like?" },
@@ -311,16 +351,23 @@ export const lessons: Lesson[] = [
   },
   {
     title: "أنماط الأفعال (Verb Patterns)",
-    explanation: "بعض الأفعال في اللغة الإنجليزية يتبعها صيغة المصدر مع 'to' (e.g., want to go), والبعض الآخر يتبعه صيغة '-ing' (e.g., enjoy playing). معرفة هذه الأنماط ضروري لتكوين جمل صحيحة.",
+    explanation: `في اللغة الإنجليزية، الفعل الذي يتبع فعلًا آخر يأخذ صيغة معينة. الأنماط الرئيسية هي:
+1.  فعل + to + infinitive (المصدر): e.g., want, hope, decide, promise.
+    مثال: "I decided to leave."
+2.  فعل + -ing form (gerund): e.g., enjoy, finish, can't stand, look forward to.
+    مثال: "I enjoy playing tennis."
+3.  فعل + infinitive (بدون to): e.g., make, let.
+    مثال: "My parents made me clean my room."
+معرفة هذه الأنماط ضروري لتكوين جمل صحيحة وتجنب الأخطاء الشائعة.`,
     examples: [
         { english: "I enjoyed meeting your friends.", arabic: "استمتعت بلقاء أصدقائك." },
         { english: "I just wanted to say thank you.", arabic: "أردت فقط أن أقول شكرًا لك." },
-        { english: "You made me feel welcome.", arabic: "جعلتني أشعر بالترحاب. (بدون 'to')" },
+        { english: "You made me feel welcome. (no 'to')", arabic: "جعلتني أشعر بالترحاب. (بدون 'to')" },
         { english: "She decided to leave early.", arabic: "قررت أن تغادر مبكرًا." },
         { english: "He finished working at 7 PM.", arabic: "أنهى العمل في الساعة 7 مساءً." },
         { english: "I'd like to call you.", arabic: "أود أن أتصل بك." },
         { english: "I'm looking forward to hearing from you.", arabic: "أتطلع إلى السماع منك." },
-        { english: "Let me know if you want to visit.", arabic: "أعلمني إذا أردت الزيارة. (بدون 'to')" },
+        { english: "Let me know if you want to visit. (no 'to')", arabic: "أعلمني إذا أردت الزيارة. (بدون 'to')" },
         { english: "He promised to help us.", arabic: "وعد بمساعدتنا." },
         { english: "I can't stand waiting in queues.", arabic: "لا أطيق الانتظار في طوابير." },
     ],
@@ -334,7 +381,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "المضارع التام مقابل الماضي البسيط",
-    explanation: "يُستخدم المضارع التام (have + past participle) للحديث عن تجارب حياتية أو أحداث ماضية لها نتيجة في الحاضر (بدون تحديد وقت). يُستخدم الماضي البسيط للأحداث المكتملة في وقت محدد في الماضي.",
+    explanation: `يعد التمييز بين المضارع التام (Present Perfect) والماضي البسيط (Past Simple) من أهم النقاط في قواعد اللغة الإنجليزية.
+- الماضي البسيط: يُستخدم للحديث عن أحداث بدأت وانتهت في وقت محدد في الماضي. غالبًا ما نستخدم معه كلمات زمنية مثل 'yesterday', 'last week', 'in 2010'.
+- المضارع التام: يُستخدم للحديث عن تجارب حياتية (بدون تحديد وقت)، أو أحداث ماضية لها نتيجة أو تأثير في الحاضر. غالبًا ما نستخدم معه كلمات مثل 'ever', 'never', 'already', 'yet'.`,
     examples: [
         { english: "I've worked there for five years. (I still work there)", arabic: "عملت هناك لمدة خمس سنوات. (ما زلت أعمل هناك)" },
         { english: "I worked for the BBC. (I don't work there now)", arabic: "عملت في البي بي سي. (لا أعمل هناك الآن)" },
@@ -357,7 +406,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "المبني للمجهول في المضارع التام",
-    explanation: "يُستخدم المبني للمجهول في المضارع التام للحديث عن أحداث وقعت في الماضي ولها تأثير على الحاضر، مع التركيز على المفعول به. يُصاغ باستخدام (has/have + been + past participle).",
+    explanation: `يُستخدم المبني للمجهول في المضارع التام (Present Perfect Passive) للحديث عن أحداث وقعت في الماضي ولها تأثير أو أهمية في الحاضر، مع التركيز على المفعول به (من استقبل الفعل).
+يُصاغ باستخدام 'has/have + been + past participle'.
+مثال: "The window has been broken." (النافذة مكسورة الآن). التركيز على حالة النافذة، وليس على من كسرها.`,
     examples: [
         { english: "Two Spanish novelists have been awarded the Nobel Prize.", arabic: "مُنح روائيان إسبانيان جائزة نوبل." },
         { english: "My car has been stolen!", arabic: "لقد سُرقت سيارتي!" },
@@ -380,7 +431,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الجمل الشرطية (النوع الأول)",
-    explanation: "تُستخدم الجمل الشرطية من النوع الأول للحديث عن مواقف حقيقية ومحتملة في المستقبل. الصيغة هي: If + Present Simple, ... will + infinitive.",
+    explanation: `تُستخدم الجمل الشرطية من النوع الأول (First Conditional) للحديث عن مواقف حقيقية ومحتملة في المستقبل ونتائجها المحتملة. إنها تعبر عن علاقة 'سبب ونتيجة' واقعية.
+الصيغة هي: If + Present Simple, ... will + infinitive.
+مثال: "If it rains (شرط محتمل), we'll stay home (نتيجة محتملة)."`,
     examples: [
         { english: "If I see Anna, I'll tell her.", arabic: "إذا رأيت آنا، سأخبرها." },
         { english: "If it rains, we'll stay home.", arabic: "إذا أمطرت، سنبقى في المنزل." },
@@ -403,7 +456,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الجمل الشرطية (النوع الثاني)",
-    explanation: "تُستخدم الجمل الشرطية من النوع الثاني للحديث عن مواقف غير حقيقية، خيالية، أو غير محتملة في الحاضر أو المستقبل. الصيغة هي: If + Past Simple, ... would + infinitive.",
+    explanation: `تُستخدم الجمل الشرطية من النوع الثاني (Second Conditional) للحديث عن مواقف غير حقيقية، خيالية، أو غير محتملة في الحاضر أو المستقبل. هي غالبًا ما تُستخدم لتقديم النصيحة أو للتعبير عن أحلام ورغبات.
+الصيغة هي: If + Past Simple, ... would + infinitive.
+ملاحظة: من الشائع استخدام 'were' بدلاً من 'was' مع جميع الضمائر في جملة 'if'، خاصة في الكتابة الرسمية. (e.g., If I were you...).`,
     examples: [
         { english: "If I had a million dollars, I'd buy an island.", arabic: "لو كان لدي مليون دولار، لاشتريت جزيرة." },
         { english: "If I were you, I'd take the job.", arabic: "لو كنت مكانك، لقبولت الوظيفة." },
@@ -426,7 +481,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الجمل الزمنية (Time Clauses)",
-    explanation: "الجمل الزمنية هي جمل تبدأ بكلمات مثل 'when', 'as soon as', 'before', 'after', 'until'. عند الحديث عن المستقبل، نستخدم زمن المضارع البسيط في الجملة الزمنية، وليس 'will'.",
+    explanation: `الجمل الزمنية هي جمل تبدأ بكلمات ربط زمنية مثل 'when', 'as soon as', 'before', 'after', 'until'. عند الحديث عن المستقبل، القاعدة المهمة هي أننا نستخدم زمن المضارع البسيط (Present Simple) في الجملة الزمنية، وليس صيغة المستقبل 'will'.
+الصيغة: Time Word + Present Simple, ... will + infinitive.
+مثال: "I will call you when I arrive." (وليس "when I will arrive").`,
     examples: [
         { english: "When we get there, we'll give you a call.", arabic: "عندما نصل إلى هناك، سنتصل بك." },
         { english: "I'll call you as soon as I arrive.", arabic: "سأتصل بك حالما أصل." },
@@ -449,7 +506,10 @@ export const lessons: Lesson[] = [
   },
   {
     title: "أفعال Modal للاحتمالية (2)",
-    explanation: "تُستخدم الأفعال 'must', 'could', 'might', 'can't' للتعبير عن درجات اليقين أو الاحتمالية. 'Must' (للاستنتاج المنطقي الإيجابي)، 'can't' (للاستنتاج المنطقي السلبي)، 'could/might' (للاحتمالية الممكنة).",
+    explanation: `تُستخدم الأفعال المساعدة 'must', 'could', 'might', 'can't' للتعبير عن مدى تأكدنا من شيء ما (Probability).
+- 'must': تُستخدم عندما نكون متأكدين تقريبًا من شيء ما بناءً على دليل (استنتاج منطقي قوي).
+- 'can't': تُستخدم عندما نكون متأكدين تقريبًا أن شيئًا ما غير صحيح أو مستحيل.
+- 'might' / 'could' / 'may': تُستخدم عندما نعتقد أن شيئًا ما ممكن ولكنه غير مؤكد.`,
     examples: [
         { english: "She can't be very old. She looks about 16.", arabic: "لا يمكن أن تكون كبيرة في السن. تبدو حوالي 16 عامًا." },
         { english: "She might be in love.", arabic: "ربما تكون في حالة حب." },
@@ -472,7 +532,10 @@ export const lessons: Lesson[] = [
   },
   {
     title: "أفعال Modal للاحتمالية في الماضي",
-    explanation: "للتعبير عن الاحتمالية في الماضي، نستخدم 'modal + have + past participle'. 'must have' (استنتاج منطقي قوي)، 'can't have' (استنتاج بعدم الحدوث)، 'could/might have' (احتمال حدوثه).",
+    explanation: `للتعبير عن الاحتمالية أو عمل استنتاجات حول الماضي، نستخدم 'modal + have + past participle'.
+- 'must have + p.p.': استنتاج منطقي قوي بأن شيئًا ما حدث.
+- 'can't have + p.p.': استنتاج قوي بأن شيئًا ما لم يحدث.
+- 'could/might/may have + p.p.': تخمين أو احتمال أن شيئًا ما قد حدث في الماضي.`,
     examples: [
         { english: "It could have been her suitcase.", arabic: "كان من الممكن أن تكون حقيبتها." },
         { english: "She must have been on holiday.", arabic: "لابد أنها كانت في عطلة." },
@@ -495,7 +558,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "المضارع التام المستمر",
-    explanation: "يُستخدم المضارع التام المستمر (have/has + been + -ing) للتركيز على مدة استمرار فعل بدأ في الماضي وما زال مستمرًا حتى الآن، أو انتهى للتو وله نتيجة واضحة.",
+    explanation: `يُستخدم المضارع التام المستمر (Present Perfect Continuous) للتأكيد على مدة استمرار فعل بدأ في الماضي وما زال مستمرًا حتى الآن، أو للتركيز على فعل انتهى للتو ولكن نتيجته واضحة.
+الصيغة: 'have/has + been + verb-ing'.
+غالبًا ما يُستخدم مع 'for' و 'since' للإجابة على سؤال يبدأ بـ '?How long'.`,
     examples: [
         { english: "I've been texting my friends all day long.", arabic: "لقد كنت أراسل أصدقائي طوال اليوم." },
         { english: "How long have you been learning English?", arabic: "منذ متى وأنت تتعلم اللغة الإنجليزية؟" },
@@ -518,7 +583,10 @@ export const lessons: Lesson[] = [
   },
   {
     title: "المضارع التام البسيط مقابل المستمر",
-    explanation: "المضارع التام البسيط (have + p.p.) يركز على نتيجة الفعل المكتمل أو عدد المرات. المضارع التام المستمر (have been + -ing) يركز على مدة الفعل واستمراريته.",
+    explanation: `الاختيار بين المضارع التام البسيط (Present Perfect Simple) والمستمر (Continuous) يعتمد على ما تريد التأكيد عليه:
+- البسيط ('have + p.p.'): يركز على نتيجة الفعل المكتمل أو عدد المرات. (e.g., "I've written three emails.").
+- المستمر ('have been + -ing'): يركز على مدة الفعل واستمراريته، وليس بالضرورة على اكتماله. (e.g., "I've been writing emails all morning.").
+ملاحظة: الأفعال التي تصف الحالات (like, know, have) لا تُستخدم في الصيغة المستمرة.`,
     examples: [
         { english: "A Manchester teenager has received a phone bill for over £450.", arabic: "تلقى مراهق من مانشستر فاتورة هاتف تزيد عن 450 جنيهًا إسترلينيًا. (نتيجة)" },
         { english: "I've been texting my friends all day long.", arabic: "لقد كنت أراسل أصدقائي طوال اليوم. (مدة)" },
@@ -527,8 +595,8 @@ export const lessons: Lesson[] = [
         { english: "She has painted the kitchen.", arabic: "لقد دهنت المطبخ. (اكتمل)" },
         { english: "She has been painting the kitchen all day.", arabic: "لقد كانت تدهن المطبخ طوال اليوم. (مدة)" },
         { english: "He has broken his leg.", arabic: "لقد كسر ساقه. (نتيجة)" },
-        { english: "They have lived here for ten years.", arabic: "لقد عاشوا هنا لمدة عشر سنوات. (حالة دائمة)" },
-        { english: "They have been living here for a few months.", arabic: "لقد كانوا يعيشون هنا لبضعة أشهر. (حالة مؤقتة)" },
+        { english: "They have lived here for ten years. (permanent state)", arabic: "لقد عاشوا هنا لمدة عشر سنوات. (حالة دائمة)" },
+        { english: "They have been living here for a few months. (temporary situation)", arabic: "لقد كانوا يعيشون هنا لبضعة أشهر. (حالة مؤقتة)" },
         { english: "How many pages have you written?", arabic: "كم عدد الصفحات التي كتبتها؟" },
     ],
     mcqs: [
@@ -541,7 +609,8 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الأسئلة غير المباشرة",
-    explanation: "تُستخدم الأسئلة غير المباشرة لجعل الأسئلة أكثر تهذيبًا. تبدأ بعبارات مثل 'Could you tell me...' أو 'I wonder...'. ترتيب الكلمات في السؤال غير المباشر هو نفس ترتيب الجملة الخبرية (فاعل ثم فعل)، ولا نستخدم do/does/did.",
+    explanation: `تُستخدم الأسئلة غير المباشرة (Indirect Questions) لجعل الأسئلة أكثر تهذيبًا ورسمية. تبدأ بعبارات مثل 'Could you tell me...' أو 'I wonder...' أو 'Do you know...'.
+القاعدة الأساسية هي أن ترتيب الكلمات في الجزء الثاني من السؤال يكون نفس ترتيب الجملة الخبرية (فاعل ثم فعل)، ولا نستخدم الفعل المساعد 'do/does/did'. إذا لم يكن هناك كلمة استفهام (what, where)، نستخدم 'if' أو 'whether'.`,
     examples: [
         { english: "I wonder if you could help me.", arabic: "أتساءل عما إذا كان بإمكانك مساعدتي." },
         { english: "I don't know what time the banks close.", arabic: "لا أعرف في أي وقت تغلق البنوك." },
@@ -564,7 +633,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الأسئلة المذيلة (Question Tags)",
-    explanation: "الأسئلة المذيلة هي أسئلة قصيرة تضاف في نهاية الجملة لتأكيد المعلومات أو لبدء محادثة. إذا كانت الجملة مثبتة، يكون السؤال المذيل منفيًا، والعكس صحيح.",
+    explanation: `الأسئلة المذيلة هي أسئلة قصيرة تضاف في نهاية الجملة. تُستخدم عادة لتأكيد المعلومات أو لبدء محادثة.
+القاعدة بسيطة: إذا كانت الجملة الرئيسية مثبتة، يكون السؤال المذيل منفيًا، والعكس صحيح. نستخدم نفس الفعل المساعد الموجود في الجملة الرئيسية. إذا لم يكن هناك فعل مساعد، نستخدم 'do/does/did'.
+نبرة الصوت مهمة: نبرة صاعدة تسأل سؤالًا حقيقيًا. نبرة هابطة تطلب الموافقة.`,
     examples: [
         { english: "I've got a meeting this afternoon, haven't I?", arabic: "لدي اجتماع بعد ظهر هذا اليوم، أليس كذلك؟" },
         { english: "It's a beautiful day, isn't it?", arabic: "إنه يوم جميل، أليس كذلك؟" },
@@ -587,7 +658,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الكلام المنقول (الجمل الخبرية)",
-    explanation: "عند نقل جملة خبرية، عادة ما نغير زمن الفعل إلى درجة أقدم في الماضي (backshift)، ونغير الضمائر وتعبيرات الزمان والمكان حسب السياق. نستخدم أفعال مثل 'said' أو 'told'.",
+    explanation: `الكلام المنقول (Reported Speech) هو عندما نخبر شخصًا ما قاله شخص آخر. عند نقل جملة خبرية (statement)، عادة ما نغير زمن الفعل إلى درجة أقدم في الماضي (وهذا ما يسمى 'backshift'). كما نغير الضمائر وتعبيرات الزمان والمكان حسب السياق.
+مثال: "I am tired." (كلام مباشر) -> He said he was tired. (كلام منقول).
+الفعل 'said' هو الأكثر شيوعًا، ولكن يمكن استخدام 'told' إذا ذكرنا الشخص الذي نتحدث إليه (e.g., He told me...).`,
     examples: [
         { english: "She said that they were married.", arabic: "قالت إنهم كانوا متزوجين." },
         { english: "Direct: 'I am tired.' -> Reported: He said he was tired.", arabic: "مباشر: 'أنا متعب.' -> منقول: قال إنه كان متعبًا." },
@@ -610,7 +683,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الكلام المنقول (الأسئلة)",
-    explanation: "عند نقل سؤال، نستخدم أفعال مثل 'asked'. يتغير ترتيب الكلمات ليصبح كترتيب الجملة الخبرية (فاعل ثم فعل). إذا كان السؤال يبدأ بفعل مساعد، نستخدم 'if' أو 'whether'.",
+    explanation: `عند نقل سؤال، نستخدم فعلًا مثل 'asked'. يتغير ترتيب الكلمات ليصبح كترتيب الجملة الخبرية (فاعل ثم فعل)، ولا نستخدم الفعل المساعد 'do/does/did'.
+- إذا كان السؤال المباشر يبدأ بكلمة استفهام (what, where, who, etc.)، نستخدم نفس الكلمة في السؤال المنقول.
+- إذا كان السؤال المباشر هو سؤال نعم/لا (يبدأ بفعل مساعد)، نستخدم 'if' أو 'whether' في السؤال المنقول.`,
     examples: [
         { english: "He asked me how I knew them.", arabic: "سألني كيف عرفتهم." },
         { english: "Direct: 'Where do you live?' -> Reported: She asked me where I lived.", arabic: "مباشر: 'أين تعيش؟' -> منقول: سألتني أين أعيش." },
@@ -633,7 +708,13 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الكلام المنقول (الأوامر والطلبات)",
-    explanation: "لنقل الأوامر والطلبات، نستخدم 'verb + object + to + infinitive'. الأفعال الشائعة هي 'told' للأوامر و 'asked' للطلبات. للنفي، نستخدم 'not to + infinitive'.",
+    explanation: `لنقل الأوامر (commands) والطلبات (requests)، نستخدم الصيغة: 'verb + object + to + infinitive'.
+- للأوامر، نستخدم أفعالاً مثل 'told', 'ordered'.
+- للطلبات، نستخدم 'asked'.
+- للنصيحة، نستخدم 'advised'.
+- للنفي، نستخدم 'not to + infinitive'.
+مثال: "Close the door." (أمر) -> He told me to close the door.
+مثال: "Please don't shout." (طلب) -> He asked me not to shout.`,
     examples: [
         { english: "He told them to stop making a noise.", arabic: "أمرهم بالتوقف عن إحداث ضوضاء." },
         { english: "I asked them to stop making a noise.", arabic: "طلبت منهم التوقف عن إحداث ضوضاء." },
@@ -656,18 +737,18 @@ export const lessons: Lesson[] = [
   },
   {
     title: "التعابير الاصطلاحية في المحادثات الاجتماعية",
-    explanation: "اللغة الإنجليزية مليئة بالتعابير الاصطلاحية التي تُستخدم في المحادثات اليومية. فهم هذه التعابير يساعد على التواصل بشكل طبيعي أكثر.",
+    explanation: "اللغة الإنجليزية اليومية مليئة بالتعابير الاصطلاحية (Social Expressions) التي تُستخدم في مواقف اجتماعية محددة. فهم هذه التعابير يساعد على التواصل بشكل طبيعي وفعال، ويظهر فهمًا أعمق للثقافة.",
     examples: [
-      { english: "Never mind.", arabic: "لا تهتم / لا بأس." },
-      { english: "Take care!", arabic: "اعتنِ بنفسك!" },
-      { english: "You must be joking!", arabic: "لابد أنك تمزح!" },
-      { english: "Come in and sit down.", arabic: "تفضل بالدخول واجلس." },
-      { english: "How about you?", arabic: "ماذا عنك؟" },
-      { english: "It cost a fortune!", arabic: "لقد كلف ثروة!" },
-      { english: "That sounds like a good idea.", arabic: "هذه تبدو فكرة جيدة." },
-      { english: "The break will do you good.", arabic: "الاستراحة ستفيدك." },
-      { english: "I can't make it then.", arabic: "لا أستطيع الحضور في ذلك الوقت." },
-      { english: "Mind your own business!", arabic: "اهتم بشؤونك الخاصة!" }
+      { english: "Never mind.", arabic: "لا تهتم / لا بأس. (للتخفيف من خطأ بسيط)" },
+      { english: "Take care!", arabic: "اعتنِ بنفسك! (عند توديع شخص)" },
+      { english: "You must be joking!", arabic: "لابد أنك تمزح! (للتعبير عن عدم التصديق)" },
+      { english: "Come in and sit down.", arabic: "تفضل بالدخول واجلس. (للترحيب بالضيوف)" },
+      { english: "How about you?", arabic: "ماذا عنك؟ (لإعادة توجيه السؤال)" },
+      { english: "It cost a fortune!", arabic: "لقد كلف ثروة! (يعني أنه باهظ الثمن)" },
+      { english: "That sounds like a good idea.", arabic: "هذه تبدو فكرة جيدة. (للموافقة على اقتراح)" },
+      { english: "The break will do you good.", arabic: "الاستراحة ستفيدك. (للتشجيع على الراحة)" },
+      { english: "I can't make it then.", arabic: "لا أستطيع الحضور في ذلك الوقت. (لرفض دعوة)" },
+      { english: "Mind your own business!", arabic: "اهتم بشؤونك الخاصة! (رد غير مهذب)" }
     ],
     mcqs: [
       { question: "If someone says 'It cost a fortune!', it means the item was...", options: ["cheap", "free", "very expensive", "on sale"], answer: "very expensive" },
@@ -679,7 +760,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الأرقام والتواريخ",
-    explanation: "يُعد التعبير عن الأرقام والتواريخ والمال والنسب المئوية جزءًا أساسيًا من اللغة اليومية. من المهم معرفة كيفية نطقها بشكل صحيح في سياقات مختلفة.",
+    explanation: "يُعد التعبير عن الأرقام والتواريخ والمال والنسب المئوية جزءًا أساسيًا من اللغة اليومية. من المهم معرفة كيفية نطقها بشكل صحيح في سياقات مختلفة، مثل قراءة السنوات، والأسعار، وأرقام الهواتف.",
     examples: [
       { english: "£400 (four hundred pounds)", arabic: "400 جنيه إسترليني" },
       { english: "€9.40 (nine euros forty)", arabic: "9.40 يورو" },
@@ -702,7 +783,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "إعطاء الآراء",
-    explanation: "هناك العديد من العبارات المستخدمة للسؤال عن الآراء وإعطائها. استخدام عبارات مثل 'What did you think of...?' و 'It was really...' يجعل المحادثة أكثر تفاعلية.",
+    explanation: "هناك العديد من العبارات المستخدمة للسؤال عن الآراء وإعطائها. استخدام عبارات متنوعة مثل 'What did you think of...?', 'In my opinion...', و 'I feel that...' يجعل المحادثة أكثر ثراءً وتفاعلية. من المهم أن تكون قادرًا على التعبير عن رأيك بوضوح، سواء كان إيجابيًا أو سلبيًا.",
     examples: [
       { english: "What did you think of the play? - It was really boring!", arabic: "ما رأيك في المسرحية؟ - كانت مملة حقًا!" },
       { english: "I fell asleep during the first act.", arabic: "لقد نمت خلال الفصل الأول." },
@@ -725,7 +806,10 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الطلبات والعروض",
-    explanation: "لتقديم طلبات مهذبة، نستخدم 'Could you...?' أو 'Would you mind...?'. لتقديم عروض، نستخدم 'Can I...?', 'Shall I...?', أو 'I'll...'.",
+    explanation: `لجعل حديثك أكثر تهذيبًا، من المهم استخدام الصيغ الصحيحة للطلبات (Requests) والعروض (Offers).
+- للطلبات المهذبة، نستخدم 'Could you...?' أو 'Would you mind...?'.
+- لتقديم العروض، نستخدم 'Can I...?', 'Shall I...?', أو 'I'll...'.
+تساعد هذه الصيغ على جعل التفاعلات الاجتماعية أكثر سلاسة واحترامًا.`,
     examples: [
       { english: "Could you bring us the bill, please?", arabic: "هل يمكنك إحضار الفاتورة لنا، من فضلك؟" },
       { english: "Would you give me your work number, please?", arabic: "هل يمكنك إعطائي رقم عملك، من فضلك؟" },
@@ -748,7 +832,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "السفر والتنقل",
-    explanation: "هذا الدرس يركز على المفردات والعبارات الشائعة المستخدمة عند استخدام وسائل النقل العام، مثل الحافلات والقطارات والطائرات، وكذلك في الفنادق.",
+    explanation: "هذا الدرس يركز على المفردات والعبارات الشائعة والمفيدة المستخدمة عند استخدام وسائل النقل العام المختلفة، مثل الحافلات والقطارات والطائرات والعبّارات، وكذلك عند التعامل في الفنادق. تعلم هذه العبارات يجعل تجربة السفر أسهل وأكثر سلاسة.",
     examples: [
       { english: "Do you think it'll be a rough crossing? (ferry)", arabic: "هل تعتقد أنها ستكون رحلة بحرية صعبة؟ (عبّارة)" },
       { english: "Could you tell us when it's our stop? (bus)", arabic: "هل يمكنك إخبارنا متى تكون محطتنا؟ (حافلة)" },
@@ -771,7 +855,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "العلامات والأصوات",
-    explanation: "فهم اللافتات والإعلانات الصوتية أمر بالغ الأهمية في الحياة اليومية، خاصة عند السفر أو التسوق. هذا الدرس يغطي العبارات الشائعة التي قد تراها أو تسمعها.",
+    explanation: "فهم اللافتات والإعلانات الصوتية أمر بالغ الأهمية في الحياة اليومية، خاصة عند السفر أو التسوق أو في الأماكن العامة. هذا الدرس يغطي العبارات الشائعة التي قد تراها على اللافتات أو تسمعها في الإعلانات، ويشرح معانيها وسياقاتها.",
     examples: [
       { english: "Dry clean only.", arabic: "تنظيف جاف فقط. (ملصق ملابس)" },
       { english: "Just looking, thanks.", arabic: "أنا أتفرج فقط، شكرًا. (في متجر)" },
@@ -794,7 +878,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الأفعال المركبة (Phrasal Verbs)",
-    explanation: "الأفعال المركبة تتكون من فعل وحرف جر أو حال. يمكن أن يكون معناها حرفيًا (look out of the window) أو اصطلاحيًا (Look out!). من المهم تعلمها لأنها شائعة جدًا.",
+    explanation: `الأفعال المركبة (Phrasal Verbs) تتكون من فعل + حرف جر أو حال (e.g., look up, get on, take off). يمكن أن يكون معناها حرفيًا أو اصطلاحيًا (idiomatic)، مما يجعلها صعبة أحيانًا.
+- بعضها يمكن فصله (Separable): "Turn the light on" or "Turn on the light". إذا كان المفعول به ضميرًا، يجب أن يأتي في المنتصف: "Turn it on".
+- بعضها لا يمكن فصله (Inseparable): "I'm looking for my keys." (لا يمكن قول "looking my keys for").`,
     examples: [
       { english: "She looked out of the window.", arabic: "نظرت من النافذة." },
       { english: "Look out! There's a car coming.", arabic: "انتبه! هناك سيارة قادمة." },
@@ -817,7 +903,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "على الهاتف",
-    explanation: "إجراء المحادثات الهاتفية باللغة الإنجليزية له عباراته الخاصة. هذا الدرس يغطي كيفية طلب التحدث إلى شخص ما، وترك رسالة، والتعامل مع المكالمات بشكل احترافي.",
+    explanation: "إجراء المحادثات الهاتفية باللغة الإنجليزية له عباراته وآدابه الخاصة. هذا الدرس يغطي كيفية طلب التحدث إلى شخص ما، وترك رسالة، والرد على المكالمات، والتعامل مع المشكلات الشائعة مثل انشغال الخط أو الرقم الخطأ بشكل مهذب واحترافي.",
     examples: [
       { english: "Can I take a message?", arabic: "هل يمكنني أخذ رسالة؟" },
       { english: "Would you like to hold?", arabic: "هل تود الانتظار؟" },
@@ -840,7 +926,11 @@ export const lessons: Lesson[] = [
   },
   {
     title: "تقديم الاقتراحات",
-    explanation: "هناك طرق عديدة لتقديم الاقتراحات باللغة الإنجليزية، مثل استخدام 'Let's...', 'Why don't we...?', 'How about...?', و 'What about...?'.",
+    explanation: `هناك طرق عديدة لتقديم الاقتراحات (Making Suggestions) باللغة الإنجليزية. يعتمد اختيار الصيغة على مدى رسمية الموقف.
+- 'Let's...': غير رسمية وشائعة. (Let's go shopping!)
+- 'Why don't we/you...?': طريقة ودية لتقديم اقتراح. (Why don't we meet at 7?)
+- 'How about / What about + verb-ing?': طريقة أخرى غير رسمية. (How about going to the cinema?)
+- 'We could...': اقتراح أقل مباشرة ومهذب. (We could try that new restaurant.)`,
     examples: [
       { english: "Let's go shopping!", arabic: "دعنا نذهب للتسوق!" },
       { english: "Why don't you ask your parents?", arabic: "لماذا لا تسأل والديك؟" },
@@ -863,7 +953,10 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الموافقة وعدم الموافقة",
-    explanation: "للتعبير عن الموافقة مع جملة مثبتة، نستخدم 'So + auxiliary + I'. وللموافقة مع جملة منفية، نستخدم 'Neither + auxiliary + I'.",
+    explanation: `للتعبير عن الموافقة مع شخص ما، نستخدم صيغًا قصيرة لتجنب التكرار.
+- للموافقة على جملة مثبتة، نستخدم 'So + auxiliary verb + I'. (e.g., A: "I am tired." B: "So am I.")
+- للموافقة على جملة منفية، نستخدم 'Neither/Nor + auxiliary verb + I'. (e.g., A: "I can't swim." B: "Neither can I.")
+يمكن أيضًا استخدام 'Me too' (للمثبت) و 'Me neither' (للمنفي) في المحادثات غير الرسمية.`,
     examples: [
       { english: "A: I like ice-cream. B: So do I.", arabic: "أ: أنا أحب الآيس كريم. ب: وأنا كذلك." },
       { english: "A: I can't swim. B: Neither can I.", arabic: "أ: لا أستطيع السباحة. ب: ولا أنا كذلك." },
@@ -886,7 +979,11 @@ export const lessons: Lesson[] = [
   },
   {
     title: "التعبير عن الكمية",
-    explanation: "تُستخدم كلمات مثل 'much', 'many', 'a lot of', 'a few', 'a little', 'too', 'enough' للتعبير عن الكميات. 'Many' و 'a few' للأسماء المعدودة، و'much' و 'a little' لغير المعدودة.",
+    explanation: `تُستخدم كلمات تحديد الكمية (Quantifiers) للتعبير عن كمية أو عدد شيء ما.
+- مع الأسماء المعدودة (Countable nouns): 'many', 'a few', 'several'.
+- مع الأسماء غير المعدودة (Uncountable nouns): 'much', 'a little'.
+- مع كلا النوعين: 'a lot of', 'lots of', 'some', 'any', 'enough'.
+'too' تعني 'أكثر من اللازم'. 'enough' تعني 'الكمية الكافية'.`,
     examples: [
       { english: "How much coffee do you drink?", arabic: "كم تشرب من القهوة؟" },
       { english: "That's too much!", arabic: "هذا كثير جدًا!" },
@@ -909,7 +1006,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "اللغة الإنجليزية غير الرسمية",
-    explanation: "اللغة غير الرسمية هي اللغة التي نستخدمها مع الأصدقاء والعائلة. تتضمن اختصارات وتعابير عامية وأسلوبًا أكثر استرخاءً من اللغة الرسمية.",
+    explanation: "اللغة غير الرسمية (Informal English) هي اللغة التي نستخدمها مع الأصدقاء والعائلة. تتميز باستخدام الاختصارات (wanna, gotta)، والتعابير العامية (What's up?, cool), وأسلوب أكثر استرخاءً من اللغة الرسمية المستخدمة في الكتابة الأكاديمية أو بيئة العمل.",
     examples: [
       { english: "What do you say we break for lunch?", arabic: "ما رأيك أن نأخذ استراحة للغداء؟" },
       { english: "What's up?", arabic: "ما الأخبار؟ / كيف حالك؟" },
@@ -932,7 +1029,11 @@ export const lessons: Lesson[] = [
   },
   {
     title: "قول آسف",
-    explanation: "هناك طرق مختلفة للاعتذار في اللغة الإنجليزية حسب الموقف. 'I'm sorry' هو الاعتذار العام. 'Excuse me' يُستخدم للفت الانتباه أو المرور. 'Pardon' لطلب تكرار شيء لم تسمعه.",
+    explanation: `هناك طرق مختلفة للاعتذار في اللغة الإنجليزية حسب الموقف ودرجة الرسمية.
+- 'I'm sorry': الاعتذار العام والأكثر شيوعًا.
+- 'Excuse me': تُستخدم للفت الانتباه بلطف، أو للمرور، أو قبل مقاطعة شخص ما.
+- 'Pardon?' / 'Sorry?': لطلب تكرار شيء لم تسمعه جيدًا.
+- 'I apologize': طريقة أكثر رسمية للاعتذار، تُستخدم غالبًا في الكتابة أو المواقف الرسمية.`,
     examples: [
       { english: "I'm so sorry! I didn't mean to do that.", arabic: "أنا آسف جدًا! لم أقصد فعل ذلك." },
       { english: "Excuse me, can I get past?", arabic: "عفوًا، هل يمكنني المرور؟" },
@@ -955,7 +1056,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مراجعة: تصحيح الأخطاء (1)",
-    explanation: "تحديد وتصحيح الأخطاء اللغوية الشائعة هو جزء مهم من التعلم. يركز هذا الدرس على الأخطاء في الأزمنة، وحروف الجر، وترتيب الكلمات في الرسائل غير الرسمية.",
+    explanation: "تحديد وتصحيح الأخطاء اللغوية الشائعة هو جزء مهم من عملية التعلم. يركز هذا الدرس على الأخطاء الأساسية في استخدام الأزمنة، وحروف الجر، وصيغ الأفعال، وترتيب الكلمات، والتي غالبًا ما يقع فيها المتعلمون في المراحل الأولى.",
     examples: [
       { english: "Incorrect: I am born in 1990. Correct: I was born in 1990.", arabic: "خطأ: أنا أولد في 1990. صحيح: أنا وُلدت في 1990." },
       { english: "Incorrect: He don't like fish. Correct: He doesn't like fish.", arabic: "خطأ: هو لا يحب السمك. صحيح: هو لا يحب السمك." },
@@ -978,7 +1079,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "كتابة الرسائل ورسائل البريد الإلكتروني",
-    explanation: "تختلف كتابة الرسائل الرسمية عن غير الرسمية في الأسلوب والمفردات والتحيات. يغطي هذا الدرس الهياكل الأساسية والعبارات الشائعة لكلا النوعين.",
+    explanation: "تختلف كتابة الرسائل الرسمية عن غير الرسمية في الأسلوب والمفردات والتحيات والخاتمة. من المهم معرفة الصيغ المناسبة لكل نوع. الرسائل الرسمية تتطلب لغة مهذبة ومحددة، بينما الرسائل غير الرسمية تكون أكثر استرخاءً وشخصية.",
     examples: [
       { english: "Informal greeting: Hi John, / Dear Mum,", arabic: "تحية غير رسمية: مرحبًا جون، / أمي العزيزة،" },
       { english: "Formal greeting: Dear Mr. Smith, / Dear Sir or Madam,", arabic: "تحية رسمية: عزيزي السيد سميث، / سيدي أو سيدتي العزيز/ة،" },
@@ -1001,7 +1102,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "كتابة قصة (1)",
-    explanation: "تتطلب كتابة قصة جيدة استخدام أزمنة الماضي بشكل صحيح (الماضي البسيط، المستمر، التام) لترتيب الأحداث، واستخدام كلمات الربط (e.g., then, after that, suddenly) لجعل القصة متماسكة ومثيرة للاهتمام.",
+    explanation: "تتطلب كتابة قصة جيدة (Narrative) استخدام أزمنة الماضي بشكل صحيح لترتيب الأحداث (الماضي البسيط، المستمر، التام). كما يجب استخدام كلمات الربط الزمني (e.g., first, then, after that, finally, suddenly) لجعل القصة متماسكة ومثيرة للاهتمام وواضحة للقارئ.",
     examples: [
       { english: "Once upon a time, there was an old king.", arabic: "في يوم من الأيام، كان هناك ملك عجوز." },
       { english: "It was a dark and stormy night.", arabic: "كانت ليلة مظلمة وعاصفة." },
@@ -1024,7 +1125,10 @@ export const lessons: Lesson[] = [
   },
   {
     title: "كتابة موضوع (مع وضد)",
-    explanation: "كتابة مقال يعرض وجهات نظر متعارضة (For and Against) يتطلب تنظيمًا واضحًا: مقدمة، فقرات للحجج المؤيدة، فقرات للحجج المعارضة، وخاتمة تلخص رأيك الشخصي.",
+    explanation: `كتابة مقال يعرض وجهات نظر متعارضة (For and Against Essay) يتطلب بنية واضحة:
+1.  المقدمة: قدم الموضوع بشكل عام دون إبداء رأيك.
+2.  صلب الموضوع: فقرة (أو أكثر) للحجج المؤيدة (For)، وفقرة (أو أكثر) للحجج المعارضة (Against). استخدم كلمات ربط مثل 'On the one hand' و 'On the other hand'.
+3.  الخاتمة: لخص النقاط الرئيسية وأعط رأيك الشخصي بوضوح.`,
     examples: [
       { english: "Introduction: Many people believe that... However, others argue that...", arabic: "مقدمة: يعتقد الكثير من الناس أن... ولكن، يجادل آخرون بأن..." },
       { english: "Argument for: On the one hand, one of the main advantages is...", arabic: "حجة مؤيدة: من ناحية، إحدى المزايا الرئيسية هي..." },
@@ -1047,12 +1151,12 @@ export const lessons: Lesson[] = [
   },
   {
     title: "كتابة حجز",
-    explanation: "عند كتابة بريد إلكتروني أو رسالة لعمل حجز (فندق، مطعم، إلخ)، يجب أن تكون واضحًا وموجزًا. اذكر المعلومات الأساسية: نوع الحجز، التواريخ، عدد الأشخاص، وأي طلبات خاصة.",
+    explanation: "عند كتابة بريد إلكتروني أو رسالة لعمل حجز (فندق، مطعم، تذاكر)، يجب أن تكون واضحًا وموجزًا ومباشرًا. اذكر جميع المعلومات الأساسية التي يحتاجها الطرف الآخر لتأكيد الحجز، مثل نوع الحجز، التواريخ، عدد الأشخاص، وأي طلبات خاصة.",
     examples: [
       { english: "I would like to book a double room for two nights.", arabic: "أود حجز غرفة مزدوجة لليلتين." },
       { english: "I am writing to make a reservation.", arabic: "أكتب لعمل حجز." },
       { english: "We will be arriving on July 15th and departing on July 17th.", arabic: "سنصل في 15 يوليو ونغادر في 17 يوليو." },
-      { english: "Could you please confirm the reservation?", arabic: "هل يمكنك تأكيد الحجز من فضلك؟" },
+      { english: "Could you please confirm the reservation and the price?", arabic: "هل يمكنك تأكيد الحجز والسعر من فضلك؟" },
       { english: "I would like to reserve a table for four people at 8 p.m.", arabic: "أود حجز طاولة لأربعة أشخاص في الساعة 8 مساءً." },
       { english: "Please let me know if this is possible.", arabic: "من فضلك أعلمني إذا كان هذا ممكنًا." },
       { english: "We require a room with a sea view.", arabic: "نحن نطلب غرفة تطل على البحر." },
@@ -1070,7 +1174,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "كتابة وصف (1)",
-    explanation: "الوصف الجيد لشخص أو مكان يستخدم صفات متنوعة وتفاصيل حسية (ما تراه، تسمعه، تشعر به) لخلق صورة حية في ذهن القارئ.",
+    explanation: "الوصف الجيد لشخص أو مكان (Description) يستخدم صفات متنوعة وتفاصيل حسية (ما تراه، تسمعه، تشعر به) لخلق صورة حية في ذهن القارئ. حاول استخدام مفردات غنية وتجنب الكلمات العامة مثل 'good' أو 'nice'.",
     examples: [
       { english: "New York is a bustling, cosmopolitan city.", arabic: "نيويورك مدينة صاخبة وعالمية." },
       { english: "He was a tall, elderly man with a friendly smile.", arabic: "كان رجلاً طويلًا ومسنًا بابتسامة ودودة." },
@@ -1093,7 +1197,10 @@ export const lessons: Lesson[] = [
   },
   {
     title: "كتابة رسالة طلب وظيفة",
-    explanation: "رسالة طلب الوظيفة (Letter of Application) هي رسالة رسمية. يجب أن تذكر الوظيفة التي تتقدم لها، وتشرح لماذا أنت مناسب لها (مهاراتك وخبراتك)، وتطلب مقابلة.",
+    explanation: `رسالة طلب الوظيفة (Letter of Application) هي رسالة رسمية يجب أن تكون احترافية ومقنعة. يجب أن تتضمن:
+1.  مقدمة: اذكر الوظيفة التي تتقدم لها وأين رأيت الإعلان.
+2.  صلب الموضوع: اشرح لماذا أنت مناسب للوظيفة، مع ربط مهاراتك وخبراتك (من سيرتك الذاتية) بمتطلبات الوظيفة.
+3.  خاتمة: عبر عن اهتمامك، واذكر أنك متاح للمقابلة، وأنهِ الرسالة بشكل رسمي.`,
     examples: [
       { english: "I am writing to apply for the position of... advertised in...", arabic: "أكتب للتقدم لوظيفة... المعلن عنها في..." },
       { english: "As you can see from my enclosed CV, I have...", arabic: "كما ترون من سيرتي الذاتية المرفقة، لدي..." },
@@ -1116,15 +1223,15 @@ export const lessons: Lesson[] = [
   },
   {
     title: "كتابة قصة (2)",
-    explanation: "تطوير مهارات السرد القصصي يتضمن بناء التشويق، ووصف مشاعر الشخصيات، واستخدام الحوار لجعل القصة أكثر حيوية وواقعية.",
+    explanation: "تطوير مهارات السرد القصصي يتضمن ليس فقط سرد الأحداث، بل أيضًا بناء التشويق (suspense)، ووصف مشاعر الشخصيات (feelings)، واستخدام الحوار (dialogue) لجعل القصة أكثر حيوية وواقعية وإشراكًا للقارئ.",
     examples: [
       { english: "His heart was pounding in his chest.", arabic: "كان قلبه يخفق في صدره." },
-      { english: " 'What was that?' she whispered.", arabic: "'ما هذا؟' همست." },
+      { english: "'What was that?' she whispered.", arabic: "'ما هذا؟' همست." },
       { english: "He couldn't believe his eyes.", arabic: "لم يستطع أن يصدق عينيه." },
       { english: "A feeling of dread washed over him.", arabic: "اجتاحه شعور بالرهبة." },
       { english: "Without thinking, he started to run.", arabic: "بدون تفكير، بدأ يركض." },
       { english: "She held her breath, listening intently.", arabic: "حبست أنفاسها، تستمع باهتمام." },
-      { english: " 'Don't move,' he said in a low voice.", arabic: "'لا تتحرك،' قال بصوت منخفض." },
+      { english: "'Don't move,' he said in a low voice.", arabic: "'لا تتحرك،' قال بصوت منخفض." },
       { english: "Tears of relief streamed down her face.", arabic: "انهمرت دموع الارتياح على وجهها." },
       { english: "It all happened so fast.", arabic: "حدث كل شيء بسرعة كبيرة." },
       { english: "He knew he would never forget that day.", arabic: "كان يعلم أنه لن ينسى ذلك اليوم أبدًا." }
@@ -1139,7 +1246,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "كتابة وصف (2)",
-    explanation: "الوصف المتقدم لا يقتصر على المظهر الخارجي، بل يشمل أيضًا الشخصية والعادات والمشاعر. استخدام المقارنات والتشبيهات يمكن أن يجعل الوصف أقوى وأكثر تأثيرًا.",
+    explanation: "الوصف المتقدم لا يقتصر على المظهر الخارجي، بل يشمل أيضًا الشخصية، العادات، والمشاعر. استخدام المقارنات (comparisons) والتشبيهات (similes) يمكن أن يجعل الوصف أقوى وأكثر تأثيرًا ولا يُنسى.",
     examples: [
       { english: "He has a very cheerful personality.", arabic: "لديه شخصية مرحة جدًا." },
       { english: "She is as brave as a lion.", arabic: "هي شجاعة كالأسد." },
@@ -1162,7 +1269,12 @@ export const lessons: Lesson[] = [
   },
   {
     title: "كتابة سيرة ذاتية",
-    explanation: "كتابة سيرة ذاتية (biography) لشخص ما تتطلب البحث وجمع المعلومات عن حياته، ثم تنظيمها بترتيب زمني: الولادة، النشأة، الإنجازات الهامة، والنهاية. يجب أن تكون الكتابة موضوعية وتستند إلى حقائق.",
+    explanation: `كتابة سيرة ذاتية (Biography) لشخص ما تتطلب البحث وجمع المعلومات عن حياته، ثم تنظيمها بأسلوب قصصي بترتيب زمني. يجب أن تكون الكتابة موضوعية وتستند إلى حقائق، وتغطي المراحل الرئيسية في حياة الشخص:
+- الولادة والنشأة (Birth and early life)
+- التعليم والمسيرة المهنية (Education and career)
+- الإنجازات الهامة (Major achievements)
+- الحياة الشخصية (Personal life)
+- السنوات الأخيرة والوفاة (Later years and death)`,
     examples: [
       { english: "Pablo Picasso was born in Málaga, Spain, in 1881.", arabic: "ولد بابلو بيكاسو في مالقة، إسبانيا، عام 1881." },
       { english: "He showed artistic talent from a very young age.", arabic: "أظهر موهبة فنية منذ سن مبكرة جدًا." },
@@ -1185,7 +1297,11 @@ export const lessons: Lesson[] = [
   },
   {
     title: "كلمات ربط الأفكار",
-    explanation: "كلمات الربط (Linking words) مثل 'and', 'but', 'so', 'because', 'although' ضرورية لربط الجمل والأفكار معًا لجعل الكتابة أكثر سلاسة ومنطقية.",
+    explanation: `كلمات الربط (Linking words and phrases) ضرورية لجعل الكتابة أكثر سلاسة ومنطقية. هي تربط الجمل والأفكار معًا لتوضح العلاقة بينها.
+- للسبب (Reason): because, since
+- للنتيجة (Result): so, therefore
+- للتناقض (Contrast): but, however, although
+- للإضافة (Addition): and, in addition, furthermore`,
     examples: [
       { english: "I was tired, so I went to bed early.", arabic: "كنت متعبًا، لذلك ذهبت إلى الفراش مبكرًا." },
       { english: "He is rich, but he is not happy.", arabic: "هو غني، لكنه ليس سعيدًا." },
@@ -1208,7 +1324,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مراجعة: تصحيح الأخطاء (2)",
-    explanation: "هذا الدرس هو مراجعة متقدمة تركز على الأخطاء الدقيقة في استخدام الأفعال، وحروف الجر، وأدوات التعريف، وغيرها من القواعد التي غالبًا ما تكون صعبة على المتعلمين.",
+    explanation: "هذا الدرس هو مراجعة متقدمة تركز على الأخطاء الدقيقة في اللغة الإنجليزية، مثل استخدام الصفات المنتهية بـ -ed/-ing، والمقارنات، والأسماء المعدودة وغير المعدودة، وحروف الجر، وغيرها من القواعد التي غالبًا ما تكون صعبة على المتعلمين وتتطلب انتباهًا للتفاصيل.",
     examples: [
       { english: "Incorrect: I'm very interesting in history. Correct: I'm very interested in history.", arabic: "خطأ: أنا مثير جدًا في التاريخ. صحيح: أنا مهتم جدًا بالتاريخ." },
       { english: "Incorrect: It was a such good movie. Correct: It was such a good movie.", arabic: "خطأ: كان فيلم جيد كهذا. صحيح: كان فيلمًا جيدًا كهذا." },
@@ -1231,7 +1347,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: أجزاء الكلام والمعنى",
-    explanation: "فهم أجزاء الكلام (اسم، فعل، صفة، حال) يساعد على تحديد معنى الكلمات من سياق الجملة، حتى لو كانت الكلمة غير معروفة. بنية الجملة تعطي أدلة قوية.",
+    explanation: "فهم أجزاء الكلام (Parts of Speech) - مثل الاسم (noun)، والفعل (verb)، والصفة (adjective)، والحال (adverb) - يساعد على تحديد معنى الكلمات من سياق الجملة، حتى لو كانت الكلمة غير معروفة. بنية الجملة وموقع الكلمة يعطيان أدلة قوية على وظيفتها.",
     examples: [
       { english: "He ate his (noun) loudly.", arabic: "أكل (اسمه) بصوت عالٍ." },
       { english: "I (verb) on the ice.", arabic: "أنا (فعل) على الجليد." },
@@ -1254,7 +1370,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: الهجاء والنطق",
-    explanation: "الهجاء في اللغة الإنجليزية ليس دائمًا متسقًا مع النطق. هذا الدرس يركز على مجموعات الكلمات التي لها أصوات متشابهة ولكن هجاء مختلف، والعكس صحيح، لمساعدتك على تحسين النطق والإملاء.",
+    explanation: "الهجاء في اللغة الإنجليزية ليس دائمًا متسقًا مع النطق، مما يمثل تحديًا. هذا الدرس يركز على مجموعات الكلمات التي لها أصوات متشابهة ولكن هجاء مختلف (homophones)، والكلمات التي لها هجاء متشابه ونطق مختلف، لمساعدتك على تحسين النطق والإملاء.",
     examples: [
       { english: "good / food / wood / stood (food is different)", arabic: "good / food / wood / stood (food مختلفة)" },
       { english: "bread / head / read (present) / read (past) (read-present is different)", arabic: "bread / head / read (present) / read (past) (read-present مختلفة)" },
@@ -1277,7 +1393,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: تكوين الكلمات",
-    explanation: "يمكن تكوين كلمات جديدة في اللغة الإنجليزية عن طريق إضافة بادئات (prefixes) ولواحق (suffixes) إلى الكلمة الأساسية. هذا يغير معنى الكلمة أو نوعها (من فعل إلى اسم، مثلاً).",
+    explanation: "يمكن تكوين كلمات جديدة في اللغة الإنجليزية عن طريق إضافة بادئات (prefixes) مثل 'un-', 'im-', 'dis-' لتغيير المعنى (غالبًا إلى العكس)، أو لواحق (suffixes) مثل '-ness', '-ion', '-able' لتغيير نوع الكلمة (من فعل إلى اسم، أو من اسم إلى صفة).",
     examples: [
       { english: "act (verb) -> actor (noun), action (noun), active (adjective)", arabic: "act (فعل) -> actor (اسم), action (اسم), active (صفة)" },
       { english: "happy (adjective) -> unhappy (adjective), happiness (noun)", arabic: "happy (صفة) -> unhappy (صفة), happiness (اسم)" },
@@ -1300,7 +1416,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: الكلمات المتلازمة (Collocations)",
-    explanation: "المتلازمات اللفظية هي كلمات غالبًا ما تأتي معًا بشكل طبيعي في اللغة (مثل 'strong coffee' وليس 'powerful coffee'). تعلم هذه المتلازمات يجعل لغتك تبدو أكثر طلاقة وطبيعية.",
+    explanation: "المتلازمات اللفظية (Collocations) هي كلمات غالبًا ما تأتي معًا بشكل طبيعي في اللغة. تعلم هذه المتلازمات يجعل لغتك تبدو أكثر طلاقة وأصالة، ويساعدك على تجنب تركيبات الكلمات غير الطبيعية. على سبيل المثال، نقول 'make a mistake' وليس 'do a mistake'.",
     examples: [
       { english: "strong coffee", arabic: "قهوة قوية" },
       { english: "full-time job", arabic: "وظيفة بدوام كامل" },
@@ -1323,7 +1439,10 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: الرياضة والترفيه",
-    explanation: "يتم استخدام أفعال مختلفة مع الأنشطة الرياضية والترفيهية. 'play' للرياضات التي بها كرة وألعاب المنافسة، 'go' للأنشطة التي تنتهي بـ '-ing'، و 'do' للفنون القتالية والأنشطة الفردية.",
+    explanation: `يتم استخدام أفعال مختلفة مع الأنشطة الرياضية والترفيهية.
+- 'play': للرياضات التي بها كرة وألعاب المنافسة (football, chess).
+- 'go': للأنشطة التي تنتهي بـ '-ing' (skiing, jogging, swimming).
+- 'do': للفنون القتالية، التمارين، والأنشطة الفردية غير التنافسية (judo, aerobics, yoga).`,
     examples: [
       { english: "play football / volleyball / tennis", arabic: "يلعب كرة القدم / الكرة الطائرة / التنس" },
       { english: "go skiing / snowboarding / fishing", arabic: "يذهب للتزلج / التزلج على الجليد / صيد السمك" },
@@ -1346,7 +1465,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: الفن والأدب",
-    explanation: "يغطي هذا الدرس المفردات المتعلقة بالفنون مثل الرسم والنحت والأدب مثل الشعر والروايات، بما في ذلك أسماء الفنانين والأعمال والأماكن ذات الصلة.",
+    explanation: "يغطي هذا الدرس المفردات الأساسية المتعلقة بمجالات الفنون والأدب، بما في ذلك أسماء المبدعين (painter, poet, novelist)، وأنواع الأعمال الفنية والأدبية (picture, poem, novel)، والأماكن ذات الصلة (art gallery, exhibition).",
     examples: [
       { english: "A painter paints pictures.", arabic: "الرسام يرسم لوحات." },
       { english: "A poet writes poems.", arabic: "الشاعر يكتب قصائد." },
@@ -1369,7 +1488,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: كلمات الجنسية",
-    explanation: "هذا الدرس يوضح كيفية تكوين الكلمات المتعلقة بالدول والجنسيات واللغات. لاحظ أن جميعها تبدأ بحرف كبير في اللغة الإنجليزية.",
+    explanation: "هذا الدرس يوضح كيفية تكوين الكلمات المتعلقة بالدول، الجنسيات، واللغات. لاحظ أن جميع هذه الكلمات تبدأ بحرف كبير في اللغة الإنجليزية. هناك أنماط مختلفة لتكوين هذه الكلمات (مثل إضافة -an, -ese, -ish) وبعضها شاذ.",
     examples: [
       { english: "Country: Japan -> Adjective: Japanese -> People: the Japanese", arabic: "الدولة: اليابان -> الصفة: ياباني -> الشعب: اليابانيون" },
       { english: "Country: Spain -> Adjective: Spanish -> People: the Spanish", arabic: "الدولة: إسبانيا -> الصفة: إسباني -> الشعب: الإسبان" },
@@ -1392,7 +1511,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: الطقس",
-    explanation: "يغطي هذا الدرس المفردات الأساسية لوصف الطقس، بما في ذلك الأسماء (rain, sun)، والصفات (rainy, sunny)، والأفعال (to rain, to shine).",
+    explanation: "يغطي هذا الدرس المفردات الأساسية لوصف الطقس. من المهم معرفة الفرق بين الاسم (rain)، والصفة (rainy)، والفعل (to rain). تعلم هذه المفردات يمكنك من فهم نشرات الطقس والمشاركة في المحادثات اليومية عن الطقس.",
     examples: [
       { english: "It's sunny.", arabic: "الجو مشمس." },
       { english: "There is a lot of sunshine.", arabic: "هناك الكثير من أشعة الشمس." },
@@ -1415,7 +1534,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: وصف الطعام والمدن والناس",
-    explanation: "استخدام الصفات المناسبة أمر ضروري لوصف الأشياء بدقة. هذا الدرس يركز على الصفات الشائعة لوصف الطعام (fresh, tasteless)، والمدن (historic, polluted)، والناس (sociable, elderly).",
+    explanation: "استخدام الصفات المناسبة أمر ضروري لوصف الأشياء بدقة وجعل لغتك أكثر تعبيرًا. يركز هذا الدرس على الصفات الشائعة لوصف الطعام (e.g., fresh, tasteless, delicious)، والمدن (e.g., historic, polluted, cosmopolitan)، والناس (e.g., sociable, elderly, sophisticated).",
     examples: [
       { english: "fresh food / polluted town / sophisticated people", arabic: "طعام طازج / مدينة ملوثة / أناس راقون" },
       { english: "historic towns / elderly people", arabic: "مدن تاريخية / كبار السن" },
@@ -1438,7 +1557,9 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: الصفات الأساسية والقوية",
-    explanation: "بعض الصفات (strong adjectives) لها معنى أقوى من الصفات الأساسية (base adjectives). لا نستخدم 'very' مع الصفات القوية؛ بدلاً من ذلك، نستخدم 'absolutely' أو 'really'. (e.g., very tired -> absolutely exhausted)",
+    explanation: `بعض الصفات (strong adjectives) لها معنى أقوى بطبيعتها من الصفات الأساسية (base adjectives). القاعدة المهمة هي أننا لا نستخدم 'very' مع الصفات القوية؛ بدلاً من ذلك، نستخدم ظروفًا مثل 'absolutely' أو 'really' أو 'totally' للتأكيد.
+- Base: very good, very tired, very big
+- Strong: absolutely fantastic, absolutely exhausted, absolutely huge`,
     examples: [
       { english: "base: good -> strong: wonderful, fantastic, brilliant", arabic: "أساسي: جيد -> قوي: رائع، مدهش، لامع" },
       { english: "base: tired -> strong: exhausted", arabic: "أساسي: متعب -> قوي: منهك" },
@@ -1461,7 +1582,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: ظروف التعديل",
-    explanation: "الظروف مثل 'very', 'really', 'absolutely', 'extremely' تعدل الصفات لتجعلها أقوى أو أضعف. 'very' و 'really' تُستخدمان مع الصفات الأساسية، بينما 'absolutely' تُستخدم مع الصفات القوية.",
+    explanation: "الظروف (Adverbs) مثل 'very', 'really', 'absolutely', 'extremely' تعدل الصفات لتجعلها أقوى أو أضعف. من المهم معرفة أي الظروف يمكن استخدامها مع أي الصفات. 'very' و 'really' و 'extremely' تُستخدمان مع الصفات الأساسية (base adjectives)، بينما 'absolutely' و 'totally' تُستخدمان مع الصفات القوية (strong adjectives).",
     examples: [
       { english: "I'm very tired.", arabic: "أنا متعب جدًا." },
       { english: "It's absolutely wonderful.", arabic: "إنه رائع للغاية." },
@@ -1484,7 +1605,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: صفات الشخصية",
-    explanation: "هذا الدرس يركز على الصفات المستخدمة لوصف شخصية الإنسان، مثل 'reliable' (موثوق)، 'sociable' (اجتماعي)، و'easygoing' (سهل المعشر).",
+    explanation: "هذا الدرس يركز على الصفات (Adjectives) المستخدمة لوصف شخصية الإنسان وطباعه. تعلم هذه المفردات يمكنك من وصف أصدقائك وعائلتك وزملائك بشكل أفضل وأكثر دقة.",
     examples: [
       { english: "A reliable person is someone you can trust.", arabic: "الشخص الموثوق هو شخص يمكنك الوثوق به." },
       { english: "A sociable person enjoys being with other people.", arabic: "الشخص الاجتماعي يستمتع بكونه مع الآخرين." },
@@ -1507,7 +1628,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: الأسماء المركبة",
-    explanation: "الأسماء المركبة تتكون من كلمتين أو أكثر (عادة اسمين، أو صفة واسم) تعملان معًا كاسم واحد. يمكن كتابتها ككلمة واحدة، أو بواصلة، أو ككلمتين منفصلتين. (e.g., ponytail, movie star, swimming pool).",
+    explanation: "الأسماء المركبة (Compound Nouns) تتكون من كلمتين أو أكثر تعملان معًا كاسم واحد له معنى محدد. يمكن كتابتها ككلمة واحدة (e.g., toothpaste)، أو بواصلة (e.g., five-star), أو ككلمتين منفصلتين (e.g., swimming pool).",
     examples: [
       { english: "She has her hair in a ponytail.", arabic: "شعرها مربوط على شكل ذيل حصان." },
       { english: "He wants to be a movie star.", arabic: "يريد أن يصبح نجمًا سينمائيًا." },
@@ -1530,7 +1651,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: أفعال وأسماء متلازمة",
-    explanation: "كما هو الحال مع الصفات، هناك أفعال معينة تتلازم بشكل طبيعي مع أسماء معينة. تعلم هذه المتلازمات يساعد على تجنب الأخطاء الشائعة.",
+    explanation: "كما هو الحال مع الصفات، هناك أفعال معينة تتلازم بشكل طبيعي مع أسماء معينة (Verb-Noun Collocations). تعلم هذه المتلازمات يساعد على تجنب الأخطاء الشائعة ويجعل لغتك تبدو أكثر طبيعية. على سبيل المثال، نقول 'tell a joke' وليس 'say a joke'.",
     examples: [
       { english: "whistle a tune", arabic: "يصفر لحنًا" },
       { english: "lick an ice-cream", arabic: "يلعق آيس كريم" },
@@ -1553,7 +1674,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: التعابير الاصطلاحية (Idioms)",
-    explanation: "التعابير الاصطلاحية هي عبارات لها معنى مجازي يختلف عن المعنى الحرفي للكلمات. هي جزء مهم من الطلاقة في اللغة.",
+    explanation: "التعابير الاصطلاحية (Idioms) هي عبارات لها معنى مجازي يختلف عن المعنى الحرفي للكلمات المكونة لها. هي جزء مهم من الطلاقة في اللغة، وفهمها يساعد على فهم المتحدثين الأصليين بشكل أفضل.",
     examples: [
       { english: "hold your breath", arabic: "يحبس أنفاسه (ينتظر بقلق)" },
       { english: "hit the roof", arabic: "يستشيط غضبًا" },
@@ -1576,7 +1697,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مفردات: الولادة، الزواج، والوفاة",
-    explanation: "هذا الدرس يغطي المفردات الأساسية المتعلقة بالأحداث الكبرى في حياة الإنسان، مثل الولادة، والخطوبة، والزواج، والوفاة.",
+    explanation: "هذا الدرس يغطي المفردات الأساسية المتعلقة بالأحداث الكبرى والمراحل المختلفة في حياة الإنسان، مثل الولادة (birth)، والخطوبة (engagement)، والزواج (marriage)، والتقاعد (retirement)، والوفاة (death).",
     examples: [
       { english: "have a baby", arabic: "يرزق بطفل" },
       { english: "get engaged", arabic: "يخطب / تخطب" },
@@ -1599,7 +1720,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مراجعة شاملة للأزمنة",
-    explanation: "مراجعة مركزة لجميع أزمنة الفعل الرئيسية (المضارع، الماضي، المستقبل بأنواعها البسيطة والمستمرة والتامة) وكيفية التمييز بينها في الاستخدام.",
+    explanation: "مراجعة مركزة لجميع أزمنة الفعل الرئيسية (المضارع، الماضي، المستقبل) بأنواعها المختلفة (البسيطة، المستمرة، التامة، والتامة المستمرة)، مع التركيز على الفروقات الدقيقة في الاستخدام ومتى نختار كل زمن للتعبير عن المعنى الصحيح.",
     examples: [
       { english: "I work here. (Present Simple)", arabic: "أنا أعمل هنا. (مضارع بسيط)" },
       { english: "I am working now. (Present Continuous)", arabic: "أنا أعمل الآن. (مضارع مستمر)" },
@@ -1622,7 +1743,7 @@ export const lessons: Lesson[] = [
   },
   {
     title: "مراجعة شاملة للمبني للمجهول",
-    explanation: "مراجعة لصيغ المبني للمجهول في مختلف الأزمنة، مع التركيز على متى ولماذا نستخدمه (عندما يكون الفاعل غير مهم أو غير معروف).",
+    explanation: "مراجعة لصيغ المبني للمجهول (Passive Voice) في مختلف الأزمنة (المضارع، الماضي، المستقبل، مع الأفعال المساعدة). يركز الدرس على كيفية تحويل الجمل من المبني للمعلوم إلى المجهول، ومتى يكون استخدام المبني للمجهول هو الخيار الأفضل (عندما يكون الفاعل غير مهم أو غير معروف).",
     examples: [
       { english: "The car is washed every week. (Present Simple Passive)", arabic: "تُغسل السيارة كل أسبوع." },
       { english: "The car is being washed now. (Present Continuous Passive)", arabic: "تُغسل السيارة الآن." },
@@ -1645,7 +1766,10 @@ export const lessons: Lesson[] = [
   },
   {
     title: "الصفات المنتهية بـ -ed و -ing",
-    explanation: "الصفات المنتهية بـ '-ing' تصف الشيء أو الشخص أو الموقف الذي يسبب الشعور (e.g., a boring film). الصفات المنتهية بـ '-ed' تصف شعور الشخص (e.g., I am bored).",
+    explanation: `هناك فرق مهم في المعنى بين الصفات التي تنتهي بـ '-ed' وتلك التي تنتهي بـ '-ing'.
+- الصفات المنتهية بـ '-ing' (e.g., boring, interesting, exciting): تصف الشيء أو الشخص أو الموقف الذي يسبب الشعور.
+- الصفات المنتهية بـ '-ed' (e.g., bored, interested, excited): تصف شعور الشخص أو إحساسه.
+مثال: "The film was boring, so I felt bored."`,
     examples: [
       { english: "The movie was boring.", arabic: "كان الفيلم مملاً." },
       { english: "I was bored during the movie.", arabic: "شعرت بالملل أثناء الفيلم." },

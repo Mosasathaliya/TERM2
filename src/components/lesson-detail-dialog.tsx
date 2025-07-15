@@ -38,10 +38,10 @@ function Chatbot({ lesson }: { lesson: Lesson }) {
 
     React.useEffect(() => {
         if (scrollAreaRef.current) {
-            scrollAreaRef.current.scrollTo({
-                top: scrollAreaRef.current.scrollHeight,
-                behavior: 'smooth',
-            });
+            const viewport = scrollAreaRef.current.querySelector('div');
+            if (viewport) {
+                viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+            }
         }
     }, [history]);
 
@@ -58,28 +58,28 @@ function Chatbot({ lesson }: { lesson: Lesson }) {
             const chatInput: ExpertChatInput = {
                 lessonTitle: lesson.title,
                 lessonExplanation: lesson.explanation,
-                history: newHistory,
+                history: newHistory.slice(0, -1), // Send history without the latest user message
                 question: input,
             };
             const result = await expertChat(chatInput);
             const aiMessage: Message = { role: 'model', content: result.answer };
             setHistory(prev => [...prev, aiMessage]);
-        } catch (error) {
+        } catch (error)
+        {
             console.error('Expert chat error:', error);
             toast({
                 variant: "destructive",
                 title: "حدث خطأ",
                 description: "لم نتمكن من الحصول على رد من الخبير. الرجاء المحاولة مرة أخرى.",
             });
-            // remove the user message if AI fails
-             setHistory(prev => prev.slice(0, -1));
+            setHistory(prev => prev.slice(0, -1));
         } finally {
             setIsLoading(false);
         }
     };
     
     return (
-        <div className="flex flex-col h-[calc(90vh-200px)]">
+        <div className="flex flex-col h-full">
             <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
                 <div className="space-y-4">
                      {history.length === 0 && (
@@ -165,71 +165,69 @@ export function LessonDetailDialog({ lesson, isOpen, onClose }: LessonDetailDial
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
-        <DialogHeader className="p-6 pb-2">
+        <DialogHeader className="p-6 pb-2 border-b">
           <DialogTitle className="text-2xl text-primary">{lesson.title}</DialogTitle>
         </DialogHeader>
         
-        <div className="flex-grow flex flex-col min-h-0">
-            <div className="flex border-b px-6">
-                <TabButton icon={<BookOpen />} label="الشرح والأمثلة" isActive={activeTab === 'explanation'} onClick={() => setActiveTab('explanation')} />
-                <TabButton icon={<BrainCircuit />} label="اختبر نفسك" isActive={activeTab === 'mcq'} onClick={() => setActiveTab('mcq')} />
-                <TabButton icon={<MessageSquare />} label="اسأل الخبير" isActive={activeTab === 'chatbot'} onClick={() => setActiveTab('chatbot')} />
-            </div>
+        <div className="flex border-b px-6">
+            <TabButton icon={<BookOpen />} label="الشرح والأمثلة" isActive={activeTab === 'explanation'} onClick={() => setActiveTab('explanation')} />
+            <TabButton icon={<BrainCircuit />} label="اختبر نفسك" isActive={activeTab === 'mcq'} onClick={() => setActiveTab('mcq')} />
+            <TabButton icon={<MessageSquare />} label="اسأل الخبير" isActive={activeTab === 'chatbot'} onClick={() => setActiveTab('chatbot')} />
+        </div>
 
-            <div className="flex-grow">
-                {activeTab === 'explanation' && (
-                    <ScrollArea className="h-full p-6">
-                        <div>
-                            <h3 className="text-xl font-semibold mb-3">الشرح</h3>
-                            <p className="text-muted-foreground mb-6 leading-relaxed">{lesson.explanation}</p>
+        <div className="flex-grow min-h-0">
+            {activeTab === 'explanation' && (
+                <ScrollArea className="h-full">
+                    <div className="p-6">
+                        <h3 className="text-xl font-semibold mb-3">الشرح</h3>
+                        <p className="text-muted-foreground mb-6 leading-relaxed whitespace-pre-wrap">{lesson.explanation}</p>
 
-                            <h3 className="text-xl font-semibold mb-4">أمثلة</h3>
-                            <div className="space-y-4">
-                                {lesson.examples.map((example, index) => (
-                                    <Card key={index} className="bg-muted/50">
-                                        <CardContent className="p-4 flex items-center justify-between">
-                                            <div>
-                                                <p className="font-mono text-left text-base" dir="ltr">{example.english}</p>
-                                                <p className="text-sm text-muted-foreground mt-1">{example.arabic}</p>
-                                            </div>
-                                            <Button 
-                                                variant="ghost" 
-                                                size="icon" 
-                                                onClick={() => playAudio(example.english, index)}
-                                                disabled={audioStates[index]?.loading}
-                                            >
-                                                <Volume2 className="h-5 w-5" />
-                                            </Button>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </div>
-                    </ScrollArea>
-                )}
-                {activeTab === 'mcq' && (
-                    <ScrollArea className="h-full p-6">
-                        <div>
-                            <h3 className="text-xl font-semibold mb-4">اختبر معلوماتك</h3>
-                             <div className="space-y-6">
-                                {lesson.mcqs.map((mcq, index) => (
-                                    <Card key={index} className="bg-muted/50 p-4">
-                                        <p className="font-semibold mb-3">{index + 1}. {mcq.question}</p>
-                                        <div className="flex flex-col space-y-2">
-                                            {mcq.options.map((option, i) => (
-                                                <Button key={i} variant="outline" className="justify-start">{option}</Button>
-                                            ))}
+                        <h3 className="text-xl font-semibold mb-4">أمثلة</h3>
+                        <div className="space-y-4">
+                            {lesson.examples.map((example, index) => (
+                                <Card key={index} className="bg-muted/50">
+                                    <CardContent className="p-4 flex items-center justify-between">
+                                        <div>
+                                            <p className="font-mono text-left text-base" dir="ltr">{example.english}</p>
+                                            <p className="text-sm text-muted-foreground mt-1">{example.arabic}</p>
                                         </div>
-                                    </Card>
-                                ))}
-                             </div>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            onClick={() => playAudio(example.english, index)}
+                                            disabled={audioStates[index]?.loading}
+                                        >
+                                            <Volume2 className="h-5 w-5" />
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            ))}
                         </div>
-                    </ScrollArea>
-                )}
-                {activeTab === 'chatbot' && (
-                    <Chatbot lesson={lesson} />
-                )}
-            </div>
+                    </div>
+                </ScrollArea>
+            )}
+            {activeTab === 'mcq' && (
+                <ScrollArea className="h-full">
+                    <div className="p-6">
+                        <h3 className="text-xl font-semibold mb-4">اختبر معلوماتك</h3>
+                         <div className="space-y-6">
+                            {lesson.mcqs.map((mcq, index) => (
+                                <Card key={index} className="bg-muted/50 p-4">
+                                    <p className="font-semibold mb-3">{index + 1}. {mcq.question}</p>
+                                    <div className="flex flex-col space-y-2">
+                                        {mcq.options.map((option, i) => (
+                                            <Button key={i} variant="outline" className="justify-start">{option}</Button>
+                                        ))}
+                                    </div>
+                                </Card>
+                            ))}
+                         </div>
+                    </div>
+                </ScrollArea>
+            )}
+            {activeTab === 'chatbot' && (
+                <Chatbot lesson={lesson} />
+            )}
         </div>
       </DialogContent>
     </Dialog>
