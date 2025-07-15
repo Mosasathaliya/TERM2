@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview A Genkit flow for generating an image based on a story's content.
+ * @fileOverview A Genkit flow for generating an image based on a story's content using Imagen 3.
  */
 
 import {ai} from '@/ai/genkit';
@@ -28,15 +28,17 @@ const storyImageFlow = ai.defineFlow(
     outputSchema: StoryImageOutputSchema,
   },
   async ({story}) => {
-    const prompt = `A simple, colorful, and friendly illustration for the following story, suitable for language learners. Focus on the main characters and setting. Story: "${story}"`;
+    const prompt = `A simple, colorful, and friendly illustration for a story about: "${story}"`;
     
+    // Using the dedicated Imagen 3 model via the single Google AI plugin
     const {media} = await ai.generate({
-      model: 'googleai/gemini-2.0-flash-preview-image-generation',
+      model: 'googleai/imagen-3.0-generate-002',
       prompt: prompt,
       config: {
-        responseModalities: ['TEXT', 'IMAGE'],
-        aspectRatio: '9:16',
         numberOfImages: 1,
+        aspectRatio: '9:16',
+        outputMimeType: 'image/jpeg',
+        personGeneration: 'ALLOW_ADULT',
       },
     });
 
@@ -44,6 +46,7 @@ const storyImageFlow = ai.defineFlow(
       throw new Error('Image generation failed. No media was returned.');
     }
     
+    // The image data is already in the correct data URI format.
     return { imageUrl: media.url };
   }
 );
