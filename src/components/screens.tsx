@@ -20,9 +20,12 @@ export function HomeScreen() {
 }
 
 const lessons = [
+    { title: "أزمنة الأفعال المساعدة", explanation: "فهم دور 'do', 'be', 'have' في تكوين الأزمنة.", example: "Where do you come from? / I am studying. / I have finished." },
+    { title: "الأسئلة والنفي", explanation: "كيفية تكوين الأسئلة والجمل المنفية في الأزمنة المختلفة.", example: "What did you do? / Cows don't eat meat." },
     { title: "زمن المضارع البسيط", explanation: "يُستخدم للتعبير عن الحقائق والعادات.", example: "The sun rises in the east." },
     { title: "زمن المضارع المستمر", explanation: "يُستخدم لوصف فعل يحدث الآن.", example: "He is working in France at the moment." },
     { title: "المبني للمجهول في المضارع", explanation: "يُستخدم عندما يكون الفاعل غير معروف أو غير مهم.", example: "Children are treated with new medicine." },
+    { title: "الفرق بين المضارع البسيط والمستمر", explanation: "متى نستخدم كل زمن؟ الفرق بين الحدث الدائم والمؤقت.", example: "She usually drives, but today she's walking." },
     { title: "زمن الماضي البسيط", explanation: "يُستخدم لوصف حدث اكتمل في الماضي.", example: "He danced and sang all night." },
     { title: "زمن الماضي المستمر", explanation: "يُستخدم لوصف فعل كان مستمرًا في الماضي.", example: "He was laughing when he saw the baby." },
     { title: "زمن الماضي التام", explanation: "يُستخدم لوصف حدث وقع قبل حدث آخر في الماضي.", example: "Had you heard the joke before?" },
@@ -32,11 +35,14 @@ const lessons = [
     { title: "أفعال Modal (النصيحة)", explanation: "تُستخدم لتقديم نصيحة أو توصية.", example: "You should take traveller's cheques." },
     { title: "صيغ المستقبل (going to)", explanation: "تُستخدم للتعبير عن خطة أو نية مستقبلية.", example: "I'm going to buy some." },
     { title: "صيغ المستقبل (will)", explanation: "تُستخدم للقرارات الفورية أو التنبؤات.", example: "I'll get a loaf of bread." },
+    { title: "صيغ المستقبل (المضارع المستمر)", explanation: "استخدام المضارع المستمر للترتيبات المستقبلية المؤكدة.", example: "We're playing tennis this afternoon." },
     { title: "السؤال بـ 'like'", explanation: "يُستخدم للسؤال عن الوصف أو التفضيلات.", example: "What's she like? / What does she like doing?" },
     { title: "أنماط الأفعال (Verb Patterns)", explanation: "بعض الأفعال يتبعها صيغة -ing أو to-infinitive.", example: "I enjoyed meeting your friends." },
     { title: "زمن المضارع التام", explanation: "يُستخدم لربط الماضي بالحاضر.", example: "I've worked there for five years." },
+    { title: "مقارنة بين المضارع التام والماضي البسيط", explanation: "متى نستخدم كل زمن؟ التركيز على الوقت المحدد مقابل التجربة.", example: "I've worked there for five years. (still there) / I worked for the BBC. (finished)" },
     { title: "المبني للمجهول في المضارع التام", explanation: "يُستخدم لحدث تم في الماضي وله أثر في الحاضر، مع التركيز على المفعول به.", example: "Two prizes have been awarded." },
     { title: "الأفعال المركبة (Phrasal Verbs)", explanation: "أفعال يتغير معناها بإضافة حرف جر.", example: "She looked out of the window." },
+    { title: "الأفعال المركبة (القابلة للفصل وغير القابلة للفصل)", explanation: "بعض الأفعال المركبة يمكن فصلها بالضمير وبعضها لا يمكن.", example: "Turn it on. / Look after it." },
     { title: "الجمل الشرطية (النوع الأول)", explanation: "تُستخدم للتعبير عن موقف محتمل ونتيجته المحتملة.", example: "If I see Anna, I'll tell her." },
     { title: "الجمل الشرطية (النوع الثاني)", explanation: "تُستخدم للتعبير عن مواقف خيالية أو غير محتملة.", example: "If I had £5 million, I'd buy an island." },
     { title: "جمل الوقت (Time Clauses)", explanation: "تُستخدم لربط حدثين في المستقبل.", example: "When we get there, we'll call you." },
@@ -78,6 +84,13 @@ const lessons = [
     { title: "وصف مكان أو شخص", explanation: "استخدام الصفات والتفاصيل لإنشاء صورة حية.", example: "New York is a bustling city with towering skyscrapers." },
     { title: "كتابة السيرة الذاتية (Biography)", explanation: "سرد قصة حياة شخص ما بترتيب زمني.", example: "Picasso was born in 1881 and showed genius from a young age." },
     { title: "ربط الأفكار", explanation: "استخدام كلمات الربط مثل 'and', 'but', 'so', 'because'.", example: "I was tired, so I went to bed early." },
+    { title: "تقديم الآراء", explanation: "عبارات للتعبير عن رأيك في الأفلام والمسرحيات والطعام.", example: "What did you think of the play? It was really boring!" },
+    { title: "مفردات الرياضة والترفيه", explanation: "استخدام play, go, do مع الأنشطة المختلفة.", example: "play football, go skiing, do aerobics" },
+    { title: "مفردات الفن والأدب", explanation: "مصطلحات متعلقة بالرسم والكتابة.", example: "He is a painter. She wrote a novel." },
+    { title: "استخدام 'is' أو 'has' المختصرة ('s)", explanation: "التمييز بين 'He's a doctor' و 'He's got a car'.", example: "He's running. (is) / He's gone home. (has)" },
+    { title: "الظروف المعدلة (Modifying Adverbs)", explanation: "استخدام كلمات مثل 'very' و 'absolutely' لتقوية الصفات.", example: "very tired / absolutely wonderful" },
+    { title: "الشرط الصفري (Zero Conditional)", explanation: "يُستخدم للحقائق العامة التي تكون صحيحة دائمًا.", example: "If you heat ice, it melts." },
+    { title: "الجمل الاسمية (Participles)", explanation: "استخدام -ing و -ed كصفات بعد الأسماء.", example: "The woman driving the car is my aunt. / The book written by him is famous." },
 ];
 
 
