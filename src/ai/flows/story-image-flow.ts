@@ -17,7 +17,7 @@ const StoryImageOutputSchema = z.object({
   imageUrl: z
     .string()
     .describe(
-      "The generated image as a data URI. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "The generated image as a data URI. Expected format: 'data:<mimetype>;base64,<encoded_data>'"
     ),
 });
 export type StoryImageOutput = z.infer<typeof StoryImageOutputSchema>;
@@ -29,21 +29,20 @@ const storyImageFlow = ai.defineFlow(
     outputSchema: StoryImageOutputSchema,
   },
   async ({story}) => {
-    const prompt = `Generate a simple, colorful, and friendly illustration for the following short story. The style should be suitable for language learners. Focus on the main characters and setting. Story: "${story}"`;
+    const prompt = `A simple, colorful, and friendly illustration for the following story, suitable for language learners. Focus on the main characters and setting. Story: "${story}"`;
     
     const {media} = await ai.generate({
-      model: googleAI.model('imagen-3.0-generate-002'),
+      model: 'googleai/gemini-2.0-flash-preview-image-generation',
       prompt: prompt,
       config: {
-        responseMimeType: 'image/jpeg',
-        personGeneration: 'ALLOW_ADULT',
+        responseModalities: ['TEXT', 'IMAGE'],
         aspectRatio: '9:16',
         numberOfImages: 1,
       },
     });
 
     if (!media) {
-      throw new Error('Image generation failed.');
+      throw new Error('Image generation failed. No media was returned.');
     }
     
     return { imageUrl: media.url };
