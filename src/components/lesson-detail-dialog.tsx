@@ -11,11 +11,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Volume2, MessageSquare, BookOpen, BrainCircuit, Send, User, Bot, Sparkles, Image as ImageIcon, Mic, Square, FileText } from 'lucide-react';
+import { Volume2, MessageSquare, BookOpen, BrainCircuit, Send, User, Bot, Sparkles, Image as ImageIcon, Mic, Square, FileText, Languages } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import type { LearningItem, Lesson, Story } from '@/lib/lessons';
 import { textToSpeech } from '@/ai/flows/tts-flow';
 import { expertChat, type ExpertChatInput } from '@/ai/flows/expert-chat-flow';
+import { chat } from '@/ai/flows/chat-flow';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
@@ -320,6 +321,28 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
 export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialogProps) {
   const [activeTab, setActiveTab] = React.useState<'explanation' | 'mcq' | 'chatbot' | 'story'>('explanation');
   const [audioStates, setAudioStates] = React.useState<Record<string, { loading: boolean; dataUrl: string | null }>>({});
+  const [translatedExplanation, setTranslatedExplanation] = React.useState<string | null>(null);
+  const [isTranslating, setIsTranslating] = React.useState(false);
+  const { toast } = useToast();
+
+  const handleTranslate = async () => {
+    if (!item || item.type !== 'lesson') return;
+    setIsTranslating(true);
+    try {
+        const result = await chat({ question: `Translate the following explanation to Arabic: "${item.explanation}"` });
+        setTranslatedExplanation(result.answer);
+    } catch (error) {
+        console.error("Translation error:", error);
+        toast({
+            variant: "destructive",
+            title: "خطأ في الترجمة",
+            description: "لم نتمكن من ترجمة الشرح. الرجاء المحاولة مرة أخرى.",
+        });
+    } finally {
+        setIsTranslating(false);
+    }
+  };
+
 
   const playAudio = async (text: string, id: string) => {
     if (audioStates[id]?.dataUrl) {
@@ -341,6 +364,11 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
       setAudioStates(prev => ({ ...prev, [id]: { loading: false, dataUrl: null } }));
     }
   };
+
+  React.useEffect(() => {
+    // Reset translation when the item changes
+    setTranslatedExplanation(null);
+  }, [item]);
 
 
   return (
@@ -364,19 +392,42 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
                             <div className="p-6">
                                 <div className="flex justify-between items-center mb-3">
                                     <h3 className="text-xl font-semibold">الشرح</h3>
-                                    <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        onClick={() => playAudio(item.explanation, `${item.title}-explanation`)}
-                                        disabled={audioStates[`${item.title}-explanation`]?.loading}
-                                        aria-label="Listen to explanation"
-                                    >
-                                        <Volume2 className="h-5 w-5" />
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button 
+                                            variant="outline" 
+                                            size="icon" 
+                                            onClick={handleTranslate}
+                                            disabled={isTranslating || !!translatedExplanation}
+                                            aria-label="Translate to Arabic"
+                                        >
+                                            <Languages className="h-5 w-5" />
+                                        </Button>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            onClick={() => playAudio(item.explanation, `${item.title}-explanation`)}
+                                            disabled={audioStates[`${item.title}-explanation`]?.loading}
+                                            aria-label="Listen to explanation"
+                                        >
+                                            <Volume2 className="h-5 w-5" />
+                                        </Button>
+                                    </div>
                                 </div>
                                 <p className="text-muted-foreground mb-6 leading-relaxed whitespace-pre-wrap">{item.explanation}</p>
+                                
+                                {isTranslating && (
+                                    <div className="p-4 rounded-md bg-muted text-center text-muted-foreground">
+                                        ...جاري الترجمة
+                                    </div>
+                                )}
+                                {translatedExplanation && (
+                                    <div className="p-4 rounded-md bg-accent/20 border border-accent/30">
+                                        <p className="leading-relaxed whitespace-pre-wrap">{translatedExplanation}</p>
+                                    </div>
+                                )}
 
-                                <h3 className="text-xl font-semibold mb-4">أمثلة</h3>
+
+                                <h3 className="text-xl font-semibold mb-4 mt-6">أمثلة</h3>
                                 <div className="space-y-4">
                                     {item.examples.map((example, index) => (
                                         <Card key={index} className="bg-muted/50">
@@ -449,5 +500,7 @@ function TabButton({ icon, label, isActive, onClick }: { icon: React.ReactNode, 
         </button>
     )
 }
+
+    
 
     
