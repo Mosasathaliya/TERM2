@@ -67,20 +67,6 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "morph": {
-          "0%": {
-            "clip-path": "polygon(50% 0%, 0% 100%, 100% 100%)",
-            transform: "translate(0, 0) rotate(0deg) scale(1)",
-          },
-          "50%": {
-            "clip-path": "polygon(50% 100%, 0% 0%, 100% 0%)",
-            transform: "translate(calc(var(--tx, 0px)), calc(var(--ty, 0px))) rotate(180deg) scale(1.1)",
-          },
-          "100%": {
-            "clip-path": "polygon(50% 0%, 0% 100%, 100% 100%)",
-            transform: "translate(0, 0) rotate(360deg) scale(1)",
-          },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",

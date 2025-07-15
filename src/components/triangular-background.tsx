@@ -23,7 +23,6 @@ export function BackgroundShapes() {
   }, []);
 
   const getTransform = (strength: number) => {
-    // Only calculate the transform if the component is mounted and we are on the client
     if (!isMounted || typeof window === 'undefined') {
         return 'translate(0px, 0px)';
     }
