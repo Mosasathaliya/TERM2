@@ -14,11 +14,6 @@ export function HomeScreen() {
   return (
     <section className="animate-fadeIn">
       <h2 className="text-xl font-semibold mb-4">أهلاً بك في TriNav</h2>
-      <Card className="hover:border-primary transition-all">
-        <CardContent className="pt-6">
-          <p>لوحة التحكم الشخصية الخاصة بك، مدعومة بالذكاء الاصطناعي وتتبع التقدم الذكي.</p>
-        </CardContent>
-      </Card>
     </section>
   );
 }
