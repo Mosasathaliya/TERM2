@@ -12,6 +12,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Lesson } from '@/lib/lessons';
 import { lessons } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
+import { chat } from '@/ai/flows/chat-flow';
+import { useToast } from "@/hooks/use-toast"
 
 
 export function HomeScreen() {
@@ -58,11 +60,29 @@ export function BookScreen() {
 export function AiScreen() {
   const [input, setInput] = useState("");
   const [response, setResponse] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const askAI = () => {
-    if (!input.trim()) return;
-    setResponse(`لقد سألت: "${input}". إليك كيف يمكننا المساعدة...`);
-    setInput("");
+  const askAI = async () => {
+    if (!input.trim() || isLoading) return;
+    
+    setIsLoading(true);
+    setResponse("");
+    
+    try {
+      const result = await chat({ question: input });
+      setResponse(result.answer);
+    } catch (error) {
+      console.error("AI chat error:", error);
+      toast({
+        variant: "destructive",
+        title: "حدث خطأ",
+        description: "لم نتمكن من معالجة طلبك. الرجاء المحاولة مرة أخرى.",
+      });
+    } finally {
+      setIsLoading(false);
+      setInput("");
+    }
   };
 
   return (
@@ -73,22 +93,36 @@ export function AiScreen() {
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="اكتب سؤالك هنا..."
+            placeholder="اكتب سؤالك هنا عن اللغة الإنجليزية..."
             rows={3}
             className="w-full p-3 rounded-md focus:ring-2 focus:ring-primary outline-none transition bg-background"
+            disabled={isLoading}
           />
           <Button
             onClick={askAI}
             className="mt-3"
+            disabled={isLoading}
           >
-            إرسال السؤال
+            {isLoading ? '...جارٍ التفكير' : 'إرسال السؤال'}
           </Button>
         </CardContent>
       </Card>
-      {response && (
+      {isLoading && (
+        <Card className="mt-4 bg-card/70 backdrop-blur-sm">
+            <CardContent className="pt-6">
+                <div className="flex items-center space-x-2" dir="rtl">
+                    <div className="h-2 w-2 bg-primary rounded-full animate-pulse [animation-delay:-0.3s]"></div>
+                    <div className="h-2 w-2 bg-primary rounded-full animate-pulse [animation-delay:-0.15s]"></div>
+                    <div className="h-2 w-2 bg-primary rounded-full animate-pulse"></div>
+                    <span className="text-muted-foreground mr-2">الذكاء الاصطناعي يكتب...</span>
+                </div>
+            </CardContent>
+        </Card>
+      )}
+      {response && !isLoading && (
         <Card className="mt-4 bg-card/70 backdrop-blur-sm">
           <CardContent className="pt-6">
-            <p>{response}</p>
+            <p className="whitespace-pre-wrap">{response}</p>
           </CardContent>
         </Card>
       )}
