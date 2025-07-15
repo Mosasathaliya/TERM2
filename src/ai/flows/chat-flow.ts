@@ -23,11 +23,10 @@ export async function chatStream(
 ) {
   const systemPrompt = 'You are an AI assistant from Speed of Mastery, a company dedicated to helping users learn English. You are a friendly and helpful English language learning assistant. Answer the user\'s questions clearly and concisely. Keep your answers in Arabic unless the user asks for something in English.';
 
-  const {stream} = await ai.generate({
+  const {stream} = ai.generateStream({
     model: 'googleai/gemini-2.5-flash',
     system: systemPrompt,
     prompt: input.question,
-    stream: true,
   });
 
   // Await the stream and send each chunk back to the client.
