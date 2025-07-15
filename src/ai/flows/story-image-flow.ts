@@ -30,7 +30,7 @@ const storyImageFlow = ai.defineFlow(
   async ({story}) => {
     const prompt = `A simple, colorful, and friendly illustration for a story about: "${story}"`;
     
-    // Using the dedicated Imagen 3 model via the single Google AI plugin
+    // This configuration now matches the working Python example provided by the user.
     const {media} = await ai.generate({
       model: 'googleai/imagen-3.0-generate-002',
       prompt: prompt,
