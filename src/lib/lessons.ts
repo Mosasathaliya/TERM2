@@ -862,7 +862,7 @@ const lessons: Lesson[] = [
       { english: "Don't be so rude! Apologize to her.", arabic: "لا تكن وقحًا! اعتذر لها." },
       { english: "She is a generous person who always helps others.", arabic: "هي شخصية كريمة تساعد الآخرين دائمًا." },
       { english: "He is a very intelligent and hardworking student.", arabic: "إنه طالب ذكي ومجتهد جدًا." },
-      { english: "My boss is quite moody. You never know how she'll be.", arabic: "رئيستي متقلبة المزاج. لا تعرف أبدًا كيف ستكون." },
+      { english: "My boss is quite moody. You never know how she'll be.", arabic: "رئيسي متقلب المزاج. لا تعرف أبدًا كيف ستكون." },
       { english: "He is very ambitious and wants to be the company director.", arabic: "إنه طموح جدًا ويريد أن يكون مدير الشركة." },
       { english: "She has a cheerful personality and is always smiling.", arabic: "لديها شخصية مرحة وهي تبتسم دائمًا." }
     ],
@@ -2051,6 +2051,11 @@ const stories: Story[] = [
       type: 'story',
       title: "The North Wind and the Sun",
       content: "The North Wind and the Sun had a quarrel about which of them was the stronger. While they were disputing with much heat and bluster, a Traveler passed along the road wrapped in a cloak. 'Let us agree,' said the Sun, 'that he is the stronger who can strip that Traveler of his cloak.' 'Very well,' growled the North Wind, and at once sent a cold, howling blast against the Traveler. With the first gust of wind the ends of the cloak whipped about the Traveler's body. But he immediately wrapped it closely around him, and the harder the Wind blew, the tighter he held it to him. The North Wind tore angrily at the cloak, but all his efforts were in vain. Then the Sun began to shine. At first his beams were gentle, and in the welcome warmth after the bitter cold of the North Wind, the Traveler unfastened his cloak and let it hang loosely from his shoulders. The Sun's rays grew warmer and warmer. The man took off his cap and mopped his brow. At last he became so heated that he pulled off his cloak, and, to escape the blazing sunshine, threw himself down in the welcome shade of a tree."
+    },
+    {
+      type: 'story',
+      title: "Saudi Arabia's AI Vision",
+      content: "In the heart of the desert, a new future is being built. This is Saudi Arabia's Vision 2030, a huge plan to change the country. And what is at the center of this plan? Artificial Intelligence. The Saudi Data and AI Authority, known as SDAIA, is leading this amazing transformation. They are investing billions of dollars to make the country a world leader in AI. One of the most exciting projects is NEOM, a futuristic city where AI will control almost everything, from driverless cars to clean energy. The latest news is that Saudi Arabia is hosting global AI events and creating its own powerful language models. The kingdom understands that AI is not just technology; it is the key to a new, smarter, and more innovative world."
     }
 ];
 
