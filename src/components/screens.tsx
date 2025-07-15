@@ -91,6 +91,12 @@ const lessons = [
     { title: "الظروف المعدلة (Modifying Adverbs)", explanation: "استخدام كلمات مثل 'very' و 'absolutely' لتقوية الصفات.", example: "very tired / absolutely wonderful" },
     { title: "الشرط الصفري (Zero Conditional)", explanation: "يُستخدم للحقائق العامة التي تكون صحيحة دائمًا.", example: "If you heat ice, it melts." },
     { title: "الجمل الاسمية (Participles)", explanation: "استخدام -ing و -ed كصفات بعد الأسماء.", example: "The woman driving the car is my aunt. / The book written by him is famous." },
+    { title: "العبارات على الهاتف", explanation: "عبارات شائعة تستخدم عند إجراء مكالمات هاتفية.", example: "Can I take a message? / Would you like to hold?" },
+    { title: "مفردات الأحلام والطموحات", explanation: "كلمات للتحدث عن وظائف الأحلام والأهداف المستقبلية.", example: "She wants to be a journalist. / He dreams of being a millionaire." },
+    { title: "التحدث عن القواعد واللوائح", explanation: "مصطلحات وقواعد للتحدث عن القوانين في أماكن مختلفة.", example: "You have to wear a seat-belt. / You aren't allowed to smoke here." },
+    { title: "التحدث عن الأخبار", explanation: "عبارات لمناقشة الأحداث الجارية والأخبار.", example: "What's in the news today? / Have you heard about...?" },
+    { title: "التحدث عن العادات السابقة", explanation: "استخدام 'used to' للحديث عن أشياء تغيرت.", example: "I used to smoke, but I quit last year." },
+    { title: "الضمائر النسبية (Relative Clauses)", explanation: "استخدام 'who', 'that', 'where' لإضافة معلومات.", example: "That's the man who lives next door. / The hotel where we stayed was nice." }
 ];
 
 
