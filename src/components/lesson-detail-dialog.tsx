@@ -201,26 +201,26 @@ function StoryReader({ story }: { story: Story }) {
 
 export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialogProps) {
   const [activeTab, setActiveTab] = React.useState<'explanation' | 'mcq' | 'chatbot'>('explanation');
-  const [audioStates, setAudioStates] = React.useState<Record<number, { loading: boolean; dataUrl: string | null }>>({});
+  const [audioStates, setAudioStates] = React.useState<Record<string, { loading: boolean; dataUrl: string | null }>>({});
 
-  const playAudio = async (text: string, index: number) => {
-    if (audioStates[index]?.dataUrl) {
-      const audio = new Audio(audioStates[index].dataUrl!);
+  const playAudio = async (text: string, id: string) => {
+    if (audioStates[id]?.dataUrl) {
+      const audio = new Audio(audioStates[id].dataUrl!);
       audio.play();
       return;
     }
     
-    setAudioStates(prev => ({ ...prev, [index]: { loading: true, dataUrl: null } }));
+    setAudioStates(prev => ({ ...prev, [id]: { loading: true, dataUrl: null } }));
     try {
       const result = await textToSpeech(text);
       if (result && result.media) {
-        setAudioStates(prev => ({ ...prev, [index]: { loading: false, dataUrl: result.media } }));
+        setAudioStates(prev => ({ ...prev, [id]: { loading: false, dataUrl: result.media } }));
         const audio = new Audio(result.media);
         audio.play();
       }
     } catch (error) {
       console.error('TTS Error:', error);
-      setAudioStates(prev => ({ ...prev, [index]: { loading: false, dataUrl: null } }));
+      setAudioStates(prev => ({ ...prev, [id]: { loading: false, dataUrl: null } }));
     }
   };
 
@@ -243,7 +243,18 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
                     {activeTab === 'explanation' && (
                         <ScrollArea className="h-full">
                             <div className="p-6">
-                                <h3 className="text-xl font-semibold mb-3">الشرح</h3>
+                                <div className="flex justify-between items-center mb-3">
+                                    <h3 className="text-xl font-semibold">الشرح</h3>
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        onClick={() => playAudio(item.explanation, `${item.title}-explanation`)}
+                                        disabled={audioStates[`${item.title}-explanation`]?.loading}
+                                        aria-label="Listen to explanation"
+                                    >
+                                        <Volume2 className="h-5 w-5" />
+                                    </Button>
+                                </div>
                                 <p className="text-muted-foreground mb-6 leading-relaxed whitespace-pre-wrap">{item.explanation}</p>
 
                                 <h3 className="text-xl font-semibold mb-4">أمثلة</h3>
@@ -258,8 +269,9 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
                                                 <Button 
                                                     variant="ghost" 
                                                     size="icon" 
-                                                    onClick={() => playAudio(example.english, index)}
-                                                    disabled={audioStates[index]?.loading}
+                                                    onClick={() => playAudio(example.english, `${item.title}-example-${index}`)}
+                                                    disabled={audioStates[`${item.title}-example-${index}`]?.loading}
+                                                    aria-label={`Listen to example ${index + 1}`}
                                                 >
                                                     <Volume2 className="h-5 w-5" />
                                                 </Button>
@@ -315,3 +327,5 @@ function TabButton({ icon, label, isActive, onClick }: { icon: React.ReactNode, 
         </button>
     )
 }
+
+    
