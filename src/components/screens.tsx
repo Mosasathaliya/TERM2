@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function HomeScreen() {
   return (
@@ -18,37 +19,74 @@ export function HomeScreen() {
   );
 }
 
+const lessons = [
+    { title: "زمن المضارع البسيط", explanation: "يُستخدم للتعبير عن الحقائق والعادات.", example: "The sun rises in the east." },
+    { title: "زمن المضارع المستمر", explanation: "يُستخدم لوصف فعل يحدث الآن.", example: "He is working in France at the moment." },
+    { title: "المبني للمجهول في المضارع", explanation: "يُستخدم عندما يكون الفاعل غير معروف أو غير مهم.", example: "Children are treated with new medicine." },
+    { title: "زمن الماضي البسيط", explanation: "يُستخدم لوصف حدث اكتمل في الماضي.", example: "He danced and sang all night." },
+    { title: "زمن الماضي المستمر", explanation: "يُستخدم لوصف فعل كان مستمرًا في الماضي.", example: "He was laughing when he saw the baby." },
+    { title: "زمن الماضي التام", explanation: "يُستخدم لوصف حدث وقع قبل حدث آخر في الماضي.", example: "Had you heard the joke before?" },
+    { title: "المبني للمجهول في الماضي", explanation: "يُستخدم عندما يكون الفاعل في الماضي غير مهم.", example: "The book was written by Hemingway." },
+    { title: "أفعال Modal (الإلزام)", explanation: "تُستخدم للتعبير عن الالتزام والضرورة.", example: "Children have to go to school." },
+    { title: "أفعال Modal (السماح)", explanation: "تُستخدم للتعبير عن الإذن والسماح.", example: "We're allowed to wear jeans." },
+    { title: "أفعال Modal (النصيحة)", explanation: "تُستخدم لتقديم نصيحة أو توصية.", example: "You should take traveller's cheques." },
+    { title: "صيغ المستقبل (going to)", explanation: "تُستخدم للتعبير عن خطة أو نية مستقبلية.", example: "I'm going to buy some." },
+    { title: "صيغ المستقبل (will)", explanation: "تُستخدم للقرارات الفورية أو التنبؤات.", example: "I'll get a loaf of bread." },
+    { title: "السؤال بـ 'like'", explanation: "يُستخدم للسؤال عن الوصف أو التفضيلات.", example: "What's she like? / What does she like doing?" },
+    { title: "أنماط الأفعال (Verb Patterns)", explanation: "بعض الأفعال يتبعها صيغة -ing أو to-infinitive.", example: "I enjoyed meeting your friends." },
+    { title: "زمن المضارع التام", explanation: "يُستخدم لربط الماضي بالحاضر.", example: "I've worked there for five years." },
+    { title: "المبني للمجهول في المضارع التام", explanation: "يُستخدم لحدث تم في الماضي وله أثر في الحاضر، مع التركيز على المفعول به.", example: "Two prizes have been awarded." },
+    { title: "الأفعال المركبة (Phrasal Verbs)", explanation: "أفعال يتغير معناها بإضافة حرف جر.", example: "She looked out of the window." },
+    { title: "الجمل الشرطية (النوع الأول)", explanation: "تُستخدم للتعبير عن موقف محتمل ونتيجته المحتملة.", example: "If I see Anna, I'll tell her." },
+    { title: "الجمل الشرطية (النوع الثاني)", explanation: "تُستخدم للتعبير عن مواقف خيالية أو غير محتملة.", example: "If I had £5 million, I'd buy an island." },
+    { title: "جمل الوقت (Time Clauses)", explanation: "تُستخدم لربط حدثين في المستقبل.", example: "When we get there, we'll call you." },
+    { title: "أفعال Modal (الاحتمالية)", explanation: "تُستخدم للتعبير عن درجات اليقين.", example: "She might be in love." },
+    { title: "الأفعال Modal في الماضي (الاحتمالية)", explanation: "تُستخدم للتعبير عن احتمالية في الماضي.", example: "It could have been her suitcase." },
+    { title: "العلاقات والصفات الشخصية", explanation: "كلمات لوصف شخصية الناس.", example: "He is very reliable and sociable." },
+    { title: "الموافقة والاختلاف", explanation: "عبارات مثل 'So do I' و 'Neither do I'.", example: "A: I love chocolate. B: So do I." },
+    { title: "المضارع التام المستمر", explanation: "يُستخدم لفعل بدأ في الماضي وما زال مستمراً.", example: "I've been texting my friends all day." },
+    { title: "التعبيرات الزمنية", explanation: "كلمات مثل 'since' و 'for' مع الأزمنة التامة.", example: "She's been living in Paris since she got married." },
+    { title: "الأسئلة غير المباشرة", explanation: "طريقة مهذبة للسؤال.", example: "I wonder if you could help me." },
+    { title: "الأسئلة المذيلة (Question Tags)", explanation: "أسئلة قصيرة في نهاية الجملة للتأكيد.", example: "It's a lovely day, isn't it?" },
+    { title: "الكلام المنقول (Statements)", explanation: "نقل كلام شخص آخر.", example: "She said that they were married." },
+    { title: "الكلام المنقول (Questions)", explanation: "نقل سؤال شخص آخر.", example: "He asked me how I knew them." },
+    { title: "الكلام المنقول (Commands)", explanation: "نقل أمر أو طلب.", example: "He told them to stop making a noise." },
+    { title: "الأسماء المركبة", explanation: "اسمان يكونان كلمة واحدة جديدة.", example: "He is a famous movie star." },
+    { title: "التعابير الاصطلاحية (Idioms)", explanation: "عبارات لها معنى مختلف عن معنى كلماتها.", example: "Don't worry, it's a piece of cake." },
+    { title: "المفردات: الولادة، الزواج، الموت", explanation: "كلمات تتعلق بأحداث الحياة الكبرى.", example: "They got engaged last year." },
+    { title: "التعبير عن الكمية", explanation: "كلمات مثل 'much', 'many', 'a lot of'.", example: "How much coffee do you drink?" },
+    { title: "الإنجليزية غير الرسمية", explanation: "عبارات عامية تُستخدم في المحادثات اليومية.", example: "What's up? / How's it going?" },
+    { title: "الاعتذار", explanation: "طرق مختلفة لقول 'آسف'.", example: "I'm so sorry! / Excuse me!" },
+    { title: "الأجوبة القصيرة", explanation: "استخدام الأفعال المساعدة للرد بإيجاز.", example: "A: Do you like tea? B: Yes, I do." },
+    { title: "مفردات السفر", explanation: "كلمات تستخدم في المطار والفنادق.", example: "Could you tell me where Gate 23 is?" },
+    { title: "وصف الطعام والمدن والأشخاص", explanation: "صفات متنوعة للوصف.", example: "The food was delicious and the city was historic." },
+];
+
 export function BookScreen() {
-  const books = [
-    { title: "فن التعلّم", author: "اسم المؤلف", hint: "art learning" },
-    { title: "التصميم من أجل التأثير", author: "اسم المؤلف", hint: "design impact" },
-  ];
-  return (
-    <section className="animate-fadeIn">
-      <h2 className="text-xl font-semibold mb-4">مكتبتك</h2>
-      <div className="space-y-4">
-        {books.map((book, i) => (
-          <Card key={i} className="transform transition-all hover:scale-[1.02] hover:shadow-lg bg-card/70 backdrop-blur-sm">
-            <CardContent className="p-4 flex items-center gap-4">
-              <Image 
-                src={`https://placehold.co/200x300.png`} 
-                alt={book.title} 
-                width={64} 
-                height={80} 
-                className="w-16 h-20 object-cover rounded"
-                data-ai-hint={book.hint}
-              />
-              <div>
-                <h3 className="font-medium">{book.title}</h3>
-                <p className="text-sm text-muted-foreground">{book.author}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </section>
-  );
+    return (
+        <section className="animate-fadeIn">
+            <h2 className="text-xl font-semibold mb-4 text-center">دروس اللغة الإنجليزية</h2>
+            <ScrollArea className="h-[calc(100vh-180px)]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                    {lessons.map((lesson, i) => (
+                        <Card key={i} className="transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm flex flex-col">
+                            <CardHeader>
+                                <CardTitle className="text-lg text-primary">{lesson.title}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="flex-grow flex flex-col justify-between">
+                                <p className="text-muted-foreground mb-3">{lesson.explanation}</p>
+                                <div className="p-3 bg-muted/50 rounded-md">
+                                  <p className="text-sm font-mono text-left" dir="ltr">{lesson.example}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </ScrollArea>
+        </section>
+    );
 }
+
 
 export function AiScreen() {
   const [input, setInput] = useState("");
