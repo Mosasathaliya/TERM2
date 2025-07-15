@@ -12,8 +12,8 @@ import { Progress } from '@/components/ui/progress';
 
 export function HomeScreen() {
   return (
-    <section className="animate-fadeIn">
-      <h2 className="text-xl font-semibold mb-4">أهلاً بك في TriNav</h2>
+    <section className="animate-fadeIn text-center flex flex-col items-center justify-center h-[60vh]">
+      <h2 className="text-4xl font-bold mb-4">أهلاً بك في TriNav</h2>
     </section>
   );
 }
@@ -28,7 +28,7 @@ export function BookScreen() {
       <h2 className="text-xl font-semibold mb-4">مكتبتك</h2>
       <div className="space-y-4">
         {books.map((book, i) => (
-          <Card key={i} className="transform transition-all hover:scale-[1.02] hover:shadow-lg">
+          <Card key={i} className="transform transition-all hover:scale-[1.02] hover:shadow-lg bg-card/70 backdrop-blur-sm">
             <CardContent className="p-4 flex items-center gap-4">
               <Image 
                 src={`https://placehold.co/200x300.png`} 
@@ -63,7 +63,7 @@ export function AiScreen() {
   return (
     <section className="animate-fadeIn">
       <h2 className="text-xl font-semibold mb-4">اسأل الذكاء الاصطناعي</h2>
-      <Card>
+      <Card className="bg-card/70 backdrop-blur-sm">
         <CardContent className="pt-6">
           <Textarea
             value={input}
@@ -81,7 +81,7 @@ export function AiScreen() {
         </CardContent>
       </Card>
       {response && (
-        <Card className="mt-4">
+        <Card className="mt-4 bg-card/70 backdrop-blur-sm">
           <CardContent className="pt-6">
             <p>{response}</p>
           </CardContent>
@@ -104,7 +104,7 @@ export function ProgressScreen() {
   return (
     <section className="animate-fadeIn">
       <h2 className="text-xl font-semibold mb-4">تقدم التعلّم</h2>
-      <Card>
+      <Card className="bg-card/70 backdrop-blur-sm">
         <CardContent className="pt-6">
           <div className="mb-4">
             <div className="flex justify-between mb-2">

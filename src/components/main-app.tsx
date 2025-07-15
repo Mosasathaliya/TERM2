@@ -3,8 +3,12 @@
  */
 "use client";
 
-import { useState } from "react";
-import { Home, Book, Bot, BarChart } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
+import { Home, Book, Bot, BarChart, Sun, Moon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { BackgroundShapes } from "@/components/triangular-background";
+import { HomeScreen, BookScreen, AiScreen, ProgressScreen } from "@/components/screens";
 
 type ActiveTab = "home" | "book" | "ai" | "progress";
 
@@ -31,9 +35,51 @@ function NavItem({ icon, label, isActive, onClick }: NavItemProps) {
 
 export function MainApp() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("home");
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+  
+  const renderScreen = () => {
+    switch (activeTab) {
+      case "home": return <HomeScreen />;
+      case "book": return <BookScreen />;
+      case "ai": return <AiScreen />;
+      case "progress": return <ProgressScreen />;
+      default: return <HomeScreen />;
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-500 relative overflow-hidden">
+      <BackgroundShapes />
+
+      {/* Header */}
+      <header className="relative z-10 flex justify-between items-center p-6">
+        <h1 className="text-2xl font-bold">TriNav</h1>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleTheme}
+          className="p-2 rounded-full hover:bg-accent"
+        >
+          {mounted && (theme === "dark" ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />)}
+          <span className="sr-only">تبديل الوضع</span>
+        </Button>
+      </header>
+
+      {/* Main Content */}
+      <main className="relative z-10 px-6 pb-24">
+        {renderScreen()}
+      </main>
+
+      {/* Transparent Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 backdrop-blur-lg bg-background/70 border-t border-border/50 z-10">
         <div className="flex justify-around py-3">
           <NavItem icon={<Home />} label="الرئيسية" isActive={activeTab === "home"} onClick={() => setActiveTab("home")} />
