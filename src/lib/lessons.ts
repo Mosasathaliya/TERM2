@@ -11,6 +11,7 @@ export interface Lesson {
   explanation: string;
   examples: { english: string; arabic: string }[];
   mcqs: { question: string; options: string[]; answer: string }[];
+  story?: { title: string; summary: string };
 }
 
 export interface Story {
@@ -42,7 +43,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which auxiliary verb is used for Present Simple questions?", options: ["be", "have", "do", "will"], answer: "do" },
       { question: "Complete the sentence: She ___ seen this film before.", options: ["is", "does", "has", "did"], answer: "has" }
-    ]
+    ],
+    story: {
+        title: "From Rich Dad Poor Dad",
+        summary: "One father has a PhD, the other did not finish school. Both are successful, yet they have very different ideas about money. One says, 'I can't afford it.' The other asks, 'How can I afford it?'. One does recommend saving money, the other recommends investing it. This book is about the lessons these two fathers have taught the author. What do you think is the best advice?"
+    }
   },
   {
     type: 'lesson',
@@ -63,7 +68,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "How do you make 'You like coffee' a question?", options: ["You do like coffee?", "Like you coffee?", "Do you like coffee?", "Coffee you like?"], answer: "Do you like coffee?" },
       { question: "How do you make 'She went home' negative?", options: ["She didn't went home.", "She didn't go home.", "She not went home.", "She not go home."], answer: "She didn't go home." }
-    ]
+    ],
+    story: {
+        title: "From The 7 Habits of Highly Effective People",
+        summary: "Why don't some people succeed? What did Stephen Covey discover about effective people? He didn't just list random habits; he found seven key principles. For example, effective people are not reactive; they are proactive. They don't just let things happen; they make things happen. Have you ever wondered what the other habits are? This book explains them."
+    }
   },
   {
     type: 'lesson',
@@ -84,7 +93,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "A correct short answer for 'Do you live here?' is:", options: ["Yes, I live.", "Yes, I do.", "Yes, I am.", "Yes."], answer: "Yes, I do." },
       { question: "A correct negative short answer for 'Is she coming?' is:", options: ["No, she's not.", "No, she not coming.", "No, she doesn't.", "No, she isn't."], answer: "No, she isn't." }
-    ]
+    ],
+    story: {
+        title: "From a Book Club Discussion",
+        summary: "A: Did you read the chapter? B: Yes, I did. A: Was it interesting? B: No, it wasn't. It was quite boring. A: Really? I enjoyed it. Have you started the next one? B: No, I haven't. Are you going to read it tonight? A: Yes, I am. I think you'll like it more. B: We'll see. Can I call you to talk about it? A: Yes, you can!"
+    }
   },
   {
     type: 'lesson',
@@ -105,7 +118,11 @@ const lessons: Lesson[] = [
     mcqs: [
         { question: "What's a good reply to 'Thank you'?", options: ["Never mind", "You're welcome", "Take care", "Not at all"], answer: "You're welcome" },
         { question: "If someone tells you surprising news, you might say:", options: ["Take care!", "You must be joking!", "Never mind.", "Good luck!"], answer: "You must be joking!" }
-    ]
+    ],
+    story: {
+        title: "From a Traveler's Diary",
+        summary: "I arrived at the hostel. 'Sorry I'm late,' I said. 'Never mind,' the manager replied. 'You must be tired.' As I left the next morning, he said, 'Take care!' I went to a cafe. 'Can I get a coffee?' I asked. 'Of course,' said the barista. Later, a friend called. 'I'm getting married!' she said. 'You must be joking!' I exclaimed. She wasn't. 'Good luck!' I told her."
+    }
   },
   {
     type: 'lesson',
@@ -126,7 +143,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which tense is for a general truth?", options: ["Present Continuous", "Present Perfect", "Present Simple", "Past Simple"], answer: "Present Simple" },
       { question: "Complete the sentence: 'Listen! The baby ___.'", options: ["cries", "cried", "is crying", "has cried"], answer: "is crying" }
-    ]
+    ],
+    story: {
+        title: "From a CEO's Biography",
+        summary: "A successful CEO always wakes up at 5 AM; that is his routine. He exercises and reads for an hour. Right now, however, he isn't reading. He is preparing for a big presentation. His company usually sells software, but this year it is expanding into hardware. Business is always changing, and he knows that to succeed, he must adapt."
+    }
   },
   {
     type: 'lesson',
@@ -147,7 +168,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Change to passive: 'They deliver the newspapers in the morning.'", options: ["The newspapers are delivered in the morning.", "The newspapers are being delivered...", "The newspapers deliver in the morning.", "The newspapers were delivered..."], answer: "The newspapers are delivered in the morning." },
       { question: "Complete: 'Look! My car ___.'", options: ["is repaired", "is being repaired", "repairs", "repaired"], answer: "is being repaired" }
-    ]
+    ],
+    story: {
+        title: "From a Tech Company Report",
+        summary: "In our company, thousands of emails are sent every day. Our products are designed in California, but they are manufactured in Asia. At the moment, a new headquarters is being built, and a new marketing campaign is being prepared by our team. All employees are given free lunch, and new ideas are always encouraged."
+    }
   },
   {
     type: 'lesson',
@@ -168,7 +193,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which verb do you use with 'basketball'?", options: ["go", "do", "play", "make"], answer: "play" },
       { question: "Which verb do you use with 'jogging'?", options: ["go", "do", "play", "run"], answer: "go" }
-    ]
+    ],
+     story: {
+        title: "From an Athlete's Journal",
+        summary: "To be a champion, you need balance. On Mondays, I play tennis to improve my speed. On Tuesdays and Thursdays, I do weightlifting for strength. On Wednesdays, I go swimming, which is great for cardio. At the weekend, if I have time, I play golf to relax my mind. I don't do gymnastics, but I admire those who do. It's a demanding schedule."
+    }
   },
    {
     type: 'lesson',
@@ -189,7 +218,11 @@ const lessons: Lesson[] = [
     mcqs: [
         { question: "How do you say '3/4'?", options: ["three-four", "three-fourths", "three by four", "three and four"], answer: "three-fourths" },
         { question: "How do you say the year '2005'?", options: ["two thousand five", "twenty oh five", "two zero zero five", "Both A and B are common"], answer: "Both A and B are common" }
-    ]
+    ],
+    story: {
+        title: "From an Investment Report",
+        summary: "The company's profit was two million, five hundred thousand dollars ($2,500,000) last year. This represents a growth of fifteen percent (15%) from the previous year. The stock price closed at sixty-two point five (62.5) yesterday. The annual general meeting is scheduled for the first of June (1/6) in the year two thousand and twenty-five (2025). The company's main contact number is eight hundred, five five five, one two three four (800-555-1234)."
+    }
   },
   {
     type: 'lesson',
@@ -210,7 +243,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Complete: 'When the phone rang, I ___ a shower.'", options: ["had", "was having", "have", "am having"], answer: "was having" },
       { question: "Complete: 'He ___ TV when I arrived.'", options: ["watched", "watches", "was watching", "has watched"], answer: "was watching" }
-    ]
+    ],
+    story: {
+        title: "From a Detective Novel",
+        summary: "The detective arrived at the scene. It was raining heavily. A man was lying on the floor. He wasn't moving. While the detective was examining the room, he noticed a small clue under the sofa. He picked it up carefully. Just then, the phone rang. It startled him. He answered it. A mysterious voice spoke on the other end."
+    }
   },
   {
     type: 'lesson',
@@ -231,7 +268,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Complete: 'The patient ___ by the time the doctor arrived.'", options: ["died", "was dying", "had died", "dies"], answer: "had died" },
       { question: "Complete: 'He told me he ___ my book.'", options: ["lost", "had lost", "was losing", "has lost"], answer: "had lost" }
-    ]
+    ],
+    story: {
+        title: "From a Personal Memoir",
+        summary: "I went back to my old town last year. It had changed a lot. They tore down the school that I had attended as a boy. The beautiful park where I had played was now a shopping mall. I visited the house where I grew up; a new family lived there now. They were friendly because the previous owner had told them all about my family."
+    }
   },
   {
     type: 'lesson',
@@ -252,7 +293,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Change to passive: 'Shakespeare wrote Hamlet.'", options: ["Hamlet was wrote by Shakespeare.", "Hamlet was written by Shakespeare.", "Hamlet is written by Shakespeare.", "Hamlet had written by Shakespeare."], answer: "Hamlet was written by Shakespeare." },
       { question: "Complete: 'The Pyramids ___ by the ancient Egyptians.'", options: ["built", "were building", "are built", "were built"], answer: "were built" }
-    ]
+    ],
+    story: {
+        title: "From a History Book",
+        summary: "The great castle was built in the 12th century. Its walls were made of stone, and it was surrounded by a deep moat. Many battles were fought there. The castle was captured in 1485. After that, it was used as a prison for many years. Important letters had been hidden in the walls, but they were not discovered for centuries. Finally, the castle was restored in the 1990s and opened to the public."
+    }
   },
   {
     type: 'lesson',
@@ -273,7 +318,11 @@ const lessons: Lesson[] = [
     mcqs: [
         { question: "What is a polite way to ask for an opinion on a film?", options: ["Did you like the film?", "Tell me about the film.", "What did you think of the film?", "Was the film good?"], answer: "What did you think of the film?" },
         { question: "Which phrase can start an opinion?", options: ["I know...", "For example...", "In my opinion...", "The fact is..."], answer: "In my opinion..." }
-    ]
+    ],
+    story: {
+        title: "From a Film Review",
+        summary: "What did I think of the new sci-fi movie? In my opinion, it was a masterpiece. The special effects were incredible. For me, the acting was the best part. However, some people will find the story a bit slow. I think it's a film that makes you think. To be honest, it's not for everyone, but I feel it's one of the best films of the year."
+    }
   },
   {
     type: 'lesson',
@@ -294,7 +343,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which means it is NOT necessary?", options: ["mustn't", "have to", "don't have to", "must"], answer: "don't have to" },
       { question: "Complete: 'At our school, we ___ wear a uniform.'", options: ["must", "should", "don't have to", "have to"], answer: "have to" }
-    ]
+    ],
+    story: {
+        title: "From a Company Handbook",
+        summary: "All employees have to arrive by 9 AM. You must complete your timesheets every Friday. For security, you must wear your ID badge at all times. You mustn't share your password with anyone. If you are sick, you have to call your manager before 9 AM. You don't have to work on weekends, but you must attend the monthly team meeting."
+    }
   },
   {
     type: 'lesson',
@@ -315,7 +368,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "To give advice, you use...", options: ["can", "must", "should", "have to"], answer: "should" },
       { question: "Complete: 'You ___ park here. It's not allowed.'", options: ["can", "can't", "should", "shouldn't"], answer: "can't" }
-    ]
+    ],
+    story: {
+        title: "From a Mentor's Advice",
+        summary: "I asked my mentor for advice. 'I think you should focus on your strengths,' she said. 'You can achieve anything you want, but you shouldn't try to do everything at once.' I asked, 'Can I take a risk and start my own business?' She replied, 'Yes, you are allowed to dream big. But you should create a solid plan first. And you shouldn't listen to negative people.'"
+    }
   },
   {
     type: 'lesson',
@@ -336,7 +393,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "What is the adjective for Holland (the Netherlands)?", options: ["Hollandic", "Netherland", "Dutch", "Hollish"], answer: "Dutch" },
       { question: "What do you call people from Sweden?", options: ["Swedish", "The Swedishes", "The Swedes", "Swedens"], answer: "The Swedes" }
-    ]
+    ],
+     story: {
+        title: "From an International Cookbook",
+        summary: "This book explores global cuisine. It features Italian pasta and French pastries. You can learn how to make Japanese sushi or spicy Mexican tacos. The Brazilians offer delicious barbecue, while the Germans are famous for their sausages. A popular Greek dish is moussaka, and of course, no book is complete without the classic English breakfast."
+    }
   },
   {
     type: 'lesson',
@@ -357,7 +418,11 @@ const lessons: Lesson[] = [
     mcqs: [
         { question: "Which is a polite request?", options: ["Give me the book.", "I want the book.", "Can you pass me the book?", "Could you pass me the book, please?"], answer: "Could you pass me the book, please?" },
         { question: "Which is an offer?", options: ["I need help.", "Help me.", "Shall I help you?", "You should help me."], answer: "Shall I help you?" }
-    ]
+    ],
+    story: {
+        title: "From a Helpful Neighbor Story",
+        summary: "My new neighbor is very kind. 'Can I help you with those boxes?' he asked when I was moving in. 'That's okay, but could you tell me where the post office is?' I asked. 'Of course,' he said. 'I'll draw you a map.' Later, he saw me struggling with a flat tire. 'Shall I change that for you?' he offered. 'Would you?' I said, relieved. 'I'll have it done in no time,' he smiled."
+    }
   },
   {
     type: 'lesson',
@@ -378,7 +443,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Complete: 'I've already decided. I ___ a new car.'", options: ["will buy", "am going to buy", "am buying", "buy"], answer: "am going to buy" },
       { question: "Complete: 'Don't worry, I ___ you with your bags.'", options: ["am helping", "am going to help", "will help", "help"], answer: "will help" }
-    ]
+    ],
+    story: {
+        title: "From a Project Manager's Email",
+        summary: "Next week, we are launching the new product. It is a fixed date. I am going to present the marketing plan at the meeting on Monday. Oh, the phone is ringing, I'll get it. I think the launch will be very successful. The team has worked hard, and I am sure customers will love it."
+    }
   },
   {
     type: 'lesson',
@@ -399,7 +468,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which question asks about appearance?", options: ["What's he like?", "How is he?", "What does he look like?", "What does he like?"], answer: "What does he look like?" },
       { question: "How would you answer 'What's London like?'", options: ["It's in England.", "It's a huge, exciting city.", "I like it.", "It looks big."], answer: "It's a huge, exciting city." }
-    ]
+    ],
+    story: {
+        title: "From a Character Description in a Novel",
+        summary: "The detective entered. What did he look like? He was tall and wore a long coat. What was he like? He was quiet and observant. He didn't talk much. And what did he like doing? He liked solving puzzles and drinking black coffee. When his partner asked, 'What would you like to do now?', he simply replied, 'I'd like to ask some questions.'"
+    }
   },
   {
     type: 'lesson',
@@ -420,7 +493,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "The noun form of 'snowy' is:", options: ["snowing", "snow", "snowed", "snows"], answer: "snow" },
       { question: "What do you call rain and strong wind together?", options: ["A storm", "A fog", "A shine", "An ice"], answer: "A storm" }
-    ]
+    ],
+    story: {
+        title: "From a Ship Captain's Log",
+        summary: "The morning was foggy, and a cold wind was blowing. The sea was rough. By midday, the sun was shining and the clouds disappeared. We hoped for good weather. But the forecast warned of a storm. In the evening, the sky became dark and heavy rain began to fall. The icy wind howled. It was a terrible night."
+    }
   },
    {
     type: 'lesson',
@@ -441,7 +518,11 @@ const lessons: Lesson[] = [
     mcqs: [
         { question: "Where do you wait for a train?", options: ["At a bus stop", "At a platform", "At a gate", "At a terminal"], answer: "At a platform" },
         { question: "What do you call the small bag you take on a plane?", options: ["Baggage", "Suitcase", "Hand luggage", "Cargo"], answer: "Hand luggage" }
-    ]
+    ],
+    story: {
+        title: "From a Backpacker's Blog",
+        summary: "My journey started in a taxi. 'Could you take me to the station?' I asked. From there, I bought a ticket and found the right platform. The train was crowded. Then I took the underground to the airport. At check-in, they weighed my luggage. 'You can only take one piece of hand luggage,' the attendant said. Finally, on the plane, the captain announced, 'Please fasten your seatbelts, we are preparing for landing.'"
+    }
   },
   {
     type: 'lesson',
@@ -463,7 +544,11 @@ const lessons: Lesson[] = [
       { question: "Complete: 'He promised ___ me.'", options: ["calling", "call", "to call", "called"], answer: "to call" },
       { question: "Complete: 'She avoids ___ junk food.'", options: ["eating", "to eat", "eat", "eats"], answer: "eating" },
       { question: "Complete: 'My parents let me ___ out late.'", options: ["to stay", "staying", "stay", "to staying"], answer: "stay" }
-    ]
+    ],
+    story: {
+        title: "From an Entrepreneur's Story",
+        summary: "I decided to start my own business. My parents encouraged me to follow my dream. At first, it was difficult. I considered giving up many times. But my mentor advised me to keep trying. She made me believe in myself. She helped me find new customers. I enjoy being my own boss, although I don't mind working long hours."
+    }
   },
   {
     type: 'lesson',
@@ -484,7 +569,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which adjective does NOT describe food?", options: ["fresh", "delicious", "polluted", "tasteless"], answer: "polluted" },
       { question: "A synonym for 'friendly and enjoys company' is:", options: ["shy", "rude", "sociable", "bored"], answer: "sociable" }
-    ]
+    ],
+    story: {
+        title: "From a Travel Guide",
+        summary: "This guide is for the sophisticated traveler. We will take you from the crowded, industrial cities to small, historic towns. You will meet sociable local people and eat delicious, fresh food. We avoid the polluted areas and show you the beautiful, unspoiled countryside. It is an exciting journey for anyone from young students to elderly couples."
+    }
   },
   {
     type: 'lesson',
@@ -505,7 +594,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Where would you see a 'Pay and Display' sign?", options: ["In a library", "In a car park", "In a restaurant", "On a motorway"], answer: "In a car park" },
       { question: "What does 'Coats left at owner's risk' mean?", options: ["The owner will look after your coat.", "The establishment is not responsible if your coat is stolen.", "You must leave your coat here.", "You can buy a coat at your own risk."], answer: "The establishment is not responsible if your coat is stolen." }
-    ]
+    ],
+    story: {
+        title: "From a Tourist's Frustrating Day",
+        summary: "I went into a shop. 'Can I help you?' the assistant asked. 'Just looking, thanks,' I replied. Then I went to a restaurant with a sign saying 'PLEASE WAIT TO BE SEATED'. I waited for ages. Finally, I went to the station. The announcer said, 'We apologize for the delay...' I just wanted to go home."
+    }
   },
   {
     type: 'lesson',
@@ -526,7 +619,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Complete: 'She ___ her leg, so she can't play tennis today.'", options: ["broke", "has broken", "had broken", "breaks"], answer: "has broken" },
       { question: "Complete: 'Mozart ___ more than 600 pieces of music.'", options: ["has written", "wrote", "was writing", "writes"], answer: "wrote" }
-    ]
+    ],
+    story: {
+        title: "From an Interview with an Author",
+        summary: "I started writing when I was a child. I wrote my first book in 2010. Since then, I have written five more. I have lived in many countries, which has given me ideas for my stories. Last year I went to Brazil to do research. I have never been to Russia, but I would like to go. I have just finished my latest novel. I finished it two weeks ago."
+    }
   },
   {
     type: 'lesson',
@@ -547,7 +644,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Change to passive: 'They have built a new bridge.'", options: ["A new bridge was built.", "A new bridge has been building.", "A new bridge has been built.", "A new bridge is built."], answer: "A new bridge has been built." },
       { question: "Complete: 'This book ___ into fifty languages.'", options: ["is translated", "has translated", "has been translated", "was being translated"], answer: "has been translated" }
-    ]
+    ],
+     story: {
+        title: "From a News Report",
+        summary: "A new museum has just been opened in the city center. The building has been designed by a famous architect. Over five million dollars has been spent on the project. The main collection has been donated by a private collector. Many famous paintings have been included. The museum has already been visited by thousands of people."
+    }
   },
   {
     type: 'lesson',
@@ -568,7 +669,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which phrasal verb means 'to postpone'?", options: ["put on", "put away", "put off", "put up"], answer: "put off" },
       { question: "Which sentence is correct?", options: ["Turn on it.", "Turn it on.", "On turn it.", "It turn on."], answer: "Turn it on." }
-    ]
+    ],
+    story: {
+        title: "From a Student's Diary",
+        summary: "I have to look after my little brother today. It's hard to get on with him sometimes. I told him to turn down the TV, but he turned it up! I wanted to call my friend, but I'll have to put it off. I can't wait for my mum to pick me up. I feel like I'm going to run out of patience soon! I won't give up, though."
+    }
   },
   {
     type: 'lesson',
@@ -589,7 +694,11 @@ const lessons: Lesson[] = [
     mcqs: [
         { question: "What do you say if the person you want to talk to is busy on another call?", options: ["The line's engaged.", "He's not here.", "Wrong number.", "Hold on."], answer: "The line's engaged." },
         { question: "What does 'to put someone through' mean?", options: ["To end the call", "To take a message", "To connect them to someone else", "To call them back"], answer: "To connect them to someone else" }
-    ]
+    ],
+    story: {
+        title: "From a Receptionist's Training Manual",
+        summary: "When you answer, say the company name. Ask, 'Who's calling, please?' If the person they want is busy, say, 'The line's engaged. Would you like to hold?' If they are unavailable, ask, 'Can I take a message?' If you need to connect them to another department, say, 'One moment, I'll put you through.' If it's a bad connection, you can say, 'Can you speak up, please?'"
+    }
   },
   {
     type: 'lesson',
@@ -610,7 +719,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Complete: 'If you ___ hard, you will succeed.'", options: ["work", "will work", "worked", "would work"], answer: "work" },
       { question: "Complete: 'I'll call you when I ___.'", options: ["will arrive", "arrive", "am arriving", "arrived"], answer: "arrive" }
-    ]
+    ],
+    story: {
+        title: "From 'The Paradox of Choice'",
+        summary: "If you have too many options, you will find it difficult to choose. If you finally make a choice, you will probably feel less satisfied with it. You will worry about the other options you didn't pick. If you want to be happier, you will need to limit your choices. If you only have a few good options, you'll feel more confident in your decision."
+    }
   },
   {
     type: 'lesson',
@@ -631,7 +744,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Complete: 'If I ___ the president, I would change many things.'", options: ["am", "was", "will be", "were"], answer: "were" },
       { question: "Complete: 'She ___ travel more if she had more money.'", options: ["will", "would", "is going to", "can"], answer: "would" }
-    ]
+    ],
+    story: {
+        title: "From 'The Alchemist'",
+        summary: "A shepherd boy has a dream. If he travelled to the pyramids in Egypt, he would find a great treasure. He thinks, 'If I sold my sheep, I would have enough money for the journey.' His father says, 'If you had everything you wanted, you wouldn't be happy. The journey is the treasure.' What would you do if you were him? It's an imaginary situation, but it makes you think."
+    }
   },
   {
     type: 'lesson',
@@ -652,7 +769,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which is a strong adjective for 'bad'?", options: ["not good", "terrible", "very bad", "worse"], answer: "terrible" },
       { question: "Which adverb can you use with 'exhausted'?", options: ["very", "a bit", "absolutely", "fairly"], answer: "absolutely" }
-    ]
+    ],
+    story: {
+        title: "From a Restaurant Review",
+        summary: "The restaurant was very nice, but the food was not just good, it was absolutely wonderful! My steak was very big, but my friend's was absolutely enormous! The dessert was very tasty. After the meal, I was not just tired, I was absolutely exhausted from eating so much. It was a really fantastic evening."
+    }
   },
   {
     type: 'lesson',
@@ -673,7 +794,11 @@ const lessons: Lesson[] = [
     mcqs: [
         { question: "'How about' is followed by...", options: ["verb (base form)", "verb + -ing", "to + verb", "verb + -ed"], answer: "verb + -ing" },
         { question: "Which is NOT a suggestion?", options: ["Let's go.", "We must go.", "Why don't we go?", "We could go."], answer: "We must go." }
-    ]
+    ],
+    story: {
+        title: "From a Brainstorming Session Transcript",
+        summary: "Team leader: 'We need new ideas.' Mark: 'Let's try a different approach.' Sarah: 'Why don't we survey our customers?' Tom: 'How about creating a viral video?' Leader: 'Those are good ideas. We could also partner with an influencer. What about that? I suggest we explore all these options.'"
+    }
   },
   {
     type: 'lesson',
@@ -694,7 +819,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Complete: 'The lights are off. They ___ be at home.'", options: ["must", "might", "can't", "should"], answer: "can't" },
       { question: "Complete: 'I'm not sure where my keys are. I ___ have left them in the car.'", options: ["must", "can't", "could", "should"], answer: "could" }
-    ]
+    ],
+    story: {
+        title: "From a Sherlock Holmes story",
+        summary: "The man is wearing expensive clothes, so he must be rich. His hands are rough, so he might be a manual laborer, but that can't be right if his clothes are so fine. He looks tired; he must have travelled a long way. He seems nervous. He could be in some kind of trouble. This may be a very interesting case."
+    }
   },
   {
     type: 'lesson',
@@ -715,7 +844,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Complete: 'He failed the exam. He ___ studied very hard.'", options: ["must have", "can't have", "could have", "should have"], answer: "can't have" },
       { question: "Complete: 'I can't find my wallet. I ___ it at the restaurant.'", options: ["must leave", "can't have left", "might have left", "should leave"], answer: "might have left" }
-    ]
+    ],
+    story: {
+        title: "From a Cold Case Detective File",
+        summary: "The victim's wallet was empty. The killer must have taken the money. The door was locked, so the killer might have had a key. There was no sign of a struggle, so the victim could have known his attacker. The neighbor heard nothing, but she can't have been home at the time of the murder. She must have gone out."
+    }
   },
   {
     type: 'lesson',
@@ -736,7 +869,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "What is the opposite of 'shy'?", options: ["Sociable", "Reliable", "Easygoing", "Rude"], answer: "Sociable" },
       { question: "A person who is calm and doesn't get angry easily is...", options: ["Reliable", "Sociable", "Easygoing", "Generous"], answer: "Easygoing" }
-    ]
+    ],
+    story: {
+        title: "From a Performance Review",
+        summary: "John is a very reliable employee. He is hardworking and ambitious. However, he can be shy in meetings and is not very sociable with his colleagues. His manager is more easygoing and cheerful, but can sometimes be moody. We need John to be less reserved and more outgoing to become a leader."
+    }
   },
    {
     type: 'lesson',
@@ -757,7 +894,11 @@ const lessons: Lesson[] = [
     mcqs: [
         { question: "How do you agree with 'I love chocolate'?", options: ["Neither do I", "So I do", "So do I", "I do so"], answer: "So do I" },
         { question: "How do you agree with 'I haven't seen that film'?", options: ["So have I", "Neither I have", "Neither have I", "I haven't also"], answer: "Neither have I" }
-    ]
+    ],
+    story: {
+        title: "From a Conversation Between Friends",
+        summary: "'I really enjoyed that movie,' said Anna. 'So did I,' replied Ben. 'But I don't think I understood the ending.' 'Neither did I!' said Anna. 'I haven't read the book it was based on.' 'Neither have I,' Ben agreed. 'I'm not usually a fan of sci-fi.' 'Oh, I am,' said Anna, disagreeing for the first time."
+    }
   },
   {
     type: 'lesson',
@@ -778,7 +919,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Complete: 'It ___ for hours.'", options: ["rains", "is raining", "has rained", "has been raining"], answer: "has been raining" },
       { question: "Complete: 'I'm tired because I ___.'", options: ["have worked", "have been working", "worked", "am working"], answer: "have been working" }
-    ]
+    ],
+    story: {
+        title: "From 'Outliers' by Malcolm Gladwell",
+        summary: "The book explores success. It argues that people like Bill Gates haven't just been lucky. They have been practicing for years. He has been programming since he was a teenager. For ten thousand hours, he has been honing his skills. The Beatles had also been performing for years in Hamburg before they became famous. They had been playing for eight hours a night."
+    }
   },
   {
     type: 'lesson',
@@ -799,7 +944,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Complete: 'I ___ three books this month.'", options: ["have been reading", "have read", "read", "am reading"], answer: "have read" },
       { question: "Complete: 'My clothes are dirty because I ___ the garden.'", options: ["worked in", "have been working in", "have worked in", "work in"], answer: "have been working in" }
-    ]
+    ],
+    story: {
+        title: "From a Project Update Meeting",
+        summary: "Manager: 'What's the status?' Sarah: 'I've been working on the report all week. I have written the first two sections.' Tom: 'I've contacted five clients so far.' Manager: 'And the marketing materials?' Jane: 'I've been designing the brochure. I have finally finished the cover.' Manager: 'Good. It sounds like you have all been making excellent progress.'"
+    }
   },
   {
     type: 'lesson',
@@ -820,7 +969,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which is correct?", options: ["How much people were there?", "How many people was there?", "How many people were there?", "How much people was there?"], answer: "How many people were there?" },
       { question: "Complete: 'There is ___ traffic on the roads today.'", options: ["too many", "too much", "enough", "many"], answer: "too much" }
-    ]
+    ],
+    story: {
+        title: "From a Guide to Simple Living",
+        summary: "How many possessions do you really need? Many people have too many clothes and not enough space. They spend too much money on things they don't use. A few special items are better than a lot of clutter. Ask yourself: 'How much time do I spend managing my things?' You'll find you have little need for most of them."
+    }
   },
   {
     type: 'lesson',
@@ -841,7 +994,11 @@ const lessons: Lesson[] = [
     mcqs: [
         { question: "Which of these is a compound noun?", options: ["beautiful house", "running machine", "quickly run", "white board"], answer: "white board" },
         { question: "A 'post office' is a place where you can...", options: ["watch films", "buy food", "send letters", "read books"], answer: "send letters" }
-    ]
+    ],
+     story: {
+        title: "From a Story About a Day Out",
+        summary: "We left after sunrise. We waited at the bus stop for a long time. Then we went to the swimming pool. My daughter, who wants to be a movie star, lost her sunglasses. We looked everywhere. Afterwards, we had ice-cream cones. We got home late and went straight to our bedrooms. I had to use my wife's toothpaste."
+    }
   },
   {
     type: 'lesson',
@@ -862,7 +1019,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Make this question indirect: 'Where is the nearest bank?'", options: ["Can you tell me where is the nearest bank?", "Can you tell me where the nearest bank is?", "Can you tell me where the bank nearest is?", "Can you tell me is where the nearest bank?"], answer: "Can you tell me where the nearest bank is?" },
       { question: "Complete: 'I wonder ___.'", options: ["if she will come", "will she come", "if will she come", "she will come"], answer: "if she will come" }
-    ]
+    ],
+    story: {
+        title: "From a Tourist's Conversation",
+        summary: "Excuse me, could you tell me how I can get to the museum? I'd also like to know if there is a good restaurant nearby. I wonder what time the museum closes. Do you know if I need to buy a ticket in advance? I can't remember what the guidebook said. And do you have any idea how much a taxi would cost?"
+    }
   },
   {
     type: 'lesson',
@@ -883,7 +1044,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Add a question tag: 'He can swim,...'", options: ["can he?", "can't he?", "does he?", "doesn't he?"], answer: "can't he?" },
       { question: "Add a question tag: 'You didn't do it,...'", options: ["did you?", "didn't you?", "do you?", "don't you?"], answer: "did you?" }
-    ]
+    ],
+    story: {
+        title: "From 'How to Win Friends and Influence People'",
+        summary: "Remembering someone's name is important, isn't it? People like to hear their own name, don't they? And you want them to feel good, don't you? It's a simple trick, but it works. You haven't forgotten my name, have you? It wasn't that difficult to remember, was it? We should all try to do this more often, shouldn't we?"
+    }
   },
   {
     type: 'lesson',
@@ -904,7 +1069,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "What does 'to hold your breath' mean?", options: ["To breathe deeply", "To wait for something anxiously", "To be out of breath", "To stop breathing"], answer: "To wait for something anxiously" },
       { question: "If something costs 'an arm and a leg', it is very...", options: ["cheap", "heavy", "expensive", "useful"], answer: "expensive" }
-    ]
+    ],
+     story: {
+        title: "From a Business Negotiation",
+        summary: "The negotiation was tough. I thought it would be a piece of cake, but their first offer was so low, I nearly hit the roof. They wanted a price that was a steal. I had to bite the bullet and make a counter-offer. It cost an arm and a leg for our company, but in the end, we cut a deal. I was so relieved, I could finally breathe a sigh of relief."
+    }
   },
   {
     type: 'lesson',
@@ -925,7 +1094,11 @@ const lessons: Lesson[] = [
     mcqs: [
         { question: "Which is an informal way to say 'wait a moment'?", options: ["Please wait", "Hold on", "Hang on a sec", "One moment"], answer: "Hang on a sec" },
         { question: "'Wanna' is an informal contraction of...", options: ["want to", "will not", "what do you", "was not"], answer: "want to" }
-    ]
+    ],
+    story: {
+        title: "From a Chat Between Friends",
+        summary: "'Hey, what's up?' 'Not much. I'm beat.' 'Wanna grab a coffee later?' 'Sure. Give me a sec, I gotta finish this email.' 'No worries. Can you give me a hand with my homework after?' 'Yeah, it's all good. That new superhero movie was awesome, by the way.' 'Totally!'"
+    }
   },
   {
     type: 'lesson',
@@ -946,7 +1119,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Report this: 'I work in London.'", options: ["She said she works in London.", "She said she worked in London.", "She said I work in London.", "She told she worked in London."], answer: "She said she worked in London." },
       { question: "Report this: 'We have finished.'", options: ["They said they have finished.", "They said we had finished.", "They said they had finished.", "They told us we have finished."], answer: "They said they had finished." }
-    ]
+    ],
+    story: {
+        title: "From a Witness Statement",
+        summary: "The witness spoke to the police. He said that he was walking his dog. He told the officer that he had seen a strange car on the street. He said that the car was blue. He explained that he hadn't seen the driver's face. He also mentioned that his neighbor had been looking out of her window at the time."
+    }
   },
   {
     type: 'lesson',
@@ -967,7 +1144,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Report this: 'What time is it?'", options: ["He asked what time is it.", "He asked what is the time.", "He asked what time it was.", "He asked what time it is."], answer: "He asked what time it was." },
       { question: "Report this: 'Did you see the film?'", options: ["She asked if I had seen the film.", "She asked did I see the film.", "She asked I had seen the film.", "She asked if had I seen the film."], answer: "She asked if I had seen the film." }
-    ]
+    ],
+    story: {
+        title: "From a Job Interview",
+        summary: "The interviewer asked me why I had applied for the job. She also asked what my biggest strengths were. She wanted to know if I could work well under pressure. Then she asked me when I would be able to start. Finally, she asked if I had any questions for her."
+    }
   },
   {
     type: 'lesson',
@@ -988,7 +1169,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Report this: 'Don't be late.'", options: ["He told me don't be late.", "He told me to not be late.", "He told me not to be late.", "He told to me not be late."], answer: "He told me not to be late." },
       { question: "Report this: 'Could you open the window?'", options: ["She asked me open the window.", "She asked me to open the window.", "She asked to me to open the window.", "She asked me could I open the window."], answer: "She asked me to open the window." }
-    ]
+    ],
+    story: {
+        title: "From a Courtroom Drama",
+        summary: "The judge told the witness to tell the truth. The lawyer asked the witness to describe the events of that night. The witness was nervous. The judge told him to speak clearly. The lawyer then asked him not to get emotional. The judge reminded everyone to remain silent in the courtroom."
+    }
   },
   {
     type: 'lesson',
@@ -1009,7 +1194,11 @@ const lessons: Lesson[] = [
     mcqs: [
         { question: "What do you say to get someone's attention politely?", options: ["Hey!", "Sorry", "Excuse me", "Listen"], answer: "Excuse me" },
         { question: "You hear your friend has failed an exam. You say:", options: ["Excuse me.", "I'm sorry to hear that.", "Never mind.", "I apologize."], answer: "I'm sorry to hear that." }
-    ]
+    ],
+    story: {
+        title: "From a Customer Service Transcript",
+        summary: "Customer: 'Excuse me, there's a problem with my order.' Agent: 'I'm sorry to hear that. Can you explain?' Customer: 'You sent the wrong item.' Agent: 'Oh, it was our fault. I apologize for the mistake. I'm very sorry for the inconvenience.' Customer: 'Thank you.' Agent: 'We're sorry for the delay in getting you the right product.'"
+    }
   },
   {
     type: 'lesson',
@@ -1030,7 +1219,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which sentence is correct?", options: ["He told to me a story.", "He told me a story.", "He said me a story.", "He say me a story."], answer: "He told me a story." },
       { question: "Which verb form follows 'look forward to'?", options: ["infinitive", "infinitive with to", "-ing form", "past simple"], answer: "-ing form" }
-    ]
+    ],
+    story: {
+        title: "From an Editor's Notes",
+        summary: "The author's letter has several mistakes. He wrote, 'I look forward to see you,' but it should be 'seeing'. He wrote, 'I enjoyed to meet your family,' but it needs to be 'meeting'. He also wrote, 'She ask me to send the book,' when it should be 'asked'. Finally, 'since five years' is incorrect; it should be 'for five years'. These are common errors."
+    }
   },
   {
     type: 'lesson',
@@ -1051,7 +1244,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "If you start a formal letter with 'Dear Sir or Madam,', how should you end it?", options: ["Yours sincerely,", "Yours faithfully,", "Best wishes,", "Love,"], answer: "Yours faithfully," },
       { question: "Which is an informal way of writing?", options: ["I look forward to hearing from you.", "I am writing with regard to...", "Can't wait to see you!", "Please do not hesitate to contact me."], answer: "Can't wait to see you!" }
-    ]
+    ],
+     story: {
+        title: "From a Business Communication Guide",
+        summary: "When writing to a client you don't know, start with 'Dear Sir or Madam,' and end with 'Yours faithfully,'. However, if you know their name, use 'Dear Mr. Smith,' and end with 'Yours sincerely,'. For a friend, you can use 'Hi Sarah,' and end with 'Best wishes,'. The formal email will say, 'I am writing to enquire...' while the informal one might say, 'Just wanted to ask...'"
+    }
   },
   {
     type: 'lesson',
@@ -1072,7 +1269,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which word is good for starting a story?", options: ["Finally", "Then", "One day", "After that"], answer: "One day" },
       { question: "Which word is used for the last event in a sequence?", options: ["First", "Then", "Finally", "Next"], answer: "Finally" }
-    ]
+    ],
+    story: {
+        title: "From a Recipe Book",
+        summary: "First, preheat the oven. Then, mix the flour and sugar in a bowl. After that, add the eggs and milk and stir well. Next, pour the mixture into a cake tin. Finally, bake for 30 minutes. In the end, you will have a delicious cake. Suddenly, you'll realize you forgot the chocolate chips, but it will still be good!"
+    }
   },
   {
     type: 'lesson',
@@ -1093,7 +1294,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "What phrase introduces a contrasting point?", options: ["Furthermore", "In addition", "On the other hand", "For example"], answer: "On the other hand" },
       { question: "Where do you usually state your own final opinion in this type of essay?", options: ["In the first paragraph", "In the middle", "In the conclusion", "After every point"], answer: "In the conclusion" }
-    ]
+    ],
+    story: {
+        title: "From a Debate on Remote Work",
+        summary: "On the one hand, working from home offers great flexibility. In addition, it saves time and money on commuting. However, a key disadvantage is the lack of social interaction. On the other hand, office work provides a better environment for collaboration. Furthermore, it's easier to separate work and home life. In conclusion, while both have pros and cons, the best solution depends on the individual and the job."
+    }
   },
   {
     type: 'lesson',
@@ -1114,7 +1319,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "What information is essential for a restaurant reservation?", options: ["Your age", "Your favourite food", "Number of people and time", "Your address"], answer: "Number of people and time" },
       { question: "What do you ask for at the end of making a reservation to be sure?", options: ["For the menu", "For confirmation", "For a discount", "For the address"], answer: "For confirmation" }
-    ]
+    ],
+    story: {
+        title: "From a Concierge's Notebook",
+        summary: "A guest called. 'I'd like to book a table for two at 7 PM,' he said. 'The reservation is for this Saturday, under the name Jones.' I asked him for his contact number. After making the call, I messaged him, 'Could you please confirm you have received this? Your table is booked.' He replied, 'Thank you. Is the restaurant expensive?'"
+    }
   },
    {
     type: 'lesson',
@@ -1135,7 +1344,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "What part of speech is 'beautiful' in 'a beautiful day'?", options: ["Noun", "Verb", "Adjective", "Adverb"], answer: "Adjective" },
       { question: "Which is a common collocation?", options: ["fast food", "quick food", "rapid food", "speedy food"], answer: "fast food" }
-    ]
+    ],
+    story: {
+        title: "From a Linguistics Textbook",
+        summary: "Understanding words is complex. A word has a pronunciation and a spelling, which can be different. It also has a part of speech, like 'noun' or 'verb'. For example, 'act' is a verb, but 'action' is a noun. We also combine words in set phrases, or collocations, like 'fast food', not 'quick food'. Knowing these rules makes your English sound natural."
+    }
   },
    {
     type: 'lesson',
@@ -1156,7 +1369,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "A person who writes books is an...", options: ["artist", "author", "actor", "architect"], answer: "author" },
       { question: "A famous painting like the Mona Lisa is called a...", options: ["sketch", "sculpture", "masterpiece", "portrait"], answer: "masterpiece" }
-    ]
+    ],
+    story: {
+        title: "From a Critic's Review",
+        summary: "The author's new novel is a masterpiece. Each chapter is beautifully written. I also saw an exhibition by a talented young painter. Her portraits are amazing, and her sketches are full of life. It is rare to see a biography written with such style, or a poem with such power. These two artists, the writer and the painter, are the future."
+    }
   },
   {
     type: 'lesson',
@@ -1177,7 +1394,11 @@ const lessons: Lesson[] = [
     mcqs: [
         { question: "To describe a sound, you might use an adjective like...", options: ["sparkling", "bustling", "roaring", "vibrant"], answer: "roaring" },
         { question: "Which adjective appeals to the sense of smell?", options: ["soft", "fresh-cut", "towering", "gentle"], answer: "fresh-cut" }
-    ]
+    ],
+    story: {
+        title: "From a Travel Writer's Notebook",
+        summary: "The small café was cozy and warm. The air smelled of strong coffee and sweet pastries. The owner was an old man with a gentle voice and sparkling eyes. Through the window, I could see the bustling street, full of bright colours and loud noises. The city was a vibrant, exciting place. I ordered a pizza with a crispy crust and gooey cheese."
+    }
   },
   {
     type: 'lesson',
@@ -1198,7 +1419,11 @@ const lessons: Lesson[] = [
     mcqs: [
         { question: "What is a common opening line for a letter of application?", options: ["What's up?", "I want this job.", "I am writing to apply for the position of...", "Here is my CV."], answer: "I am writing to apply for the position of..." },
         { question: "What does 'CV' stand for?", options: ["Course Version", "Curriculum Vitae", "Company Volume", "Corrected Version"], answer: "Curriculum Vitae" }
-    ]
+    ],
+     story: {
+        title: "From a Career Advice Column",
+        summary: "To get a job, you must write a good application letter. Start by saying, 'I am writing to apply for the position of...' Then, explain why you are suitable. Use phrases like, 'I have five years of experience in...' and 'I am a highly motivated individual.' Attach your CV. End the letter with, 'Thank you for your time and consideration. I look forward to hearing from you.'"
+    }
   },
   {
     type: 'lesson',
@@ -1217,9 +1442,13 @@ const lessons: Lesson[] = [
         { english: "By the time I got there, the party had nearly finished.", arabic: "بحلول الوقت الذي وصلت فيه، كانت الحفلة قد انتهت تقريبًا." }
     ],
     mcqs: [
-        { question: "To describe a background action that was interrupted, you use...", options: ["Past Simple", "Past Continuous", "Past Perfect", "Present Perfect"], answer: "Past Continuous" },
-        { question: "To describe an action that happened *before* another past action, you use...", options: ["Past Simple", "Past Continuous", "Past Perfect", "Present Perfect"], answer: "Past Perfect" }
-    ]
+      { question: "To describe a background action that was interrupted, you use...", options: ["Past Simple", "Past Continuous", "Past Perfect", "Present Perfect"], answer: "Past Continuous" },
+      { question: "To describe an action that happened *before* another past action, you use...", options: ["Past Simple", "Past Continuous", "Past Perfect", "Present Perfect"], answer: "Past Perfect" }
+    ],
+    story: {
+        title: "From a Mystery Story Opening",
+        summary: "The detective arrived at the old house. The wind was howling. He walked to the door. It had already been opened. He entered cautiously. A fire was burning in the fireplace. Someone had been there very recently. While he was looking around, he noticed a photograph on the floor. He picked it up. He realized he had seen the face before."
+    }
   },
   {
     type: 'lesson',
@@ -1238,9 +1467,13 @@ const lessons: Lesson[] = [
         { english: "He has a curious mind and is always asking questions.", arabic: "لديه عقل فضولي ودائمًا ما يطرح الأسئلة." }
     ],
     mcqs: [
-        { question: "A person who is 'down-to-earth' is...", options: ["adventurous", "funny", "practical and sensible", "unfriendly"], answer: "practical and sensible" },
-        { question: "To support a description of someone's character, it is good to...", options: ["describe their appearance", "give examples of their behavior", "list their hobbies", "say their age"], answer: "give examples of their behavior" }
-    ]
+      { question: "A person who is 'down-to-earth' is...", options: ["adventurous", "funny", "practical and sensible", "unfriendly"], answer: "practical and sensible" },
+      { question: "To support a description of someone's character, it is good to...", options: ["describe their appearance", "give examples of their behavior", "list their hobbies", "say their age"], answer: "give examples of their behavior" }
+    ],
+    story: {
+        title: "From a Recommendation Letter",
+        summary: "I am writing to recommend Sarah. She is a very determined and hardworking employee. She is also very organized; for example, she always plans her projects weeks in advance. She is a loyal team member. While she can be a bit reserved in large groups, she has a curious mind and asks excellent questions. She is not pessimistic; in fact, she is very optimistic."
+    }
   },
   {
     type: 'lesson',
@@ -1259,9 +1492,13 @@ const lessons: Lesson[] = [
         { english: "She died in 1934 from an illness caused by her long exposure to radiation.", arabic: "توفت في عام 1934 بسبب مرض ناتج عن تعرضها الطويل للإشعاع." }
     ],
     mcqs: [
-        { question: "A biography is usually written in which tense?", options: ["Present Simple", "Future", "Past Simple", "Present Continuous"], answer: "Past Simple" },
-        { question: "What is the main purpose of a biography?", options: ["To tell a fictional story", "To describe a person's life and achievements", "To argue a point", "To give instructions"], answer: "To describe a person's life and achievements" }
-    ]
+      { question: "A biography is usually written in which tense?", options: ["Present Simple", "Future", "Past Simple", "Present Continuous"], answer: "Past Simple" },
+      { question: "What is the main purpose of a biography?", options: ["To tell a fictional story", "To describe a person's life and achievements", "To argue a point", "To give instructions"], answer: "To describe a person's life and achievements" }
+    ],
+    story: {
+        title: "From a Short Biography of Steve Jobs",
+        summary: "Steve Jobs was born in San Francisco in 1955. He co-founded Apple Computer in 1976. He was forced out of his own company in 1985. After that, he started another company called NeXT. Apple bought this company in 1997, and Jobs returned. He then led the creation of the iMac, iPod, iPhone, and iPad. He died in 2011, but he is remembered as a great innovator."
+    }
   },
   {
     type: 'lesson',
@@ -1280,9 +1517,13 @@ const lessons: Lesson[] = [
         { english: "He is not only a good student but also a great athlete.", arabic: "إنه ليس فقط طالبًا جيدًا ولكن أيضًا رياضيًا رائعًا." }
     ],
     mcqs: [
-        { question: "Which word shows a reason?", options: ["so", "but", "although", "because"], answer: "because" },
-        { question: "Which word shows a contrast?", options: ["and", "so", "however", "in addition"], answer: "however" }
-    ]
+      { question: "Which word shows a reason?", options: ["so", "but", "although", "because"], answer: "because" },
+      { question: "Which word shows a contrast?", options: ["and", "so", "however", "in addition"], answer: "however" }
+    ],
+    story: {
+        title: "From a Persuasive Essay",
+        summary: "Everyone should exercise regularly because it is good for your health. In addition, it improves your mood. Although it can be difficult to find time, it is very important. You can go to a gym, or you can simply walk every day. It might be hard at first; however, you will soon feel the benefits. So, you should start today."
+    }
   },
   {
     type: 'lesson',
@@ -1303,7 +1544,11 @@ const lessons: Lesson[] = [
     mcqs: [
         { question: "Which is correct?", options: ["I'm looking forward to see you.", "I'm looking forward to seeing you.", "I look forward for seeing you.", "I'm looking forward see you."], answer: "I'm looking forward to seeing you." },
         { question: "Which preposition follows 'interested'?", options: ["on", "at", "about", "in"], answer: "in" }
-    ]
+    ],
+    story: {
+        title: "From an English Teacher's Diary",
+        summary: "Today, a student wrote, 'I am agree with you.' I corrected it to 'I agree'. Another student wrote, 'It depends of you.' I explained it should be 'depends on'. Many students are good at vocabulary, but they make these small mistakes. Everybody makes mistakes, and that is okay. I told them that practice is the most important thing."
+    }
   },
   {
     type: 'lesson',
@@ -1324,7 +1569,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which verb collocates with 'a photo'?", options: ["make", "do", "take", "give"], answer: "take" },
       { question: "Which adjective collocates with 'traffic'?", options: ["strong", "heavy", "big", "hard"], answer: "heavy" }
-    ]
+    ],
+    story: {
+        title: "From a Self-Help Book on Productivity",
+        summary: "To be successful, you must make good decisions and not make mistakes. Every day, you should take a shower, have a good breakfast, and get some exercise. Don't waste time on unimportant things. You need to save money and also have a good time. If you need help, ask a friend to give you some advice. And remember to take a break when you are tired."
+    }
   },
   {
     type: 'lesson',
@@ -1345,7 +1594,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "What does 'give up' mean in 'Don't give up smoking'?", options: ["start", "continue", "stop", "reduce"], answer: "stop" },
       { question: "In 'He made up a story', does 'made up' mean built or invented?", options: ["Built", "Invented"], answer: "Invented" }
-    ]
+    ],
+    story: {
+        title: "From a Biography of an Entrepreneur",
+        summary: "Her career took off after she designed a new app. At first, she had to look up a lot of information. She ran across many problems. But she never gave up. When one idea failed, she would just move on to the next. Now, things are looking up and her company is very successful."
+    }
   },
   {
     type: 'lesson',
@@ -1366,7 +1619,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which sentence is correct?", options: ["I look after them.", "I look them after.", "Both are correct.", "Neither is correct."], answer: "I look after them." },
       { question: "Which sentence is INCORRECT?", options: ["Take off your coat.", "Take your coat off.", "Take it off.", "Take off it."], answer: "Take off it." }
-    ]
+    ],
+    story: {
+        title: "From a Parent's To-Do List",
+        summary: "Today I have to look after the kids. First, I'll wake them up. I need to get them on the school bus on time. After school, I will pick them up. We might run into their friends at the park. When we get home, they have to put away their toys. I'll ask them to turn off the TV and do their homework. I'll also throw the rubbish away."
+    }
   },
   {
     type: 'lesson',
@@ -1387,7 +1644,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which phrase is correct?", options: ["very exhausted", "absolutely tired", "absolutely exhausted", "very brilliant"], answer: "absolutely exhausted" },
       { question: "You can say 'very big' or...", options: ["absolutely big", "absolutely huge", "very huge", "slightly big"], answer: "absolutely huge" }
-    ]
+    ],
+    story: {
+        title: "From a Mountaineer's Diary",
+        summary: "The climb was very difficult. The weather was not just cold, it was absolutely freezing. The view from the top was really beautiful, in fact, it was absolutely breathtaking. I was very tired when I reached the summit. Actually, I was completely exhausted. But the feeling of achievement was absolutely amazing."
+    }
   },
   {
     type: 'lesson',
@@ -1408,7 +1669,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which verb do you use with 'a secret'?", options: ["tell", "say", "hold", "keep"], answer: "keep" },
       { question: "Which verb do you use with 'a promise'?", options: ["break", "smash", "cut", "tear"], answer: "break" }
-    ]
+    ],
+    story: {
+        title: "From a Children's Story",
+        summary: "A little boy promised to keep a secret for his friend. He held his breath as he listened. His friend told him a wild story, but the boy knew he always told the truth. 'We have to raise money to save the magical tree!' his friend said. The boy knew he couldn't break his promise. He couldn't waste any time. He had to catch a bus to the town square immediately."
+    }
   },
   {
     type: 'lesson',
@@ -1429,7 +1694,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "What is the event called when two people get married?", options: ["A funeral", "A birthday", "A wedding", "An engagement"], answer: "A wedding" },
       { question: "What is a more polite way to say 'died'?", options: ["expired", "passed away", "finished", "ended"], answer: "passed away" }
-    ]
+    ],
+    story: {
+        title: "From a Family History",
+        summary: "My great-grandmother was born in 1920. She got married when she was 22. She had five children. My grandparents celebrated their 50th wedding anniversary last year. It was a wonderful party. Sadly, my great-grandfather passed away a few months later. His funeral was a celebration of his long and happy life."
+    }
   },
   {
     type: 'lesson',
@@ -1450,7 +1719,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which tense is used for an action happening at the moment of speaking?", options: ["Present Simple", "Present Continuous", "Present Perfect", "Past Simple"], answer: "Present Continuous" },
       { question: "Which tense is used for an action that happened before another action in the past?", options: ["Past Simple", "Past Continuous", "Present Perfect", "Past Perfect"], answer: "Past Perfect" }
-    ]
+    ],
+    story: {
+        title: "From 'A Brief History of Time'",
+        summary: "The universe is expanding (Present Continuous). It began with a big bang (Past Simple). Scientists have looked for evidence for many years (Present Perfect). Before they discovered background radiation, they had developed the theory (Past Perfect). They predict the universe will continue to expand (Future with 'will'). If it had more mass, it would collapse (Second Conditional)."
+    }
   },
   {
     type: 'lesson',
@@ -1471,7 +1744,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which modal verb expresses strong obligation?", options: ["should", "can", "must", "might"], answer: "must" },
       { question: "Which modal verb is best for giving advice?", options: ["must", "should", "can", "may"], answer: "should" }
-    ]
+    ],
+    story: {
+        title: "From 'The Meditations' by Marcus Aurelius",
+        summary: "A Roman emperor wrote about how one should live. He said you must be a good person. You can't control what happens, but you can control your reaction. You should focus on what is in your power. It might be difficult, but it is the path to peace. He thought people could be better if they tried. He would often remind himself of these rules."
+    }
   },
   {
     type: 'lesson',
@@ -1492,7 +1769,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "How do you make 'They build houses' passive?", options: ["Houses are build.", "Houses are built.", "Houses are being built.", "Houses were built."], answer: "Houses are built." },
       { question: "How do you make 'She has written a book' passive?", options: ["A book is written.", "A book has written.", "A book has been written.", "A book was written."], answer: "A book has been written." }
-    ]
+    ],
+    story: {
+        title: "From a Documentary on Construction",
+        summary: "This skyscraper was designed by a famous architect. The foundations were laid two years ago. Now, the main structure is being built. The windows will be installed next month. The project has been delayed several times. However, it is expected that the building will be completed by next year. It must be finished on time."
+    }
   },
   {
     type: 'lesson',
@@ -1513,7 +1794,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which conditional is for hypothetical past situations?", options: ["First", "Second", "Third", "Zero"], answer: "Third" },
       { question: "Which conditional is for real future possibilities?", options: ["First", "Second", "Third", "Zero"], answer: "First" }
-    ]
+    ],
+    story: {
+        title: "From 'A Christmas Carol'",
+        summary: "A mean old man, Scrooge, is visited by ghosts. The first ghost shows him his past. 'If I had been kinder, I would have been happier,' Scrooge thinks. The second ghost shows him the present. 'If people have love, they are rich,' he learns. The final ghost shows him the future. 'If I don't change, I will die alone.' Scrooge wakes up a new man. He knows that if he is generous, people will love him."
+    }
   },
   {
     type: 'lesson',
@@ -1534,7 +1819,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "How do you report the question 'What are you doing?'", options: ["He asked what I was doing.", "He asked what was I doing.", "He asked what are you doing.", "He asked what I am doing."], answer: "He asked what I was doing." },
       { question: "How do you report the command 'Don't go!'", options: ["She told me don't go.", "She told me to not go.", "She told me not to go.", "She said me not to go."], answer: "She told me not to go." }
-    ]
+    ],
+    story: {
+        title: "From a Newspaper Article",
+        summary: "The mayor gave a speech yesterday. He said that the city was growing fast. He told reporters that new schools would be built. He was asked when the project would start. He replied that he didn't know the exact date yet. He also asked residents to be patient. He promised that he would provide more information soon."
+    }
   },
   {
     type: 'lesson',
@@ -1555,7 +1844,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which pattern follows the verb 'enjoy'?", options: ["to-infinitive", "-ing", "infinitive (no to)"], answer: "-ing" },
       { question: "Which pattern follows the verb 'decide'?", options: ["to-infinitive", "-ing", "infinitive (no to)"], answer: "to-infinitive" }
-    ]
+    ],
+    story: {
+        title: "From 'Eat, Pray, Love'",
+        summary: "The author decided to change her life. She wanted to travel. She enjoyed learning Italian in Rome. In India, she learned to meditate. Her teacher made her sit for hours. She avoided thinking about her past. She started to feel happy again. She promised to live a more balanced life."
+    }
   },
   {
     type: 'lesson',
@@ -1576,7 +1869,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which symbol represents the vowel sound in 'sheep'?", options: ["/ɪ/", "/e/", "/i:/", "/aɪ/"], answer: "/i:/" },
       { question: "Which symbol represents the vowel sound in 'ship'?", options: ["/ɪ/", "/e/", "/i:/", "/aɪ/"], answer: "/ɪ/" }
-    ]
+    ],
+    story: {
+        title: "From a Pronunciation Guide",
+        summary: "Let's meet (/i:/) and sit (/ɪ/) on this red (/e/) mat (/æ/). The father (/ɑː/) in the hot (/ɒ/) room saw (/ɔː/) a good (/ʊ/) book about blue (/uː/) ducks (/ʌ/) under the sun (/ʌ/)."
+    }
   },
   {
     type: 'lesson',
@@ -1597,7 +1894,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which symbol represents the first sound in 'think'?", options: ["/t/", "/s/", "/ð/", "/θ/"], answer: "/θ/" },
       { question: "Which symbol represents the last sound in 'wash'?", options: ["/s/", "/z/", "/ʃ/", "/tʃ/"], answer: "/ʃ/" }
-    ]
+    ],
+    story: {
+        title: "From a Children's Alphabet Book",
+        summary: "The big (/b/) cat (/k/) did (/d/) go (/g/). She (/ʃ/) saw this (/ð/) thing (/θ/). The child (/tʃ/) had a big job (/dʒ/). The student (/t/) took a pen (/p/). They watch (/tʃ/) television (/ʒ/)."
+    }
   },
   {
     type: 'lesson',
@@ -1618,7 +1919,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "Which symbol represents the vowel sound in 'house'?", options: ["/əʊ/", "/ɔɪ/", "/aʊ/", "/u:/"], answer: "/aʊ/" },
       { question: "Which symbol represents the vowel sound in 'train'?", options: ["/e/", "/æ/", "/aɪ/", "/eɪ/"], answer: "/eɪ/" }
-    ]
+    ],
+    story: {
+        title: "From a Poem for Pronunciation Practice",
+        summary: "The boy (/ɔɪ/) with no (/əʊ/) name (/eɪ/) is over there (/eə/). How (/aʊ/) can I (/aɪ/) go near (/ɪə/)? I am not sure (/ʊə/). My (/aɪ/) name is James (/eɪ/). I will go now (/aʊ/)."
+    }
   },
   {
     type: 'lesson',
@@ -1641,7 +1946,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "What is the past participle of 'go'?", options: ["goed", "went", "gone", "wented"], answer: "gone" },
       { question: "What is the past simple of 'begin'?", options: ["begun", "began", "begined", "begon"], answer: "began" }
-    ]
+    ],
+    story: {
+        title: "From a Diary Entry",
+        summary: "I went to the store and bought some milk. When I came home, I found my brother had eaten all the cookies. He had also drunk all the juice. I was not happy. I had done my chores, but he had done nothing. It felt like my good mood had gone."
+    }
   },
   {
     type: 'lesson',
@@ -1662,7 +1971,11 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "What is the past participle of 'know'?", options: ["knew", "knowed", "known", "knewed"], answer: "known" },
       { question: "What is the past simple of 'lose'?", options: ["losed", "losed", "lost", "leaved"], answer: "lost" }
-    ]
+    ],
+    story: {
+        title: "From a Short Story about a Bad Day",
+        summary: "I had a terrible day. I lost my wallet. I left my keys at home. I paid for a coffee but the machine made a horrible noise. I met my boss, and he was angry. I had known it would be a bad day when I heard the news this morning. I put my head in my hands and sighed."
+    }
   },
   {
     type: 'lesson',
@@ -1685,8 +1998,12 @@ const lessons: Lesson[] = [
     mcqs: [
       { question: "What is the past participle of 'speak'?", options: ["spoke", "speaked", "spoken", "spoke"], answer: "spoken" },
       { question: "What is the past simple of 'write'?", options: ["written", "wrote", "writed", "wroten"], answer: "wrote" }
-    ]
-  },
+    ],
+    story: {
+        title: "From an Author's Biography",
+        summary: "She wrote her first novel in a year. She sent it to a publisher. They said they loved it. She thought it was a dream. She had sung for joy when she heard the news. She had spoken to her editor on the phone. She told him all her ideas. The book sold millions of copies. She had never seen so much success."
+    }
+  }
 ];
 
 const stories: Story[] = [
@@ -1743,10 +2060,6 @@ const fullLessonPlan: LearningItem[] = [];
 let lessonIndex = 0;
 let storyIndex = 0;
 
-const availableLessons = [...lessons];
-const availableStories = [...stories];
-
-
 // This loop interleaves stories with lessons to create a varied learning path.
 // It will add a story after approximately every 3-4 lessons.
 while (lessonIndex < lessons.length || storyIndex < stories.length) {
@@ -1778,5 +2091,3 @@ while (fullLessonPlan.length < 80) {
 
 
 export const learningItems: LearningItem[] = fullLessonPlan.slice(0, 80);
-
-

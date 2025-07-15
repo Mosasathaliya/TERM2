@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Volume2, MessageSquare, BookOpen, BrainCircuit, Send, User, Bot, Sparkles, Image as ImageIcon, Mic, Square } from 'lucide-react';
+import { Volume2, MessageSquare, BookOpen, BrainCircuit, Send, User, Bot, Sparkles, Image as ImageIcon, Mic, Square, FileText } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import type { LearningItem, Lesson, Story } from '@/lib/lessons';
 import { textToSpeech } from '@/ai/flows/tts-flow';
@@ -213,16 +213,17 @@ function Chatbot({ lesson }: { lesson: Lesson }) {
     );
 }
 
-function StoryReader({ story }: { story: Story }) {
+function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'], isLessonStory?: boolean }) {
     const [imageUrl, setImageUrl] = React.useState<string | null>(null);
     const [isLoadingImage, setIsLoadingImage] = React.useState(false);
     const [isLoadingAudio, setIsLoadingAudio] = React.useState(false);
     const { toast } = useToast();
+    const storyContent = 'content' in story ? story.content : story.summary;
 
     const handleGenerateImage = async () => {
         setIsLoadingImage(true);
         try {
-            const result = await generateStoryImage({ story: story.content });
+            const result = await generateStoryImage({ story: storyContent });
             setImageUrl(result.imageUrl);
         } catch (error) {
             console.error('Image generation error:', error);
@@ -259,7 +260,7 @@ function StoryReader({ story }: { story: Story }) {
                     <Button 
                         variant="ghost" 
                         size="icon" 
-                        onClick={() => playAudio(story.content)}
+                        onClick={() => playAudio(storyContent)}
                         disabled={isLoadingAudio}
                         aria-label="Listen to story"
                     >
@@ -267,9 +268,9 @@ function StoryReader({ story }: { story: Story }) {
                     </Button>
                 </div>
 
-                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap mb-6">{story.content}</p>
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap mb-6">{storyContent}</p>
                 
-                {!imageUrl && !isLoadingImage && (
+                {!isLessonStory && !imageUrl && !isLoadingImage && (
                     <Button onClick={handleGenerateImage}>
                         <Sparkles className="mr-2 h-4 w-4" />
                         تخيل القصة
@@ -305,7 +306,7 @@ function StoryReader({ story }: { story: Story }) {
 
 
 export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialogProps) {
-  const [activeTab, setActiveTab] = React.useState<'explanation' | 'mcq' | 'chatbot'>('explanation');
+  const [activeTab, setActiveTab] = React.useState<'explanation' | 'mcq' | 'chatbot' | 'story'>('explanation');
   const [audioStates, setAudioStates] = React.useState<Record<string, { loading: boolean; dataUrl: string | null }>>({});
 
   const playAudio = async (text: string, id: string) => {
@@ -343,6 +344,7 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
                     <TabButton icon={<BookOpen />} label="الشرح والأمثلة" isActive={activeTab === 'explanation'} onClick={() => setActiveTab('explanation')} />
                     <TabButton icon={<BrainCircuit />} label="اختبر نفسك" isActive={activeTab === 'mcq'} onClick={() => setActiveTab('mcq')} />
                     <TabButton icon={<MessageSquare />} label="اسأل الخبير" isActive={activeTab === 'chatbot'} onClick={() => setActiveTab('chatbot')} />
+                    {item.story && <TabButton icon={<FileText />} label="قصة" isActive={activeTab === 'story'} onClick={() => setActiveTab('story')} />}
                 </div>
                  <div className="flex-grow min-h-0">
                     {activeTab === 'explanation' && (
@@ -408,6 +410,9 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
                     )}
                     {activeTab === 'chatbot' && (
                         <Chatbot lesson={item} />
+                    )}
+                    {activeTab === 'story' && item.story && (
+                        <StoryReader story={item.story} isLessonStory={true} />
                     )}
                 </div>
             </>
