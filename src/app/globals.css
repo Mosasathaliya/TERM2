@@ -67,15 +67,15 @@
 
   @keyframes morph {
     0% {
-      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
       transform: translate(0, 0) rotate(0deg) scale(1);
     }
     50% {
-      border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+      clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
       transform: translate(calc(var(--tx, 0px)), calc(var(--ty, 0px))) rotate(180deg) scale(1.1);
     }
     100% {
-      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
       transform: translate(0, 0) rotate(360deg) scale(1);
     }
   }
