@@ -38,7 +38,7 @@ const expertChatFlow = ai.defineFlow(
     outputSchema: ExpertChatOutputSchema,
   },
   async ({ lessonTitle, lessonExplanation, history, question }) => {
-    const systemPrompt = `You are an expert English language tutor. Your current topic is "${lessonTitle}".
+    const systemPrompt = `You are an expert English language tutor from Speed of Mastery. Your current topic is "${lessonTitle}".
     Your explanation for this topic is: "${lessonExplanation}".
     Answer the user's questions based on this topic. Be friendly, clear, and concise. Use the provided conversation history to understand the context of the user's new question.
     Keep your answers in Arabic unless the user asks for something in English.`;

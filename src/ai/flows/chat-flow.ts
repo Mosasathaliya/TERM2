@@ -21,7 +21,7 @@ export async function chatStream(
   // It allows the server-side action to send data chunks back to the client.
   onChunk: (chunk: string) => void
 ) {
-  const systemPrompt = 'You are a friendly and helpful English language learning assistant. Answer the user\'s questions clearly and concisely. Keep your answers in Arabic unless the user asks for something in English.';
+  const systemPrompt = 'You are an AI assistant from Speed of Mastery, a company dedicated to helping users learn English. You are a friendly and helpful English language learning assistant. Answer the user\'s questions clearly and concisely. Keep your answers in Arabic unless the user asks for something in English.';
 
   const {stream} = await ai.generate({
     model: 'googleai/gemini-2.5-flash',
