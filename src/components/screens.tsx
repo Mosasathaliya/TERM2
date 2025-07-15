@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { LearningItem, Lesson, Story } from '@/lib/lessons';
 import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
-import { chat } from '@/ai/flows/chat-flow';
+import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
 import { BookText, Book, Bot } from 'lucide-react';
 import Autoplay from "embla-carousel-autoplay"
@@ -165,10 +165,13 @@ export function AiScreen() {
     
     setIsLoading(true);
     setResponse("");
-    
+    const currentInput = input;
+    setInput("");
+
     try {
-      const result = await chat({ question: input });
-      setResponse(result.answer);
+      await chatStream({ question: currentInput }, (chunk) => {
+        setResponse(prev => prev + chunk);
+      });
     } catch (error) {
       console.error("AI chat error:", error);
       toast({
@@ -178,7 +181,6 @@ export function AiScreen() {
       });
     } finally {
       setIsLoading(false);
-      setInput("");
     }
   };
 
@@ -194,32 +196,27 @@ export function AiScreen() {
             rows={3}
             className="w-full p-3 rounded-md focus:ring-2 focus:ring-primary outline-none transition bg-background"
             disabled={isLoading}
+             onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    askAI();
+                }
+            }}
           />
           <Button
             onClick={askAI}
             className="mt-3"
-            disabled={isLoading}
+            disabled={isLoading || !input.trim()}
           >
             {isLoading ? '...جارٍ التفكير' : 'إرسال السؤال'}
           </Button>
         </CardContent>
       </Card>
-      {isLoading && (
-        <Card className="mt-4 bg-card/70 backdrop-blur-sm">
-            <CardContent className="pt-6">
-                <div className="flex items-center space-x-2" dir="rtl">
-                    <div className="h-2 w-2 bg-primary rounded-full animate-pulse [animation-delay:-0.3s]"></div>
-                    <div className="h-2 w-2 bg-primary rounded-full animate-pulse [animation-delay:-0.15s]"></div>
-                    <div className="h-2 w-2 bg-primary rounded-full animate-pulse"></div>
-                    <span className="text-muted-foreground mr-2">الذكاء الاصطناعي يكتب...</span>
-                </div>
-            </CardContent>
-        </Card>
-      )}
-      {response && !isLoading && (
+      
+      {(isLoading || response) && (
         <Card className="mt-4 bg-card/70 backdrop-blur-sm">
           <CardContent className="pt-6">
-            <p className="whitespace-pre-wrap">{response}</p>
+            <p className="whitespace-pre-wrap">{response}{isLoading && '...'}</p>
           </CardContent>
         </Card>
       )}

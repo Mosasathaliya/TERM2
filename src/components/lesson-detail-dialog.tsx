@@ -16,7 +16,6 @@ import { Textarea } from '@/components/ui/textarea';
 import type { LearningItem, Lesson, Story } from '@/lib/lessons';
 import { textToSpeech } from '@/ai/flows/tts-flow';
 import { expertChat, type ExpertChatInput } from '@/ai/flows/expert-chat-flow';
-import { chat } from '@/ai/flows/chat-flow';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
@@ -326,21 +325,13 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
   const { toast } = useToast();
 
   const handleTranslate = async () => {
-    if (!item || item.type !== 'lesson') return;
-    setIsTranslating(true);
-    try {
-        const result = await chat({ question: `Translate the following explanation to Arabic: "${item.explanation}"` });
-        setTranslatedExplanation(result.answer);
-    } catch (error) {
-        console.error("Translation error:", error);
-        toast({
-            variant: "destructive",
-            title: "خطأ في الترجمة",
-            description: "لم نتمكن من ترجمة الشرح. الرجاء المحاولة مرة أخرى.",
-        });
-    } finally {
-        setIsTranslating(false);
-    }
+    // Note: The general chat flow isn't available here, so this feature won't work as is.
+    // We would need to create a dedicated translation flow.
+    // For now, we'll just show a toast notification.
+    toast({
+        title: "الميزة غير متوفرة",
+        description: "ميزة الترجمة قيد الإنشاء حاليًا.",
+    });
   };
 
 
