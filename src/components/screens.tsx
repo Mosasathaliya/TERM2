@@ -9,11 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { Lesson } from '@/lib/lessons';
-import { lessons } from '@/lib/lessons';
+import type { LearningItem, Lesson, Story } from '@/lib/lessons';
+import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chat } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
+import { BookText, Book, Bot } from 'lucide-react';
 
 
 export function HomeScreen() {
@@ -25,31 +26,36 @@ export function HomeScreen() {
 }
 
 export function BookScreen() {
-    const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+    const [selectedItem, setSelectedItem] = useState<LearningItem | null>(null);
 
     return (
         <section className="animate-fadeIn">
-            <h2 className="text-xl font-semibold mb-4 text-center">دروس اللغة الإنجليزية</h2>
+            <h2 className="text-xl font-semibold mb-4 text-center">المكتبة التعليمية</h2>
             <ScrollArea className="h-[calc(100vh-180px)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                    {lessons.map((lesson, i) => (
+                    {learningItems.map((item, i) => (
                         <Card 
                             key={i} 
                             className="transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm flex flex-col cursor-pointer"
-                            onClick={() => setSelectedLesson(lesson)}
+                            onClick={() => setSelectedItem(item)}
                         >
-                            <CardHeader>
-                                <CardTitle className="text-lg text-primary text-center">{lesson.title}</CardTitle>
+                            <CardHeader className="flex-row items-center justify-center gap-4 space-y-0">
+                                {item.type === 'lesson' ? (
+                                    <Book className="h-6 w-6 text-primary" />
+                                ) : (
+                                    <BookText className="h-6 w-6 text-accent" />
+                                )}
+                                <CardTitle className="text-lg text-primary text-center">{item.title}</CardTitle>
                             </CardHeader>
                         </Card>
                     ))}
                 </div>
             </ScrollArea>
-            {selectedLesson && (
+            {selectedItem && (
                 <LessonDetailDialog 
-                    lesson={selectedLesson}
-                    isOpen={!!selectedLesson}
-                    onClose={() => setSelectedLesson(null)}
+                    item={selectedItem}
+                    isOpen={!!selectedItem}
+                    onClose={() => setSelectedItem(null)}
                 />
             )}
         </section>
@@ -163,10 +169,10 @@ export function ProgressScreen() {
             </Card>
             <Card className="bg-muted/50">
                 <CardHeader>
-                    <CardTitle className="uppercase text-xs text-muted-foreground">الدروس المتبقية</CardTitle>
+                    <CardTitle className="uppercase text-xs text-muted-foreground">القصص المقروءة</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl font-bold">66</p>
+                    <p className="text-2xl font-bold">2/26</p>
                 </CardContent>
             </Card>
           </div>
