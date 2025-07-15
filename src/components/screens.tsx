@@ -22,7 +22,6 @@ export function BookScreen() {
   const books = [
     { title: "فن التعلّم", author: "اسم المؤلف", hint: "art learning" },
     { title: "التصميم من أجل التأثير", author: "اسم المؤلف", hint: "design impact" },
-    { title: "إتقان رياكت", author: "اسم المؤلف", hint: "code react" },
   ];
   return (
     <section className="animate-fadeIn">
