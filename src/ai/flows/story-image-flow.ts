@@ -31,7 +31,7 @@ const storyImageFlow = ai.defineFlow(
     // A simple, direct prompt for the image generation model.
     const prompt = `A simple, colorful, and friendly illustration for the story: "${story}"`;
     
-    // Generate the image using the correct model and required configuration for streaming modalities.
+    // Generate the image using the correct model and required configuration.
     const {media} = await ai.generate({
       // This is the correct model for image generation in Genkit.
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
@@ -39,9 +39,6 @@ const storyImageFlow = ai.defineFlow(
       config: {
         // Both TEXT and IMAGE modalities are required for this model to work correctly.
         responseModalities: ['TEXT', 'IMAGE'],
-        // Specify aspect ratio for consistent image sizes.
-        aspectRatio: '9:16',
-        numberOfImages: 1,
       },
     });
 
