@@ -12,7 +12,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { LearningItem, Lesson, Story } from '@/lib/lessons';
 import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
-import { chatStream } from '@/ai/flows/chat-flow';
+import { chatStreamFlow } from '@/ai/flows/chat-flow';
+import { useFlow } from '@genkit-ai/next/client';
 import { useToast } from "@/hooks/use-toast"
 import { BookText, Book, Bot } from 'lucide-react';
 import Autoplay from "embla-carousel-autoplay"
@@ -156,33 +157,31 @@ export function BookScreen() {
 
 export function AiScreen() {
   const [input, setInput] = useState("");
-  const [response, setResponse] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-
-  const askAI = async () => {
-    if (!input.trim() || isLoading) return;
-    
-    setIsLoading(true);
-    setResponse("");
-    const currentInput = input;
-    setInput("");
-
-    try {
-      await chatStream({ question: currentInput }, (chunk) => {
-        setResponse(prev => prev + chunk);
-      });
-    } catch (error) {
-      console.error("AI chat error:", error);
+  
+  // Use the useFlow hook to interact with the streaming flow
+  const { stream, start, abort, loading } = useFlow(chatStreamFlow, {
+    // Handle errors from the flow
+    onError(err) {
+      console.error("AI chat error:", err);
       toast({
         variant: "destructive",
         title: "حدث خطأ",
         description: "لم نتمكن من معالجة طلبك. الرجاء المحاولة مرة أخرى.",
       });
-    } finally {
-      setIsLoading(false);
-    }
+    },
+  });
+
+  const askAI = async () => {
+    if (!input.trim() || loading) return;
+    
+    // Start the flow with the user's question
+    start({ question: input });
+    setInput("");
   };
+  
+  // Combine streamed chunks into a single response string
+  const response = stream.map(s => s.output || '').join('');
 
   return (
     <section className="animate-fadeIn">
@@ -195,7 +194,7 @@ export function AiScreen() {
             placeholder="اكتب سؤالك هنا عن اللغة الإنجليزية..."
             rows={3}
             className="w-full p-3 rounded-md focus:ring-2 focus:ring-primary outline-none transition bg-background"
-            disabled={isLoading}
+            disabled={loading}
              onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -206,17 +205,23 @@ export function AiScreen() {
           <Button
             onClick={askAI}
             className="mt-3"
-            disabled={isLoading || !input.trim()}
+            disabled={loading || !input.trim()}
           >
-            {isLoading ? '...جارٍ التفكير' : 'إرسال السؤال'}
+            {loading ? '...جارٍ التفكير' : 'إرسال السؤال'}
           </Button>
         </CardContent>
       </Card>
       
-      {(isLoading || response) && (
+      {(loading || response) && (
         <Card className="mt-4 bg-card/70 backdrop-blur-sm">
-          <CardContent className="pt-6">
-            <p className="whitespace-pre-wrap">{response}{isLoading && '...'}</p>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bot />
+              <span>إجابة الذكاء الاصطناعي</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="whitespace-pre-wrap">{response}{loading && stream.length === 0 ? '...' : ''}</p>
           </CardContent>
         </Card>
       )}
