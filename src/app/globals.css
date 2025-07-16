@@ -34,6 +34,12 @@
     --ring: 151 59% 43%;
  
     --radius: 0.5rem;
+
+    /* Light Theme Animated Background Colors */
+    --bg-color-1: 151 59% 53%; /* Primary Green */
+    --bg-color-2: 43 74% 66%;  /* Soft Orange */
+    --bg-color-3: 220 100% 70%;/* Sky Blue */
+    --bg-color-4: 300 76% 72%; /* Soft Pink */
   }
  
   .dark {
@@ -64,6 +70,12 @@
     --border: 224 10% 24%;
     --input: 224 10% 24%;
     --ring: 151 59% 43%;
+
+    /* Dark Theme Animated Background Colors */
+    --bg-color-1: 151 59% 33%; /* Darker Primary Green */
+    --bg-color-2: 250 50% 30%; /* Deep Purple */
+    --bg-color-3: 220 50% 25%; /* Midnight Blue */
+    --bg-color-4: 0 50% 28%;   /* Dark Red */
   }
 }
  
@@ -75,18 +87,12 @@
     @apply bg-background text-foreground;
   }
 
-  @keyframes morph {
-    0% {
-      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-      transform: translate(0, 0) rotate(0deg) scale(1);
+  @keyframes move {
+    from {
+      transform: translate(0, 0) rotate(0deg);
     }
-    50% {
-      clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
-      transform: translate(calc(var(--tx, 0px)), calc(var(--ty, 0px))) rotate(180deg) scale(1.1);
-    }
-    100% {
-      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-      transform: translate(0, 0) rotate(360deg) scale(1);
+    to {
+      transform: translate(var(--x-end), var(--y-end)) rotate(360deg);
     }
   }
 

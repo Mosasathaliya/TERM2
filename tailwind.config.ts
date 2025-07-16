@@ -67,11 +67,15 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+         "move": {
+          "from": { transform: "translate(0, 0) rotate(0deg)" },
+          "to": { transform: "translate(var(--x-end), var(--y-end)) rotate(360deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "morph": "morph 18s ease-in-out infinite",
+        "move": "move 20s ease-in-out infinite alternate",
       },
     },
   },
