@@ -26,9 +26,6 @@ import { LingoleapApp } from './lingoleap-app';
 
 
 export function HomeScreen() {
-    const plugin = useRef(
-      Autoplay({ delay: 3000, stopOnInteraction: true })
-    )
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
 
   return (
@@ -54,60 +51,6 @@ export function HomeScreen() {
             </CardHeader>
         </Card>
         
-        <Carousel
-          plugins={[plugin.current]}
-          className="w-full max-w-xl mx-auto"
-          onMouseEnter={plugin.current.stop}
-          onMouseLeave={plugin.current.reset}
-          opts={{
-            loop: true,
-          }}
-        >
-          <CarouselContent>
-            <CarouselItem>
-              <Card className="overflow-hidden">
-                <CardContent className="p-0">
-                  <Image
-                    src="https://placehold.co/600x400.png"
-                    alt="Students in a classroom"
-                    width={600}
-                    height={400}
-                    className="w-full h-auto object-cover"
-                    data-ai-hint="classroom students"
-                  />
-                </CardContent>
-              </Card>
-            </CarouselItem>
-            <CarouselItem>
-               <Card className="overflow-hidden">
-                <CardContent className="p-0">
-                  <Image
-                    src="https://placehold.co/600x400.png"
-                    alt="A person studying English on a laptop"
-                    width={600}
-                    height={400}
-                    className="w-full h-auto object-cover"
-                    data-ai-hint="language study"
-                  />
-                </CardContent>
-              </Card>
-            </CarouselItem>
-            <CarouselItem>
-               <Card className="overflow-hidden">
-                <CardContent className="p-0">
-                  <Image
-                    src="https://placehold.co/600x400.png"
-                    alt="Global communication concept"
-                    width={600}
-                    height={400}
-                    className="w-full h-auto object-cover"
-                    data-ai-hint="global communication"
-                  />
-                </CardContent>
-              </Card>
-            </CarouselItem>
-          </CarouselContent>
-        </Carousel>
     </section>
 
     <Dialog open={isLingoleapOpen} onOpenChange={setIsLingoleapOpen}>
