@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { LearningItem, Lesson, Story } from '@/lib/lessons';
 import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
-import { chatStreamFlow } from '@/ai/flows/chat-flow';
+import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
 import { BookText, Book, Bot } from 'lucide-react';
 import Autoplay from "embla-carousel-autoplay"
@@ -167,8 +167,8 @@ export function AiScreen() {
     setResponse(""); // Clear previous response
 
     try {
-      // Start the flow and get the stream
-      const stream = await chatStreamFlow({ question: input });
+      // Call the server action which returns a stream
+      const stream = await chatStream(input);
       setInput("");
 
       // Manually read from the stream
@@ -179,16 +179,14 @@ export function AiScreen() {
         const { done, value } = await reader.read();
         if (done) break;
         
-        // The value is a structured chunk from Genkit, we need to parse it.
         const decodedChunk = decoder.decode(value, { stream: true });
-        // The actual text content is in a nested object. This parsing is specific to Genkit streams.
+        
         try {
           const chunkData = JSON.parse(decodedChunk);
           if (chunkData?.output?.text) {
              setResponse(prev => prev + chunkData.output.text);
           }
         } catch (e) {
-          // Sometimes chunks might not be perfect JSON, so we handle this gracefully
           console.warn("Could not parse stream chunk:", decodedChunk);
         }
       }
