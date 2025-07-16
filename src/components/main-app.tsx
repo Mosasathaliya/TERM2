@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { BackgroundShapes } from "@/components/triangular-background";
 import { HomeScreen, BookScreen, AiScreen, ProgressScreen } from "@/components/screens";
 
-type ActiveTab = "home" | "book" | "ai" | "progress";
+export type ActiveTab = "home" | "book" | "ai" | "progress";
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -50,7 +50,7 @@ export function MainApp() {
     switch (activeTab) {
       case "home": return <HomeScreen />;
       case "book": return <BookScreen />;
-      case "ai": return <AiScreen />;
+      case "ai": return <AiScreen setActiveTab={setActiveTab} />;
       case "progress": return <ProgressScreen />;
       default: return <HomeScreen />;
     }

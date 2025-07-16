@@ -14,10 +14,11 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight } from 'lucide-react';
 import Autoplay from "embla-carousel-autoplay"
 import Image from 'next/image';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+import type { ActiveTab } from './main-app';
 
 export function HomeScreen() {
     const plugin = useRef(
@@ -154,7 +155,11 @@ export function BookScreen() {
 }
 
 
-export function AiScreen() {
+interface AiScreenProps {
+  setActiveTab: (tab: ActiveTab) => void;
+}
+
+export function AiScreen({ setActiveTab }: AiScreenProps) {
   const [input, setInput] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
@@ -200,9 +205,14 @@ export function AiScreen() {
   
   return (
     <section className="animate-fadeIn">
-      <h2 className="text-xl font-semibold mb-4">اسأل الذكاء الاصطناعي</h2>
       <Card className="bg-card/70 backdrop-blur-sm">
-        <CardContent className="pt-6">
+        <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>اسأل الذكاء الاصطناعي</CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => setActiveTab('progress')}>
+                <ArrowRight className="h-5 w-5" />
+            </Button>
+        </CardHeader>
+        <CardContent>
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
