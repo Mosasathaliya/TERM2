@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
@@ -15,16 +14,18 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LingoleapApp } from './lingoleap-app';
+import { MumbleJumbleApp } from './mumble-jumble-app';
 
 
 export function HomeScreen() {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
+    const [isMumbleJumbleOpen, setIsMumbleJumbleOpen] = useState(false);
 
   return (
     <>
@@ -34,20 +35,37 @@ export function HomeScreen() {
             استكشف الدروس التفاعلية، وتحدث مع مدرس الذكاء الاصطناعي، وتتبع تقدمك وأنت تتقن اللغة الإنجليزية.
         </p>
         
-        <Card 
-            className="mb-6 cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-            onClick={() => setIsLingoleapOpen(true)}
-        >
-            <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                    <GraduationCap className="h-8 w-8 text-primary" />
-                    <span>مُنشئ المفردات بالذكاء الاصطناعي (LinguaLeap)</span>
-                </CardTitle>
-                <CardDescription>
-                    قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي.
-                </CardDescription>
-            </CardHeader>
-        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card 
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                onClick={() => setIsLingoleapOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <GraduationCap className="h-8 w-8 text-primary" />
+                        <span>مُنشئ المفردات بالذكاء الاصطناعي</span>
+                    </CardTitle>
+                    <CardDescription>
+                        قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+
+            <Card 
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                onClick={() => setIsMumbleJumbleOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <Mic className="h-8 w-8 text-accent" />
+                        <span>Mumble Jumble</span>
+                    </CardTitle>
+                    <CardDescription>
+                        اكتشف أصواتًا إبداعية مع محادثة صوتية بالذكاء الاصطناعي.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+        </div>
         
     </section>
 
@@ -59,6 +77,12 @@ export function HomeScreen() {
             <div className="flex-grow min-h-0">
                 <LingoleapApp />
             </div>
+        </DialogContent>
+    </Dialog>
+
+    <Dialog open={isMumbleJumbleOpen} onOpenChange={setIsMumbleJumbleOpen}>
+        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0 bg-transparent border-0 shadow-none">
+             <MumbleJumbleApp />
         </DialogContent>
     </Dialog>
     </>
@@ -156,9 +180,11 @@ function AiChatScreen({ onNavigate }: { onNavigate: () => void }) {
       <Card className="bg-card/70 backdrop-blur-sm">
         <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>اسأل الذكاء الاصطناعي</CardTitle>
+            <div className='flex items-center'>
              <Button variant="ghost" size="icon" onClick={onNavigate}>
                 <ArrowRight className="h-5 w-5" />
             </Button>
+            </div>
         </CardHeader>
         <CardContent>
           <Textarea
