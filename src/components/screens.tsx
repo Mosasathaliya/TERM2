@@ -16,9 +16,7 @@ import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
 import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap } from 'lucide-react';
-import Autoplay from "embla-carousel-autoplay"
 import Image from 'next/image';
-import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -219,8 +217,8 @@ function AiStoryScreen({ onNavigate }: { onNavigate: () => void }) {
         setImageUrl(null);
 
         try {
-            // 1. Generate story text
-            const storyStream = await chatStream(`اكتب قصة قصيرة ومبتكرة باللغة العربية حول: ${prompt}`);
+            // 1. Generate story text in English
+            const storyStream = await chatStream(`Write a short, creative story in English about: ${prompt}`);
             if (!storyStream) throw new Error("Could not get story stream.");
 
             const reader = storyStream.getReader();
@@ -279,7 +277,7 @@ function AiStoryScreen({ onNavigate }: { onNavigate: () => void }) {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Bot />
-                            <span>قصتك</span>
+                            <span>قصتك (باللغة الإنجليزية)</span>
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -300,7 +298,7 @@ function AiStoryScreen({ onNavigate }: { onNavigate: () => void }) {
                                 <span className="text-muted-foreground mr-2">...يتم إنشاء الصورة</span>
                             </div>
                         )}
-                        <p className="whitespace-pre-wrap">{story}{loading && story.length === 0 ? '...' : ''}</p>
+                        <p className="whitespace-pre-wrap" dir="ltr">{story}{loading && story.length === 0 ? '...' : ''}</p>
                     </CardContent>
                 </Card>
             )}
