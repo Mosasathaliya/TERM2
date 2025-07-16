@@ -38,6 +38,7 @@ export async function suggestNewWords(input: SuggestNewWordsInput): Promise<Sugg
 
 const prompt = ai.definePrompt({
   name: 'suggestNewWordsPrompt',
+  model: 'googleai/gemini-2.5-flash',
   input: {schema: SuggestNewWordsInputSchema},
   output: {schema: SuggestNewWordsOutputSchema},
   prompt: `You are a vocabulary expert. Suggest {{numberOfWords}} new English words related to the category '{{{category}}}'. Provide the following for each word:
