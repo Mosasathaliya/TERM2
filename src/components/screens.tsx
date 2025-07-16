@@ -160,7 +160,7 @@ export function AiScreen() {
   const { toast } = useToast();
   
   // Use the useFlow hook to interact with the streaming flow
-  const { stream, start, abort, loading } = useFlow(chatStreamFlow, {
+  const { stream, start, loading } = useFlow(chatStreamFlow, {
     // Handle errors from the flow
     onError(err) {
       console.error("AI chat error:", err);
