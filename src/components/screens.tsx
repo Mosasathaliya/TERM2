@@ -165,14 +165,15 @@ export function AiScreen() {
     
     setLoading(true);
     setResponse(""); // Clear previous response
+    const currentInput = input;
+    setInput("");
 
     try {
       // Call the server action which returns a stream
-      const stream = await chatStream(input);
+      const stream = await chatStream(currentInput);
       if (!stream) {
         throw new Error("Server action did not return a stream.");
       }
-      setInput("");
 
       // Manually read from the stream
       const reader = stream.getReader();
@@ -183,21 +184,7 @@ export function AiScreen() {
         if (done) break;
         
         const decodedChunk = decoder.decode(value, { stream: true });
-        
-        // Sometimes multiple JSON objects can be received in one chunk
-        const jsonObjects = decodedChunk.match(/\{[^{}]*\}/g);
-        if (jsonObjects) {
-          jsonObjects.forEach(jsonStr => {
-            try {
-              const chunkData = JSON.parse(jsonStr);
-              if (chunkData?.output?.text) {
-                 setResponse(prev => prev + chunkData.output.text);
-              }
-            } catch (e) {
-              console.warn("Could not parse stream chunk:", jsonStr);
-            }
-          });
-        }
+        setResponse(prev => prev + decodedChunk);
       }
     } catch (err) {
       console.error("AI chat error:", err);
