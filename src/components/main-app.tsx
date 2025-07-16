@@ -48,11 +48,11 @@ export function MainApp() {
   
   const renderScreen = () => {
     switch (activeTab) {
-      case "home": return <HomeScreen />;
+      case "home": return <HomeScreen setActiveTab={setActiveTab} />;
       case "book": return <BookScreen />;
       case "ai": return <AiScreen setActiveTab={setActiveTab} />;
       case "progress": return <ProgressScreen />;
-      default: return <HomeScreen />;
+      default: return <HomeScreen setActiveTab={setActiveTab} />;
     }
   }
 

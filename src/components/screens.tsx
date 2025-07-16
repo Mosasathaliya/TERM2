@@ -14,16 +14,16 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { LingoleapApp } from './lingoleap-app';
 import { MumbleJumbleApp } from './mumble-jumble-app';
 
 
-export function HomeScreen() {
+export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
     const [isMumbleJumbleOpen, setIsMumbleJumbleOpen] = useState(false);
 
@@ -82,6 +82,13 @@ export function HomeScreen() {
 
     <Dialog open={isMumbleJumbleOpen} onOpenChange={setIsMumbleJumbleOpen}>
         <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0 bg-transparent border-0 shadow-none">
+            <DialogHeader className='pointer-events-none'>
+                <DialogTitle className="sr-only">Mumble Jumble</DialogTitle>
+                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary pointer-events-auto z-50 text-white bg-black/20 hover:bg-black/40">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </DialogClose>
+            </DialogHeader>
              <MumbleJumbleApp />
         </DialogContent>
     </Dialog>
