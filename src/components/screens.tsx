@@ -13,7 +13,6 @@ import type { LearningItem, Lesson, Story } from '@/lib/lessons';
 import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStreamFlow } from '@/ai/flows/chat-flow';
-import { useFlow } from '@genkit-ai/next/client';
 import { useToast } from "@/hooks/use-toast"
 import { BookText, Book, Bot } from 'lucide-react';
 import Autoplay from "embla-carousel-autoplay"
@@ -157,32 +156,54 @@ export function BookScreen() {
 
 export function AiScreen() {
   const [input, setInput] = useState("");
+  const [response, setResponse] = useState("");
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  
-  // Use the useFlow hook to interact with the streaming flow
-  const { stream, start, loading } = useFlow(chatStreamFlow, {
-    // Handle errors from the flow
-    onError(err) {
+
+  const askAI = async () => {
+    if (!input.trim() || loading) return;
+    
+    setLoading(true);
+    setResponse(""); // Clear previous response
+
+    try {
+      // Start the flow and get the stream
+      const stream = await chatStreamFlow({ question: input });
+      setInput("");
+
+      // Manually read from the stream
+      const reader = stream.getReader();
+      const decoder = new TextDecoder();
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        // The value is a structured chunk from Genkit, we need to parse it.
+        const decodedChunk = decoder.decode(value, { stream: true });
+        // The actual text content is in a nested object. This parsing is specific to Genkit streams.
+        try {
+          const chunkData = JSON.parse(decodedChunk);
+          if (chunkData?.output?.text) {
+             setResponse(prev => prev + chunkData.output.text);
+          }
+        } catch (e) {
+          // Sometimes chunks might not be perfect JSON, so we handle this gracefully
+          console.warn("Could not parse stream chunk:", decodedChunk);
+        }
+      }
+    } catch (err) {
       console.error("AI chat error:", err);
       toast({
         variant: "destructive",
         title: "حدث خطأ",
         description: "لم نتمكن من معالجة طلبك. الرجاء المحاولة مرة أخرى.",
       });
-    },
-  });
-
-  const askAI = async () => {
-    if (!input.trim() || loading) return;
-    
-    // Start the flow with the user's question
-    start({ question: input });
-    setInput("");
+    } finally {
+      setLoading(false);
+    }
   };
   
-  // Combine streamed chunks into a single response string
-  const response = stream.map(s => s.output || '').join('');
-
   return (
     <section className="animate-fadeIn">
       <h2 className="text-xl font-semibold mb-4">اسأل الذكاء الاصطناعي</h2>
@@ -221,7 +242,7 @@ export function AiScreen() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="whitespace-pre-wrap">{response}{loading && stream.length === 0 ? '...' : ''}</p>
+            <p className="whitespace-pre-wrap">{response}{loading && response.length === 0 ? '...' : ''}</p>
           </CardContent>
         </Card>
       )}

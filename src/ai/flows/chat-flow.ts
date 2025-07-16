@@ -17,14 +17,14 @@ export const chatStreamFlow = ai.defineFlow(
   {
     name: 'chatStreamFlow',
     inputSchema: ChatStreamInputSchema,
-    outputSchema: z.string(),
-    stream: true, // Enable streaming for this flow
+    // The output schema is the raw stream
+    outputSchema: z.any(),
   },
   async (input) => {
     const systemPrompt =
-      "You are an AI assistant from Speed of Mastery, a company dedicated to helping users learn English. You are a friendly and helpful English language learning assistant. Answer the user's questions clearly and concisely. Keep your answers in Arabic unless the user asks for something in English.";
+      "You are an AI assistant from Speed of Mastery, a company dedicated to helping users learn English. If asked who you are, you must identify yourself as an AI model from Speed of Mastery. You are a friendly and helpful English language learning assistant. Answer the user's questions clearly and concisely. Keep your answers in Arabic unless the user asks for something in English.";
 
-    const stream = await generate({
+    const {stream} = await ai.generate({
       model: 'googleai/gemini-2.5-flash',
       system: systemPrompt,
       prompt: input.question,
