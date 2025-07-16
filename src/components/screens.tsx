@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
@@ -14,25 +15,48 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap } from 'lucide-react';
 import Autoplay from "embla-carousel-autoplay"
 import Image from 'next/image';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { LingoleapApp } from './lingoleap-app';
 
 
 export function HomeScreen() {
     const plugin = useRef(
       Autoplay({ delay: 3000, stopOnInteraction: true })
     )
+    const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
 
   return (
-    <section className="animate-fadeIn flex flex-col items-center justify-center h-[calc(100vh-200px)]">
-        <h2 className="text-4xl font-bold mb-8 text-center">أهلاً بك في رحلتك لتعلم الإنجليزية</h2>
+    <>
+    <section className="animate-fadeIn">
+        <h2 className="text-4xl font-bold mb-4 text-center">أهلاً بك في رحلتك لتعلم الإنجليزية</h2>
+         <p className="text-muted-foreground mb-8 text-center max-w-2xl mx-auto">
+            استكشف الدروس التفاعلية، وتحدث مع مدرس الذكاء الاصطناعي، وتتبع تقدمك وأنت تتقن اللغة الإنجليزية.
+        </p>
+        
+        <Card 
+            className="mb-6 cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+            onClick={() => setIsLingoleapOpen(true)}
+        >
+            <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                    <GraduationCap className="h-8 w-8 text-primary" />
+                    <span>مُنشئ المفردات بالذكاء الاصطناعي (LinguaLeap)</span>
+                </CardTitle>
+                <CardDescription>
+                    قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي.
+                </CardDescription>
+            </CardHeader>
+        </Card>
+        
         <Carousel
           plugins={[plugin.current]}
-          className="w-full max-w-xl"
+          className="w-full max-w-xl mx-auto"
           onMouseEnter={plugin.current.stop}
           onMouseLeave={plugin.current.reset}
           opts={{
@@ -82,40 +106,21 @@ export function HomeScreen() {
                 </CardContent>
               </Card>
             </CarouselItem>
-            <CarouselItem>
-               <Card className="overflow-hidden">
-                <CardContent className="p-0">
-                   <Image
-                    src="https://placehold.co/600x400.png"
-                    alt="People from different cultures talking"
-                    width={600}
-                    height={400}
-                    className="w-full h-auto object-cover"
-                    data-ai-hint="diverse conversation"
-                  />
-                </CardContent>
-              </Card>
-            </CarouselItem>
-             <CarouselItem>
-               <Card className="overflow-hidden">
-                <CardContent className="p-0">
-                   <Image
-                    src="https://placehold.co/600x400.png"
-                    alt="Dictionary showing English to Arabic translation"
-                    width={600}
-                    height={400}
-                    className="w-full h-auto object-cover"
-                    data-ai-hint="dictionary translation"
-                  />
-                </CardContent>
-              </Card>
-            </CarouselItem>
           </CarouselContent>
         </Carousel>
-         <p className="text-muted-foreground mt-6 text-center max-w-2xl">
-            استكشف الدروس التفاعلية، وتحدث مع مدرس الذكاء الاصطناعي، وتتبع تقدمك وأنت تتقن اللغة الإنجليزية.
-        </p>
     </section>
+
+    <Dialog open={isLingoleapOpen} onOpenChange={setIsLingoleapOpen}>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+             <DialogHeader className="p-4 border-b">
+                <DialogTitle>LinguaLeap Vocabulary Builder</DialogTitle>
+            </DialogHeader>
+            <div className="flex-grow min-h-0">
+                <LingoleapApp />
+            </div>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
 
@@ -210,7 +215,7 @@ function AiChatScreen({ onNavigate }: { onNavigate: () => void }) {
       <Card className="bg-card/70 backdrop-blur-sm">
         <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>اسأل الذكاء الاصطناعي</CardTitle>
-            <Button variant="ghost" size="icon" onClick={onNavigate}>
+             <Button variant="ghost" size="icon" onClick={onNavigate}>
                 <ArrowRight className="h-5 w-5" />
             </Button>
         </CardHeader>
