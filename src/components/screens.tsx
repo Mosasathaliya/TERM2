@@ -4,7 +4,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -14,11 +14,13 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon } from 'lucide-react';
 import Autoplay from "embla-carousel-autoplay"
 import Image from 'next/image';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import type { ActiveTab } from './main-app';
+import { generateStoryImage } from '@/ai/flows/story-image-flow';
+
 
 export function HomeScreen() {
     const plugin = useRef(
@@ -159,7 +161,9 @@ interface AiScreenProps {
   setActiveTab: (tab: ActiveTab) => void;
 }
 
-export function AiScreen({ setActiveTab }: AiScreenProps) {
+type AiSubScreen = 'chat' | 'story';
+
+function AiChatScreen({ onNavigate }: { onNavigate: () => void }) {
   const [input, setInput] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
@@ -174,13 +178,11 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
     setInput("");
 
     try {
-      // Call the server action which returns a stream
       const stream = await chatStream(currentInput);
       if (!stream) {
         throw new Error("Server action did not return a stream.");
       }
 
-      // Manually read from the stream
       const reader = stream.getReader();
       const decoder = new TextDecoder();
       
@@ -204,11 +206,11 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
   };
   
   return (
-    <section className="animate-fadeIn">
+    <>
       <Card className="bg-card/70 backdrop-blur-sm">
         <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>اسأل الذكاء الاصطناعي</CardTitle>
-            <Button variant="ghost" size="icon" onClick={() => setActiveTab('progress')}>
+            <Button variant="ghost" size="icon" onClick={onNavigate}>
                 <ArrowRight className="h-5 w-5" />
             </Button>
         </CardHeader>
@@ -250,8 +252,123 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
           </CardContent>
         </Card>
       )}
-    </section>
+    </>
   );
+}
+
+function AiStoryScreen({ onNavigate }: { onNavigate: () => void }) {
+    const [prompt, setPrompt] = useState("");
+    const [story, setStory] = useState("");
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const { toast } = useToast();
+
+    const generateStory = async () => {
+        if (!prompt.trim() || loading) return;
+
+        setLoading(true);
+        setStory("");
+        setImageUrl(null);
+
+        try {
+            // 1. Generate story text
+            const storyStream = await chatStream(`اكتب قصة قصيرة ومبتكرة باللغة العربية حول: ${prompt}`);
+            if (!storyStream) throw new Error("Could not get story stream.");
+
+            const reader = storyStream.getReader();
+            const decoder = new TextDecoder();
+            let fullStory = "";
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const decodedChunk = decoder.decode(value, { stream: true });
+                setStory(prev => prev + decodedChunk);
+                fullStory += decodedChunk;
+            }
+
+            // 2. Generate image for the completed story
+            const imageResult = await generateStoryImage({ story: fullStory });
+            setImageUrl(imageResult.imageUrl);
+
+        } catch (err) {
+            console.error("AI story generation error:", err);
+            toast({
+                variant: "destructive",
+                title: "حدث خطأ",
+                description: "لم نتمكن من إنشاء القصة. الرجاء المحاولة مرة أخرى.",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <>
+            <Card className="bg-card/70 backdrop-blur-sm">
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>مولد قصص الذكاء الاصطناعي</CardTitle>
+                    <Button variant="ghost" size="icon" onClick={onNavigate}>
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                    <Textarea
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        placeholder="اكتب فكرة لقصة، مثل 'رائد فضاء يجد حديقة على المريخ'..."
+                        rows={2}
+                        className="w-full p-3 rounded-md focus:ring-2 focus:ring-primary outline-none transition bg-background"
+                        disabled={loading}
+                    />
+                    <Button onClick={generateStory} className="mt-3" disabled={loading || !prompt.trim()}>
+                        {loading ? '...جاري الكتابة' : <><Sparkles className="mr-2 h-4 w-4"/> إنشاء قصة</>}
+                    </Button>
+                </CardContent>
+            </Card>
+
+            {(loading || story) && (
+                <Card className="mt-4 bg-card/70 backdrop-blur-sm">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Bot />
+                            <span>قصتك</span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {imageUrl && (
+                             <div className="mb-4 border rounded-lg overflow-hidden">
+                                <Image
+                                    src={imageUrl}
+                                    alt={`Illustration for the story`}
+                                    width={500}
+                                    height={300}
+                                    className="w-full h-auto object-cover"
+                                />
+                            </div>
+                        )}
+                        {loading && !imageUrl && (
+                            <div className="flex items-center justify-center p-4 rounded-md bg-muted mb-4">
+                                <ImageIcon className="h-6 w-6 text-muted-foreground animate-pulse" />
+                                <span className="text-muted-foreground mr-2">...يتم إنشاء الصورة</span>
+                            </div>
+                        )}
+                        <p className="whitespace-pre-wrap">{story}{loading && story.length === 0 ? '...' : ''}</p>
+                    </CardContent>
+                </Card>
+            )}
+        </>
+    );
+}
+
+export function AiScreen({ setActiveTab }: AiScreenProps) {
+    const [subScreen, setSubScreen] = useState<AiSubScreen>('chat');
+
+    return (
+        <section className="animate-fadeIn">
+            {subScreen === 'chat' && <AiChatScreen onNavigate={() => setSubScreen('story')} />}
+            {subScreen === 'story' && <AiStoryScreen onNavigate={() => setSubScreen('chat')} />}
+        </section>
+    );
 }
 
 export function ProgressScreen() {
