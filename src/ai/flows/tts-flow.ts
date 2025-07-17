@@ -2,13 +2,20 @@
 'use server';
 
 /**
- * @fileOverview A Genkit flow for converting text to speech.
+ * @fileOverview A Genkit flow for converting text to speech with a specified voice.
  */
 
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 import wav from 'wav';
+
+// Define the list of available high-quality voices
+const PREBUILT_VOICES = [
+  'algenib', 'antares', 'sirius', 'alnilam', 'gacrux',
+  'achernar', 'achird', 'algieba', 'rasalgethi', 'schedar', 'vindemiatrix'
+] as const;
+
 
 // Helper function to convert PCM buffer to Base64 WAV
 async function toWav(
@@ -38,6 +45,14 @@ async function toWav(
   });
 }
 
+// Define the schema for the flow's input, now including a voice parameter
+const TextToSpeechInputSchema = z.object({
+  text: z.string().describe('The text to convert to speech.'),
+  voice: z.enum(PREBUILT_VOICES).default('algenib').describe('The prebuilt voice to use.'),
+});
+export type TextToSpeechInput = z.infer<typeof TextToSpeechInputSchema>;
+
+
 // Define the schema for the flow's output
 const TextToSpeechOutputSchema = z.object({
   media: z.string().describe("The generated audio as a Base64 encoded WAV data URI."),
@@ -47,21 +62,21 @@ const TextToSpeechOutputSchema = z.object({
 const ttsFlow = ai.defineFlow(
   {
     name: 'ttsFlow',
-    inputSchema: z.string(),
+    inputSchema: TextToSpeechInputSchema,
     outputSchema: TextToSpeechOutputSchema,
   },
-  async (query) => {
+  async ({ text, voice }) => {
     const { media } = await ai.generate({
       model: googleAI.model('gemini-2.5-flash-preview-tts'),
       config: {
         responseModalities: ['AUDIO'],
         speechConfig: {
           voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Algenib' }, // A pleasant, clear voice
+            prebuiltVoiceConfig: { voiceName: voice }, // Use the specified voice
           },
         },
       },
-      prompt: query,
+      prompt: text,
     });
 
     if (!media) {
@@ -84,9 +99,9 @@ const ttsFlow = ai.defineFlow(
 
 
 // Exported wrapper function to be called from the client
-export async function textToSpeech(text: string): Promise<{ media: string } | null> {
+export async function textToSpeech(input: TextToSpeechInput): Promise<{ media: string } | null> {
   try {
-    const result = await ttsFlow(text);
+    const result = await ttsFlow(input);
     return result;
   } catch (error) {
     console.error("Error in textToSpeech flow:", error);

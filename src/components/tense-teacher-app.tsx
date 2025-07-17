@@ -8,7 +8,7 @@ import * as z from 'zod';
 
 import { ahmedVoiceCall, type AhmedVoiceCallInput } from '@/ai/flows/ahmed-voice-call';
 import { saraVoiceCall, type SaraVoiceCallInput } from '@/ai/flows/sara-voice-call';
-import { textToSpeech } from '@/ai/flows/tts-flow';
+import { textToSpeech, type TextToSpeechInput } from '@/ai/flows/tts-flow';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -92,12 +92,12 @@ export function TenseTeacherApp() {
   }, [conversationHistory]);
 
 
-  const handlePlayAudio = async (text: string, entryId: number) => {
+  const handlePlayAudio = async (text: string, entryId: number, voice: TextToSpeechInput['voice']) => {
       if (!text || isMuted || activeAudio === entryId) return;
       setActiveAudio(entryId);
 
       try {
-        const result = await textToSpeech(text);
+        const result = await textToSpeech({ text, voice });
         if (result && result.media) {
             if (!audioRef.current) {
                 audioRef.current = new Audio();
@@ -188,7 +188,8 @@ export function TenseTeacherApp() {
         setConversationHistory(prev => [...prev, aiEntry].slice(- (MAX_HISTORY_PAIRS * 2)));
 
         if (!isMuted) {
-            handlePlayAudio(result.explanation, aiEntry.id);
+            const voice = selectedTeacher === 'Ahmed' ? 'algenib' : 'achernar';
+            handlePlayAudio(result.explanation, aiEntry.id, voice);
         }
     } catch (error) {
         console.error(`Error calling ${selectedTeacher}:`, error);
@@ -213,11 +214,13 @@ export function TenseTeacherApp() {
       name: "أحمد",
       avatarSrc: "https://placehold.co/128x128/3498db/ffffff.png",
       avatarHint: "male teacher",
+      voice: 'algenib' as const,
     },
     Sara: {
       name: "سارة",
       avatarSrc: "https://placehold.co/128x128/e91e63/ffffff.png",
       avatarHint: "female teacher",
+      voice: 'achernar' as const,
     },
   };
 
@@ -261,7 +264,7 @@ export function TenseTeacherApp() {
                                     <div className={`rounded-lg px-3 py-2 max-w-[85%] flex items-center gap-2 ${entry.speaker === 'User' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                                         <p className="text-sm whitespace-pre-wrap">{entry.message}</p>
                                         {entry.speaker !== 'User' && (
-                                        <Button variant="ghost" size="icon" className="shrink-0 h-6 w-6 p-1 text-muted-foreground" onClick={() => handlePlayAudio(entry.message, entry.id)}>
+                                        <Button variant="ghost" size="icon" className="shrink-0 h-6 w-6 p-1 text-muted-foreground" onClick={() => handlePlayAudio(entry.message, entry.id, currentTeacherInfo.voice)}>
                                             {activeAudio === entry.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <Volume2 className="h-4 w-4"/>}
                                         </Button>
                                         )}
