@@ -1,12 +1,11 @@
 
 'use server';
 /**
- * @fileOverview A Genkit flow to authenticate a user via an access code from Supabase
- * and then create or update their record in Firestore.
+ * @fileOverview A Genkit flow to authenticate a user via an access code.
+ * NOTE: This is a simplified version for development. It only supports the DEV12345 code.
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { supabase } from '@/lib/supabase-client';
 import { doc, setDoc } from "firebase/firestore";
 import { db } from '@/lib/firebase-config';
 
@@ -16,7 +15,7 @@ const AuthenticateUserInputSchema = z.object({
 });
 export type AuthenticateUserInput = z.infer<typeof AuthenticateUserInputSchema>;
 
-// Define the shape of the user data we expect from Supabase
+// Define the shape of the user data
 const UserDataSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -65,61 +64,11 @@ export const authenticateUser = ai.defineFlow(
         };
       } catch (firestoreError) {
         console.error('Firestore error for dev user:', firestoreError);
-        return { success: false, message: 'Could not save dev user data.', user: null };
+        return { success: false, message: 'Could not save dev user data to Firestore.', user: null };
       }
     }
     
-    // --- Live Supabase Logic ---
-    // This part will only run for non-developer codes.
-    
-    // Check if Supabase is configured before trying to use it.
-    if (!supabase) {
-        return { success: false, message: 'Supabase client is not configured.', user: null };
-    }
-
-    // Step 1: Query Supabase for the access code
-    const { data: accessData, error: supabaseError } = await supabase
-      .from('user_access') // The table name in Supabase
-      .select('user_id, is_active, users(id, name, email)')
-      .eq('access_code', accessCode)
-      .single();
-
-    if (supabaseError || !accessData) {
-      console.error('Supabase query error:', supabaseError?.message);
-      return { success: false, message: 'Invalid or expired access code.', user: null };
-    }
-
-    if (!accessData.is_active) {
-      return { success: false, message: 'This access code has expired.', user: null };
-    }
-    
-    const userData = accessData.users;
-    if (!userData) {
-      return { success: false, message: 'Could not find user associated with this code.', user: null };
-    }
-
-    const validatedUser = UserDataSchema.parse(userData);
-
-    // Step 2: Save or update the user data in Firestore
-    try {
-      const userRef = doc(db, "users", validatedUser.id);
-      
-      await setDoc(userRef, {
-        name: validatedUser.name,
-        email: validatedUser.email,
-        last_login: new Date().toISOString(),
-      }, { merge: true });
-
-    } catch (firestoreError) {
-      console.error('Firestore error:', firestoreError);
-      return { success: false, message: 'Could not save user data.', user: null };
-    }
-
-    // Step 3: Return a success response with the user data
-    return {
-      success: true,
-      message: 'Authentication successful.',
-      user: validatedUser,
-    };
+    // --- Fallback for any other code ---
+    return { success: false, message: 'Invalid access code. Please use the developer code to proceed.', user: null };
   }
 );
