@@ -41,10 +41,8 @@ const speechToTextFlow = ai.defineFlow(
     const { text } = await ai.generate({
       model: 'googleai/gemini-1.5-flash',
       prompt: [
-        // Provide the audio media directly in the prompt.
-        { media: { url: audio } },
-        // Add a text part to instruct the model on what to do.
-        { text: 'Transcribe the provided audio.' },
+        {text: 'Transcribe the following audio to text.'},
+        {media: {url: audio}},
       ],
     });
 
