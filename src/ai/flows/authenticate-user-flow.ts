@@ -39,6 +39,36 @@ export const authenticateUserFlow = ai.defineFlow(
     outputSchema: AuthenticateUserOutputSchema,
   },
   async ({ accessCode }) => {
+    // --- Development Backdoor ---
+    // This allows testing without a live Supabase connection.
+    // Use the code 'DEV12345' to log in as a mock user.
+    if (accessCode === 'DEV12345') {
+      const devUser = {
+        id: 'dev-user-01',
+        name: 'Dev User',
+        email: 'dev@example.com',
+      };
+
+      try {
+        const userRef = doc(db, "users", devUser.id);
+        await setDoc(userRef, {
+          name: devUser.name,
+          email: devUser.email,
+          last_login: new Date().toISOString(),
+        }, { merge: true });
+
+        return {
+          success: true,
+          message: 'Dev user authenticated successfully.',
+          user: devUser,
+        };
+      } catch (firestoreError) {
+        console.error('Firestore error for dev user:', firestoreError);
+        return { success: false, message: 'Could not save dev user data.', user: null };
+      }
+    }
+    // --- End of Development Backdoor ---
+
     // Step 1: Query Supabase for the access code
     const { data: accessData, error: supabaseError } = await supabase
       .from('user_access') // The table name in Supabase
