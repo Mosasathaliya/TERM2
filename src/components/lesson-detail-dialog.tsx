@@ -5,6 +5,7 @@ import * as React from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -368,6 +369,7 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-2 border-b">
           <DialogTitle className="text-2xl text-primary">{item.title}</DialogTitle>
+          <DialogDescription>Details and interactive sections for the selected learning item.</DialogDescription>
         </DialogHeader>
         
         {item.type === 'lesson' && (
