@@ -15,7 +15,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -43,10 +43,14 @@ import Link from 'next/link';
 // Import video links from the data files
 import videoLinks from '@/data/video-links';
 import whatIfLinks from '@/data/whatif-links';
+import { explainVideoTopic, type ExplainVideoOutput } from '@/ai/flows/explain-video-flow';
+import { textToSpeech } from '@/ai/flows/tts-flow';
+
 
 // Helper function to extract YouTube embed URL and video ID
-const getYouTubeEmbedUrl = (url: string): { embedUrl: string | null; videoId: string | null } => {
+const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
     let videoId = null;
+    let title = null; // We can't get the title from the URL alone easily, but can pass it if available.
     try {
         const urlObj = new URL(url);
         if (urlObj.hostname === 'youtu.be') {
@@ -60,13 +64,16 @@ const getYouTubeEmbedUrl = (url: string): { embedUrl: string | null; videoId: st
         }
     } catch (e) {
         console.error("Invalid URL format:", url, e);
-        return { embedUrl: null, videoId: null };
+        return { embedUrl: null, videoId: null, title: null };
     }
 
     if (videoId) {
-        return { embedUrl: `https://www.youtube.com/embed/${videoId}`, videoId };
+        // A real implementation would fetch the title from the YouTube API
+        // For now, we can create a placeholder title
+        title = `What If Video: ${videoId}`;
+        return { embedUrl: `https://www.youtube.com/embed/${videoId}`, videoId, title };
     }
-    return { embedUrl: null, videoId: null };
+    return { embedUrl: null, videoId: null, title: null };
 };
 
 function LessonList() {
@@ -158,7 +165,7 @@ function VideoPlayerModal({ videoUrl, onClose }: { videoUrl: string | null; onCl
 function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
     const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
 
-    const videoData = videoLinks.split('\n').map(getYouTubeEmbedUrl).filter(item => item.embedUrl);
+    const videoData = videoLinks.split('\n').map(getYouTubeInfo).filter(item => item.embedUrl);
 
     return (
       <>
@@ -185,6 +192,7 @@ function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
                                     alt={`Video thumbnail ${index + 1}`}
                                     fill
                                     className="object-cover transition-transform group-hover:scale-110"
+                                    data-ai-hint="video thumbnail"
                                 />
                                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                                     <PlayCircle className="h-16 w-16 text-white/70 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all" />
@@ -201,32 +209,109 @@ function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
     );
 }
 
+function ExplanationDialog({ videoTitle, isOpen, onOpenChange }: { videoTitle: string; isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
+  const [explanation, setExplanation] = useState<ExplainVideoOutput | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [audioLoading, setAudioLoading] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (isOpen && videoTitle) {
+      setIsLoading(true);
+      setExplanation(null);
+      explainVideoTopic({ videoTitle })
+        .then(setExplanation)
+        .catch(err => {
+          console.error("Failed to get explanation:", err);
+          toast({ variant: 'destructive', title: 'خطأ', description: 'لم نتمكن من الحصول على شرح للفيديو.' });
+        })
+        .finally(() => setIsLoading(false));
+    }
+  }, [isOpen, videoTitle, toast]);
+
+  const handlePlayAudio = async (text: string, id: string) => {
+    if (!text || audioLoading === id) return;
+    setAudioLoading(id);
+    try {
+      const result = await textToSpeech({ text, voice: 'achernar' });
+      if (result?.media) {
+        new Audio(result.media).play();
+      }
+    } catch (err) {
+      console.error("TTS Error:", err);
+      toast({ variant: 'destructive', title: 'خطأ في الصوت' });
+    } finally {
+      setAudioLoading(null);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>شرح الفيديو: {videoTitle}</DialogTitle>
+          <DialogDescription>
+            فيما يلي تفصيل للموضوعات الرئيسية التي تمت مناقشتها في الفيديو.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto" dir="rtl">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-40">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : explanation ? (
+            <div className="space-y-6">
+              <ExplanationSection title="ملخص" content={explanation.summary} onPlay={() => handlePlayAudio(explanation.summary, 'summary')} isLoading={audioLoading === 'summary'} />
+              <ExplanationSection title="المفاهيم الرئيسية" content={explanation.keyConcepts} onPlay={() => handlePlayAudio(explanation.keyConcepts, 'concepts')} isLoading={audioLoading === 'concepts'}/>
+              <ExplanationSection title="تشبيه/مقارنة بسيطة" content={explanation.analogy} onPlay={() => handlePlayAudio(explanation.analogy, 'analogy')} isLoading={audioLoading === 'analogy'}/>
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground">تعذر تحميل الشرح.</p>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+const ExplanationSection = ({ title, content, onPlay, isLoading }: { title: string, content: string, onPlay: () => void, isLoading: boolean }) => (
+  <div className="p-4 bg-muted/50 rounded-lg">
+    <div className="flex justify-between items-center mb-2">
+      <h3 className="text-lg font-semibold text-primary">{title}</h3>
+      <Button variant="ghost" size="icon" onClick={onPlay} disabled={isLoading}>
+        {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Volume2 className="h-5 w-5" />}
+      </Button>
+    </div>
+    <p className="text-foreground/90 whitespace-pre-wrap">{content}</p>
+  </div>
+);
+
+
 function WhatIfDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
     const [currentIndex, setCurrentIndex] = useState(0);
-    const videoUrls = whatIfLinks.split('\n').map(getYouTubeEmbedUrl).filter(item => item.embedUrl);
-    const currentVideoUrl = videoUrls[currentIndex]?.embedUrl;
+    const [isExplanationOpen, setIsExplanationOpen] = useState(false);
 
-    const goToNext = () => {
-        setCurrentIndex(prev => (prev + 1) % videoUrls.length);
-    };
+    const videoData = whatIfLinks.split('\n').map(getYouTubeInfo).filter(item => item.embedUrl);
+    const currentVideo = videoData[currentIndex];
 
-    const goToPrevious = () => {
-        setCurrentIndex(prev => (prev - 1 + videoUrls.length) % videoUrls.length);
-    };
+    const goToNext = () => setCurrentIndex(prev => (prev + 1) % videoData.length);
+    const goToPrevious = () => setCurrentIndex(prev => (prev - 1 + videoData.length) % videoData.length);
     
     return (
+      <>
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-4 sm:p-6">
+            <DialogContent className="max-w-4xl h-auto flex flex-col p-4 sm:p-6 gap-4">
                 <DialogHeader>
-                    <DialogTitle>What If...?</DialogTitle>
-                    <DialogDescription>Explore fascinating hypothetical scenarios. Video {currentIndex + 1} of {videoUrls.length}.</DialogDescription>
+                    <DialogTitle>ماذا لو...؟</DialogTitle>
+                    <DialogDescription>استكشف سيناريوهات افتراضية رائعة. فيديو {currentIndex + 1} من {videoData.length}.</DialogDescription>
                 </DialogHeader>
-                <div className="flex-grow aspect-video bg-muted rounded-lg overflow-hidden">
-                    {currentVideoUrl && (
+                <div className="flex-grow aspect-video bg-muted rounded-lg overflow-hidden shadow-inner">
+                    {currentVideo?.embedUrl && (
                         <iframe
+                            key={currentVideo.embedUrl} // Add key to force re-render
                             width="100%"
                             height="100%"
-                            src={`${currentVideoUrl}?autoplay=1`}
+                            src={`${currentVideo.embedUrl}?autoplay=1`}
                             title="What If YouTube Video Player"
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -234,21 +319,32 @@ function WhatIfDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
                         ></iframe>
                     )}
                 </div>
-                <DialogFooter className="flex-row justify-between w-full">
-                    <Button onClick={goToPrevious} disabled={videoUrls.length <= 1}>
+                <DialogFooter className="flex-col sm:flex-row gap-2 justify-between w-full">
+                    <Button onClick={goToPrevious} disabled={videoData.length <= 1}>
                         <ChevronLeft className="mr-2 h-4 w-4" />
                         السابق
                     </Button>
-                    <Button onClick={goToNext} disabled={videoUrls.length <= 1}>
+                     <Button variant="secondary" onClick={() => setIsExplanationOpen(true)}>
+                        <LightbulbIcon className="mr-2 h-4 w-4" />
+                        اشرح هذا الفيديو
+                    </Button>
+                    <Button onClick={goToNext} disabled={videoData.length <= 1}>
                         التالي
                         <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+        {currentVideo && (
+           <ExplanationDialog 
+              videoTitle={currentVideo.title || `Video ${currentIndex + 1}`}
+              isOpen={isExplanationOpen} 
+              onOpenChange={setIsExplanationOpen}
+            />
+        )}
+      </>
     );
 }
-
 
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
@@ -666,6 +762,7 @@ function AiStoryMaker() {
                                     width={500}
                                     height={300}
                                     className="w-full h-auto object-cover"
+                                    data-ai-hint="story illustration"
                                 />
                             </div>
                         )}
