@@ -1220,10 +1220,10 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
 export function BookScreen() {
     const [selectedItem, setSelectedItem] = useState<LearningItem | null>(null);
     const [isQuizOpen, setIsQuizOpen] = useState(false);
-    const { highestLessonCompleted } = useProgressStore();
+    const { highestItemCompleted } = useProgressStore();
 
-    const allLessonTitles = learningItems.map(item => item.type === 'lesson' ? item.title : null).filter(Boolean) as string[];
-    const highestCompletedIndex = highestLessonCompleted ? allLessonTitles.indexOf(highestLessonCompleted) : -1;
+    const allItemTitles = learningItems.map(item => item.title);
+    const highestCompletedIndex = highestItemCompleted ? allItemTitles.indexOf(highestItemCompleted) : -1;
 
 
     const handleOpenQuiz = () => {
@@ -1236,9 +1236,8 @@ export function BookScreen() {
             <ScrollArea className="h-[calc(100vh-180px)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
                     {learningItems.map((item, i) => {
-                         const isLesson = item.type === 'lesson';
-                         const lessonIndex = isLesson ? allLessonTitles.indexOf(item.title) : -1;
-                         const isLocked = isLesson && lessonIndex > highestCompletedIndex + 1;
+                         const itemIndex = allItemTitles.indexOf(item.title);
+                         const isLocked = itemIndex > highestCompletedIndex + 1;
 
                         return (
                         <Card 

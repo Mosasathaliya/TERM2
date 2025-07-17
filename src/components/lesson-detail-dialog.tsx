@@ -42,7 +42,7 @@ interface Message {
 function LessonQuiz({ lesson }: { lesson: Lesson }) {
     const [answers, setAnswers] = React.useState<Record<number, string>>({});
     const [isSubmitted, setIsSubmitted] = React.useState(false);
-    const { completeLesson } = useProgressStore();
+    const { completeItem } = useProgressStore();
 
     const mcqs = lesson.mcqs;
 
@@ -59,7 +59,7 @@ function LessonQuiz({ lesson }: { lesson: Lesson }) {
         
         // Assuming passing score is >= 70%
         if (score / mcqs.length >= 0.7) {
-            completeLesson(lesson.title);
+            completeItem(lesson.title);
         }
     };
 
@@ -327,8 +327,9 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
     const [isLoadingImage, setIsLoadingImage] = React.useState(false);
     const [isLoadingAudio, setIsLoadingAudio] = React.useState(false);
     const [translation, setTranslation] = React.useState<{ word: string, text: string, isLoading: boolean } | null>(null);
-
     const { toast } = useToast();
+    const { completeItem } = useProgressStore();
+
     const storyContent = 'summary' in story ? story.summary : story.content;
     const storyTitle = 'title' in story ? story.title : '';
 
@@ -336,10 +337,7 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
       const cleanedWord = word.replace(/[^a-zA-Z]/g, ''); // Clean punctuation
       if (!cleanedWord) return;
 
-      // Immediately play audio
       playAudio(cleanedWord, `word-${cleanedWord}`);
-
-      // Set loading state for translation
       setTranslation({ word: cleanedWord, text: 'جاري الترجمة...', isLoading: true });
 
       try {
@@ -398,6 +396,14 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
         }
     };
 
+    const handleMarkComplete = () => {
+      completeItem(storyTitle);
+      toast({
+        title: "Story Complete!",
+        description: "You've unlocked the next item in your learning path.",
+      });
+    };
+
     return (
         <ScrollArea className="h-full">
             <div className="p-6">
@@ -442,7 +448,7 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
                         </Popover>
                       );
                     }
-                    return <span key={index}>{segment}</span>; // Render spaces
+                    return <span key={index}>{segment}</span>;
                   })}
                 </p>
                 
@@ -451,6 +457,15 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
                         <Sparkles className="mr-2 h-4 w-4" />
                         تخيل القصة
                     </Button>
+                )}
+
+                 {isLessonStory && (
+                    <div className="mt-6 flex justify-end">
+                        <Button onClick={handleMarkComplete}>
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Mark as Complete
+                        </Button>
+                    </div>
                 )}
 
                 {isLoadingImage && (
@@ -529,9 +544,8 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
   };
 
   React.useEffect(() => {
-    // Reset translation and active tab when the item changes
     setTranslatedExplanation(null);
-    setActiveTab('explanation');
+    setActiveTab(item.type === 'lesson' ? 'explanation' : 'story');
   }, [item]);
 
 
