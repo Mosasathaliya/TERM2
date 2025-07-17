@@ -16,7 +16,7 @@ export const aiLessons: AiLesson[] = [
   {
     id: 'llm',
     title: "What is an LLM?",
-    image: "https://placehold.co/600x400.png",
+    image: "https://placehold.co/600x400/7E57C2/FFFFFF.png?text=LLM",
     image_hint: "abstract neural network",
     content: "A Large Language Model (LLM) is a type of artificial intelligence that is trained on a massive amount of text data. This training allows it to understand, generate, and respond to human language in a coherent and contextually relevant way. Think of it like a very advanced autocomplete that can write essays, answer questions, translate languages, and even write code. They learn patterns, grammar, and facts from the data they are trained on.",
     questions: [
@@ -40,7 +40,7 @@ export const aiLessons: AiLesson[] = [
   {
     id: 'generative-ai',
     title: "What is Generative AI?",
-    image: "https://placehold.co/600x400.png",
+    image: "https://placehold.co/600x400/42A5F5/FFFFFF.png?text=GenAI",
     image_hint: "ai art creation",
     content: "Generative AI is a broad category of artificial intelligence that can create new, original content, rather than just analyzing or acting on existing data. This content can include text, images, music, and code. Large Language Models (LLMs) are a type of Generative AI that focuses on text. Other types of generative models can create realistic images from a text description or compose a new piece of music in a certain style. The key idea is 'generation' or 'creation' of something new.",
     questions: [
@@ -64,7 +64,7 @@ export const aiLessons: AiLesson[] = [
   {
     id: 'data-science',
     title: "What is Data Science?",
-    image: "https://placehold.co/600x400.png",
+    image: "https://placehold.co/600x400/66BB6A/FFFFFF.png?text=Data",
     image_hint: "graphs charts data",
     content: "Data Science is a field that uses scientific methods, processes, algorithms, and systems to extract knowledge and insights from structured and unstructured data. It's about finding patterns. Data scientists clean, prepare, and analyze large sets of data to discover trends. These insights can then be used to make better decisions, predict future events, or understand customer behavior. It combines statistics, computer science, and business knowledge.",
     questions: [
@@ -88,7 +88,7 @@ export const aiLessons: AiLesson[] = [
   {
     id: 'reasoning',
     title: "What is AI Reasoning?",
-    image: "https://placehold.co/600x400.png",
+    image: "https://placehold.co/600x400/FFA726/FFFFFF.png?text=AI",
     image_hint: "ai robot thinking",
     content: "AI Reasoning is the ability of an artificial intelligence system to think logically, make connections, and draw conclusions from information it has. It's about going beyond just pattern matching. For example, an AI with reasoning can solve multi-step problems, understand cause and effect, or plan a series of actions to achieve a goal. It involves using facts and rules to make inferences about the world, much like how humans solve puzzles or make plans.",
     questions: [
@@ -112,7 +112,7 @@ export const aiLessons: AiLesson[] = [
   {
     id: 'quantum-computing',
     title: "What is Quantum Computing?",
-    image: "https://placehold.co/600x400.png",
+    image: "https://placehold.co/600x400/26A69A/FFFFFF.png?text=Quantum",
     image_hint: "quantum computer atom",
     content: "Quantum Computing is a revolutionary type of computing that uses the principles of quantum mechanics to process information. Unlike classical computers that use 'bits' (either a 0 or a 1), quantum computers use 'qubits'. A qubit can be a 0, a 1, or both at the same time (a state called superposition). This allows quantum computers to perform many calculations at once, making them incredibly powerful for solving specific, complex problems that are impossible for classical computers, such as drug discovery or creating new materials.",
     questions: [
