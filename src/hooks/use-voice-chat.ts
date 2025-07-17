@@ -10,7 +10,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAudioProcessor } from './use-audio-processor';
 import { useAgentStore } from './use-agent-store';
-import { textToSpeech } from '@/ai/flows/text-to-speech';
+import { textToSpeech } from '@/ai/flows/tts-flow';
 import type { Message } from '@/ai/flows/voice-chat-pipeline';
 import { runVoiceChatPipeline } from '@/ai/flows/voice-chat-pipeline';
 
@@ -56,8 +56,8 @@ export function useVoiceChat() {
           setHistory(prev => [...prev, userMessage, modelMessage]);
           
           const ttsResult = await textToSpeech({ text: responseText, voice: currentAgent.voice });
-          if (audioRef.current && ttsResult?.audio) {
-              audioRef.current.src = ttsResult.audio;
+          if (audioRef.current && ttsResult?.media) {
+              audioRef.current.src = ttsResult.media;
               audioRef.current.play().catch(e => {
                 console.error("Audio playback error:", e);
                 setIsTalking(false);
