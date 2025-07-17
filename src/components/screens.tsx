@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
@@ -55,7 +56,7 @@ function LessonList() {
           }
 
           return (
-            <Link href={`/lessons/${lesson.lesson_id}`} key={lesson.lesson_id}>
+            <Link href={`/lessons/${lesson.lesson_id}`} key={lesson.lesson_id} passHref>
               <Card className="h-full flex flex-col hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer group">
                 <CardHeader>
                   <div className="flex justify-between items-start mb-2">

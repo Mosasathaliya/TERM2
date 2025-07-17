@@ -37,6 +37,7 @@ export type GenerateLessonContentOutput = z.infer<typeof GenerateLessonContentOu
 
 const lessonPrompt = ai.definePrompt({
   name: 'generateLessonContentPrompt',
+  model: 'googleai/gemini-2.5-flash',
   input: {schema: GenerateLessonContentInputSchema},
   output: {schema: GenerateLessonContentOutputSchema},
   prompt: `You are an expert English language professor creating educational content for Arabic-speaking students.

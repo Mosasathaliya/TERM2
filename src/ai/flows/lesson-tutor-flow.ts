@@ -44,6 +44,7 @@ export async function getLessonTutorResponse(input: LessonTutorInput): Promise<L
 
 const tutorPrompt = ai.definePrompt({
   name: 'lessonTutorPrompt',
+  model: 'googleai/gemini-2.5-flash',
   input: {schema: LessonTutorInputSchema},
   output: {schema: LessonTutorOutputSchema},
   prompt: `You are a specialist AI English language tutor for Arabic-speaking students. 

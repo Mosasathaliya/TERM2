@@ -61,7 +61,7 @@ async function getLessonData(lessonId: string): Promise<Lesson | null> {
       lesson.additional_notes_arabic = aiContent.additionalNotesInArabic;
       lesson.common_mistakes_arabic = aiContent.commonMistakesInArabic;
     } catch (error) {
-      console.error("Failed to generate AI content for lesson:", lesson.lesson_id, error);
+      console.error("Failed to generate AI content for lesson:", lessonId, error);
       const topic = lesson.meta.englishGrammarTopic || "this topic";
       lesson.arabic_explanation = `عذرًا، لم نتمكن من تحميل الشرح التفصيلي لهذا الدرس (${topic}) في الوقت الحالي. يرجى المحاولة مرة أخرى لاحقًا.`;
       lesson.examples = [{ english: "Error loading examples.", arabic: "خطأ في تحميل الأمثلة." }];
