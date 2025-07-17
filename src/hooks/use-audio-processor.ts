@@ -1,3 +1,4 @@
+
 'use client';
 
 /**
@@ -71,6 +72,7 @@ export function useAudioProcessor(
         // Reset refs
         mediaRecorderRef.current = null;
         mediaStreamRef.current = null;
+        // **FIX**: Clear the audio chunks buffer for the next recording
         audioChunksRef.current = [];
       };
 
