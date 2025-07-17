@@ -25,10 +25,10 @@ export function VoiceControls() {
   } = useVoiceChat();
 
   const getStatusText = () => {
-    if (!isConnected) return 'Disconnected';
-    if (isTalking) return 'Thinking...';
-    if (isRecording) return 'Recording...';
-    return 'Connected';
+    if (!isConnected) return 'غير متصل';
+    if (isTalking) return 'يفكر...';
+    if (isRecording) return 'يسجل...';
+    return 'متصل';
   };
   
   return (

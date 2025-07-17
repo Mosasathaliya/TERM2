@@ -1,3 +1,4 @@
+
 'use client';
 
 /**
@@ -109,7 +110,7 @@ export function AgentAvatar() {
           />
         </svg>
       </motion.div>
-      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-4 py-1 text-center text-white shadow-md">
+      <div dir="ltr" className="absolute -bottom-8 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-4 py-1 text-center text-white shadow-md">
         {name}
       </div>
     </motion.div>

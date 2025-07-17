@@ -50,21 +50,21 @@ export function AgentEditDialog() {
       <DialogTrigger asChild>
         <Button variant="ghost" className="flex items-center gap-2">
           <Pencil className="h-4 w-4" />
-          <span>Edit Agent</span>
+          <span>تعديل المساعد</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Agent</DialogTitle>
+          <DialogTitle>تعديل المساعد</DialogTitle>
           <DialogDescription>
-            Modify your AI agent's details. Click save when you're done.
+            عدّل تفاصيل مساعدك الذكي. انقر على 'حفظ' عند الانتهاء.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           {/* Agent Name */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
-              Name
+              الاسم
             </Label>
             <Input
               id="name"
@@ -76,7 +76,7 @@ export function AgentEditDialog() {
           {/* Agent Personality */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="personality" className="text-right">
-              Personality
+              الشخصية
             </Label>
             <Textarea
               id="personality"
@@ -89,7 +89,7 @@ export function AgentEditDialog() {
           {/* Agent Voice */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="voice" className="text-right">
-              Voice
+              الصوت
             </Label>
             <Select
               value={editedAgent.voice}
@@ -98,7 +98,7 @@ export function AgentEditDialog() {
               }
             >
               <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Select a voice" />
+                <SelectValue placeholder="اختر صوتاً" />
               </SelectTrigger>
               <SelectContent>
                 {PREBUILT_VOICES.map((voice) => (
@@ -112,7 +112,7 @@ export function AgentEditDialog() {
           {/* Agent Color */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="color" className="text-right">
-              Color
+              اللون
             </Label>
             <Input
               id="color"
@@ -125,7 +125,7 @@ export function AgentEditDialog() {
         </div>
         <DialogFooter>
           <Button type="button" onClick={handleSave}>
-            Save changes
+            حفظ التغييرات
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,3 +1,4 @@
+
 'use client';
 
 /**
@@ -43,34 +44,34 @@ export function UserSettingsDialog() {
       <DialogTrigger asChild>
         <Button variant="ghost" className="flex items-center gap-2">
           <User className="h-4 w-4" />
-          <span>User Settings</span>
+          <span>إعدادات المستخدم</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>User Settings</DialogTitle>
+          <DialogTitle>إعدادات المستخدم</DialogTitle>
           <DialogDescription>
-            This information helps the AI personalize its responses for you.
+            تساعد هذه المعلومات الذكاء الاصطناعي على تخصيص ردوده لك.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           {/* User Name */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
-              Name
+              الاسم
             </Label>
             <Input
               id="name"
               value={editedSettings.name}
               onChange={(e) => setEditedSettings({ ...editedSettings, name: e.target.value })}
               className="col-span-3"
-              placeholder="E.g., Alex"
+              placeholder="مثال: أليكس"
             />
           </div>
           {/* User Info */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="info" className="text-right">
-              About You
+              نبذة عنك
             </Label>
             <Textarea
               id="info"
@@ -78,13 +79,13 @@ export function UserSettingsDialog() {
               onChange={(e) => setEditedSettings({ ...editedSettings, info: e.target.value })}
               className="col-span-3"
               rows={3}
-              placeholder="E.g., I'm a software developer from California who loves hiking."
+              placeholder="مثال: أنا مطور برامج من كاليفورنيا وأحب التنزه."
             />
           </div>
         </div>
         <DialogFooter>
           <Button type="button" onClick={handleSave}>
-            Save changes
+            حفظ التغييرات
           </Button>
         </DialogFooter>
       </DialogContent>
