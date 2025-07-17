@@ -29,10 +29,12 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart"
+import { TextAdventureApp } from './text-adventure-app';
 
 
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
+    const [isAdventureOpen, setIsAdventureOpen] = useState(false);
     
   return (
     <>
@@ -60,15 +62,15 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
 
             <Card 
                 className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                 onClick={() => window.open('https://mumble-jumble-108473853069.us-west1.run.app/', '_blank')}
+                 onClick={() => setIsAdventureOpen(true)}
             >
                 <CardHeader>
                     <CardTitle className="flex items-center gap-3">
                         <Gamepad2 className="h-8 w-8 text-accent" />
-                        <span>لعبة Jumple</span>
+                        <span>مغامرة جيمني</span>
                     </CardTitle>
                     <CardDescription>
-                        العب لعبة كلمات ممتعة وتفاعلية لتمارس مهاراتك.
+                        العب لعبة مغامرة نصية لتعلم المفردات في سياقها.
                     </CardDescription>
                 </CardHeader>
             </Card>
@@ -88,6 +90,21 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             </DialogHeader>
             <div className="flex-grow min-h-0">
                 <LingoleapApp />
+            </div>
+        </DialogContent>
+    </Dialog>
+
+     <Dialog open={isAdventureOpen} onOpenChange={setIsAdventureOpen}>
+        <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
+             <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
+                <DialogTitle>Gemini Text Adventure</DialogTitle>
+                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </DialogClose>
+            </DialogHeader>
+            <div className="flex-grow h-full pt-[65px]">
+                <TextAdventureApp />
             </div>
         </DialogContent>
     </Dialog>
@@ -181,7 +198,7 @@ function AiChat() {
   
   return (
       <div className="flex flex-col h-full">
-          <DialogHeader className="p-4 border-b">
+          <DialogHeader>
               <DialogTitle>اسأل الذكاء الاصطناعي</DialogTitle>
           </DialogHeader>
           <CardContent className="flex-grow flex flex-col gap-4 pt-4">
@@ -360,9 +377,6 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
             {/* AI Chat Dialog */}
             <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
                 <DialogContent className="max-w-2xl h-[70vh] flex flex-col p-0">
-                     <DialogHeader className="sr-only">
-                        <DialogTitle>AI Chat</DialogTitle>
-                    </DialogHeader>
                     <AiChat />
                 </DialogContent>
             </Dialog>
@@ -370,9 +384,6 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
             {/* Story Maker Dialog */}
             <Dialog open={isStoryMakerOpen} onOpenChange={setIsStoryMakerOpen}>
                 <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
-                   <DialogHeader className="sr-only">
-                        <DialogTitle>AI Story Maker</DialogTitle>
-                    </DialogHeader>
                    <AiStoryMaker />
                 </DialogContent>
             </Dialog>
