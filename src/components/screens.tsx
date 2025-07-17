@@ -348,10 +348,12 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
                     onClick={() => setIsChatOpen(true)}
                 >
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                            <MessageCircle className="h-8 w-8 text-primary" />
-                            <span>دردشة الذكاء الاصطناعي</span>
-                        </CardTitle>
+                        <DialogTitle>
+                            <CardTitle className="flex items-center gap-3">
+                                <MessageCircle className="h-8 w-8 text-primary" />
+                                <span>دردشة الذكاء الاصطناعي</span>
+                            </CardTitle>
+                        </DialogTitle>
                         <CardDescription>
                             اطرح أسئلة عامة عن اللغة الإنجليزية واحصل على إجابات فورية.
                         </CardDescription>
@@ -363,10 +365,12 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
                     onClick={() => setIsStoryMakerOpen(true)}
                 >
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                            <Sparkles className="h-8 w-8 text-accent" />
-                            <span>صانع القصص</span>
-                        </CardTitle>
+                        <DialogTitle>
+                            <CardTitle className="flex items-center gap-3">
+                                <Sparkles className="h-8 w-8 text-accent" />
+                                <span>صانع القصص</span>
+                            </CardTitle>
+                        </DialogTitle>
                         <CardDescription>
                             حوّل أفكارك إلى قصص قصيرة مصورة باللغة الإنجليزية.
                         </CardDescription>
