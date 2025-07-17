@@ -12,9 +12,12 @@ import '@/ai/flows/translate-flow.ts';
 
 
 // Voice Chat Agent flows
-import '@/ai/flows/text-to-speech.ts';
+// No longer need text-to-speech here, it's covered by the main tts-flow
 import '@/ai/flows/voice-chat-pipeline.ts';
 
 // Tense Teacher flows
 import '@/ai/flows/ahmed-voice-call.ts';
 import '@/ai/flows/sara-voice-call.ts';
+
+// Adventure game flows
+import '@/ai/flows/text-adventure-flow.ts';

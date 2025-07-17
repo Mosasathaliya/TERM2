@@ -23,7 +23,8 @@ export const VocabularyPanel: React.FC<VocabularyPanelProps> = ({ selectedWord, 
 
     setAudioLoading(prev => ({...prev, [id]: true}));
     try {
-        const result = await textToSpeech(text);
+        const voice = lang === 'en-US' ? 'algenib' : 'achernar';
+        const result = await textToSpeech({ text, voice });
         if (result && result.media) {
             const audio = new Audio(result.media);
             audio.play();

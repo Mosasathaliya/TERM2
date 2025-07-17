@@ -102,7 +102,7 @@ function Chatbot({ lesson }: { lesson: Lesson }) {
 
     const playAudio = async (text: string) => {
         try {
-            const result = await textToSpeech(text);
+            const result = await textToSpeech({ text, voice: 'algenib' });
             if (result && result.media) {
                 const audio = new Audio(result.media);
                 audio.play();
@@ -269,7 +269,7 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
     const playAudio = async (text: string, id?: string) => {
         setIsLoadingAudio(true);
         try {
-          const result = await textToSpeech(text);
+          const result = await textToSpeech({ text, voice: 'algenib' });
           if (result && result.media) {
             const audio = new Audio(result.media);
             audio.play();
@@ -410,7 +410,7 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
     
     setAudioStates(prev => ({ ...prev, [id]: { loading: true, dataUrl: null } }));
     try {
-      const result = await textToSpeech(text);
+      const result = await textToSpeech({text, voice: 'algenib'});
       if (result && result.media) {
         setAudioStates(prev => ({ ...prev, [id]: { loading: false, dataUrl: result.media } }));
         const audio = new Audio(result.media);

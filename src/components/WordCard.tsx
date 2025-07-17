@@ -33,7 +33,7 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
 
     setAudioLoading(prev => ({...prev, [id]: true}));
     try {
-        const result = await textToSpeech(text);
+        const result = await textToSpeech({text, voice: 'algenib'});
         if (result && result.media) {
             const audio = new Audio(result.media);
             audio.play();
