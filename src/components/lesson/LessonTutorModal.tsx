@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, MessageSquareHeart, Send } from 'lucide-react';
 import { getLessonTutorResponse, type LessonTutorInput } from '@/ai/flows/lesson-tutor-flow';
-import { z } from 'zod'; // Added missing import
 
 interface LessonTutorModalProps {
   isOpen: boolean;
@@ -31,13 +30,19 @@ const LessonTutorModal: FC<LessonTutorModalProps> = ({ isOpen, onClose, lesson }
     setAiResponse(null);
     startTransition(async () => {
       try {
+        // This input must exactly match the LessonTutorInputSchema in the flow.
         const tutorInput: LessonTutorInput = {
           studentQuestion,
           lessonTitle: lesson.title,
           lessonTopic: lesson.topic,
           lessonLevel: lesson.level,
           lessonArabicExplanation: lesson.arabic_explanation,
-          lessonExamples: lesson.examples.map(ex => ({ english: ex.english, arabic: ex.arabic, imagePrompt: ex.imagePrompt, imageUrl: ex.imageUrl })),
+          lessonExamples: lesson.examples.map(ex => ({ 
+            english: ex.english, 
+            arabic: ex.arabic,
+            imagePrompt: ex.imagePrompt,
+            imageUrl: ex.imageUrl
+          })),
           lessonAdditionalNotesArabic: lesson.additional_notes_arabic,
           lessonCommonMistakesArabic: lesson.common_mistakes_arabic,
         };
@@ -81,6 +86,13 @@ const LessonTutorModal: FC<LessonTutorModalProps> = ({ isOpen, onClose, lesson }
                 {aiResponse}
               </AlertDescription>
             </Alert>
+          )}
+
+           {isLoading && !aiResponse && (
+             <div className="flex items-center text-muted-foreground p-4 justify-center">
+               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+               <span>جاري الحصول على رد من المعلم الذكي...</span>
+             </div>
           )}
 
           {error && (
