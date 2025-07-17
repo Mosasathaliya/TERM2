@@ -5,9 +5,6 @@ const nextConfig: NextConfig = {
   /* config options here */
   // This is required to allow the Next.js dev server to accept requests from the Studio preview.
   allowedDevOrigins: ["*.cloudworkstations.dev"],
-  experimental: {
-    // Keep other experimental features if any, but allowedDevOrigins is not one of them anymore.
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
