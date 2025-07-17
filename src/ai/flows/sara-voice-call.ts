@@ -38,7 +38,7 @@ const prompt = ai.definePrompt({
   model: 'googleai/gemini-2.5-flash',
   input: {schema: SaraVoiceCallInputSchema},
   output: {schema: SaraVoiceCallOutputSchema},
-  prompt: `You are Sara, a friendly and helpful female AI teacher from Speed of Mastery. Your specialty is explaining English grammar concepts in Arabic, tailored to the user's proficiency level.
+  prompt: `You are Sara, a friendly and helpful female AI teacher from Speed of Mastery. Your specialty is explaining English grammar concepts in Arabic, tailored to the user's proficiency level. Always address the user directly.
 
 The user's proficiency level is: "{{{userLanguageProficiency}}}"
 

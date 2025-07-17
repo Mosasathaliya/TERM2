@@ -19,7 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, User, MessageCircle, Mic, AlertTriangle, Volume2, MicOff, MessageSquareQuote, Send, Square } from 'lucide-react';
+import { Loader2, User, MessageCircle, Mic, AlertTriangle, Volume2, MicOff, MessageSquareQuote, Send, Square, VolumeX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
 
@@ -58,6 +58,7 @@ export function TenseTeacherApp() {
   const [conversationHistory, setConversationHistory] = useState<ConversationEntry[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [isListening, setIsListening] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const ahmedForm = useForm<AhmedFormData>({
@@ -71,7 +72,7 @@ export function TenseTeacherApp() {
   });
 
   const currentForm = selectedTeacher === 'Ahmed' ? ahmedForm : saraForm;
-  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, reset } = currentForm;
+  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, reset, getValues } = currentForm;
 
    useEffect(() => {
     // Reset state when teacher changes
@@ -92,7 +93,7 @@ export function TenseTeacherApp() {
   }, [conversationHistory]);
 
   const handlePlayAudio = async (text: string) => {
-      if (!text) return;
+      if (!text || isMuted) return;
       try {
         const result = await textToSpeech(text);
         if (result && result.media) {
@@ -112,6 +113,14 @@ export function TenseTeacherApp() {
           });
       }
   };
+
+  useEffect(() => {
+    const lastMessage = conversationHistory[conversationHistory.length - 1];
+    if (lastMessage && lastMessage.speaker !== 'User') {
+      handlePlayAudio(lastMessage.message);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationHistory, isMuted]);
   
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -123,7 +132,7 @@ export function TenseTeacherApp() {
     const recognition = new SpeechRecognitionAPI();
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = 'ar-SA'; // Default to Arabic
+    recognition.lang = 'ar-SA';
 
     recognition.onstart = () => setIsListening(true);
     recognition.onend = () => setIsListening(false);
@@ -166,7 +175,7 @@ export function TenseTeacherApp() {
         if (selectedTeacher === 'Ahmed') {
             const input: AhmedVoiceCallInput = {
                 englishGrammarConcept: userMessage,
-                conversationHistory: conversationHistory, // Send history *before* the new message
+                conversationHistory: conversationHistory,
             };
             result = await ahmedVoiceCall(input);
         } else {
@@ -174,14 +183,13 @@ export function TenseTeacherApp() {
              const input: SaraVoiceCallInput = {
                 englishGrammarConcept: userMessage,
                 userLanguageProficiency: saraData.userLanguageProficiency || 'Intermediate',
-                conversationHistory: conversationHistory, // Send history *before* the new message
+                conversationHistory: conversationHistory,
             };
             result = await saraVoiceCall(input);
         }
 
         const aiEntry: ConversationEntry = { speaker: selectedTeacher, message: result.explanation };
         setConversationHistory(prev => [...prev, aiEntry].slice(- (MAX_HISTORY_PAIRS * 2)));
-        await handlePlayAudio(result.explanation);
     } catch (error) {
         console.error(`Error calling ${selectedTeacher}:`, error);
         toast({
@@ -189,7 +197,7 @@ export function TenseTeacherApp() {
             title: "فشل الاتصال",
             description: `تعذر الاتصال بـ ${selectedTeacher}. يرجى المحاولة مرة أخرى.`,
         });
-        setConversationHistory(prev => prev.slice(0, -1)); // Remove the user's message if the call fails
+        setConversationHistory(prev => prev.slice(0, -1));
     }
   };
   
@@ -197,7 +205,6 @@ export function TenseTeacherApp() {
     if(tense) {
         const prompt = `اشرح لي زمن ${tense}`;
         setValue('englishGrammarConcept', prompt);
-        handleSubmit({ englishGrammarConcept: prompt, ...(currentForm.getValues()) })();
     }
   };
 
@@ -206,13 +213,11 @@ export function TenseTeacherApp() {
       name: "أحمد",
       avatarSrc: "https://placehold.co/128x128/3498db/ffffff.png",
       avatarHint: "male teacher",
-      onSubmit: onSubmit,
     },
     Sara: {
       name: "سارة",
       avatarSrc: "https://placehold.co/128x128/e91e63/ffffff.png",
       avatarHint: "female teacher",
-      onSubmit: onSubmit,
     },
   };
 
@@ -220,100 +225,114 @@ export function TenseTeacherApp() {
 
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
-        <header className="mb-4 text-center pt-8 sm:pt-16 shrink-0">
-            <MessageSquareQuote className="mx-auto h-16 w-16 sm:h-20 sm:w-20 text-primary mb-4 animate-pulse" />
-            <h1 className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight">خبير الأزمنة</h1>
-            <p className="text-lg sm:text-xl text-muted-foreground mt-2">
-                معلموك الذكاء الاصطناعي لإتقان قواعد اللغة الإنجليزية، مع شرح باللغة العربية.
-            </p>
-        </header>
+        <ScrollArea className="flex-grow">
+            <div className="flex flex-col items-center justify-start p-4 sm:p-8">
+                <header className="mb-4 text-center shrink-0">
+                    <MessageSquareQuote className="mx-auto h-16 w-16 sm:h-20 sm:w-20 text-primary mb-4 animate-pulse" />
+                    <h1 className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight">خبير الأزمنة</h1>
+                    <p className="text-lg sm:text-xl text-muted-foreground mt-2">
+                        معلموك الذكاء الاصطناعي لإتقان قواعد اللغة الإنجليزية، مع شرح باللغة العربية.
+                    </p>
+                </header>
 
-        <div className="flex-grow px-4 pb-4 w-full max-w-2xl mx-auto flex flex-col min-h-0">
-             <Tabs value={selectedTeacher} onValueChange={(value) => setSelectedTeacher(value as Teacher)} className="w-full bg-card rounded-t-lg shadow-xl overflow-hidden shrink-0">
-                <TabsList className="grid w-full grid-cols-2 rounded-none h-auto">
-                    <TabsTrigger value="Ahmed" className="py-3 sm:py-4 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-none">
-                        <User className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> أحمد
-                    </TabsTrigger>
-                    <TabsTrigger value="Sara" className="py-3 sm:py-4 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-none">
-                        <User className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> سارة
-                    </TabsTrigger>
-                </TabsList>
-            </Tabs>
-            
-            <Card className="w-full shadow-xl bg-card rounded-t-none flex flex-col flex-grow min-h-0">
-                <CardContent className="p-4 sm:p-6 space-y-4 flex flex-col flex-grow min-h-0">
-                    <ScrollArea className="flex-grow h-64 border rounded-md bg-background">
-                        <div ref={chatContainerRef} className="p-2 space-y-4">
-                            {conversationHistory.length > 0 ? (
-                                conversationHistory.map((entry, index) => (
-                                    <div key={index} className={`flex items-end gap-2 ${entry.speaker === 'User' ? 'justify-end' : 'justify-start'}`}>
-                                        {entry.speaker !== 'User' && <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{entry.speaker.charAt(0)}</AvatarFallback></Avatar>}
-                                        <div className={`rounded-lg px-3 py-2 max-w-[85%] flex items-center gap-2 ${entry.speaker === 'User' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                                            <p className="text-sm whitespace-pre-wrap">{entry.message}</p>
-                                            {entry.speaker !== 'User' && (
-                                                <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0" onClick={() => handlePlayAudio(entry.message)}><Volume2 className="h-4 w-4" /></Button>
-                                            )}
+                <div className="w-full max-w-2xl mx-auto flex flex-col min-h-0">
+                    <Tabs value={selectedTeacher} onValueChange={(value) => setSelectedTeacher(value as Teacher)} className="w-full bg-card rounded-t-lg shadow-xl overflow-hidden shrink-0">
+                        <TabsList className="grid w-full grid-cols-2 rounded-none h-auto">
+                            <TabsTrigger value="Ahmed" className="py-3 sm:py-4 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-none">
+                                <User className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> أحمد
+                            </TabsTrigger>
+                            <TabsTrigger value="Sara" className="py-3 sm:py-4 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-none">
+                                <User className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> سارة
+                            </TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                    
+                    <Card className="w-full shadow-xl bg-card rounded-t-none flex flex-col flex-grow min-h-0">
+                        <CardHeader className="p-4 border-b">
+                            <div className="flex justify-between items-center">
+                                <CardTitle className="text-xl">محادثة مع {currentTeacherInfo.name}</CardTitle>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setIsMuted(!isMuted)}
+                                    aria-label={isMuted ? "إلغاء كتم الصوت" : "كتم الصوت"}
+                                    >
+                                    {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-0 flex flex-col flex-grow min-h-0">
+                            <ScrollArea className="flex-grow h-80">
+                                <div ref={chatContainerRef} className="p-4 space-y-4">
+                                    {conversationHistory.length > 0 ? (
+                                        conversationHistory.map((entry, index) => (
+                                            <div key={index} className={`flex items-end gap-2 ${entry.speaker === 'User' ? 'justify-end' : 'justify-start'}`}>
+                                                {entry.speaker !== 'User' && <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{entry.speaker.charAt(0)}</AvatarFallback></Avatar>}
+                                                <div className={`rounded-lg px-3 py-2 max-w-[85%] flex items-center gap-2 ${entry.speaker === 'User' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                                                    <p className="text-sm whitespace-pre-wrap">{entry.message}</p>
+                                                </div>
+                                                {entry.speaker === 'User' && <Avatar className="h-6 w-6"><AvatarFallback>U</AvatarFallback></Avatar>}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-8">
+                                            <MessageCircle className="h-10 w-10 mb-2" />
+                                            <p>ابدأ المحادثة باختيار موضوع أو طرح سؤال أدناه.</p>
                                         </div>
-                                        {entry.speaker === 'User' && <Avatar className="h-6 w-6"><AvatarFallback>U</AvatarFallback></Avatar>}
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center">
-                                    <MessageCircle className="h-10 w-10 mb-2" />
-                                    <p>ابدأ المحادثة باختيار موضوع أو طرح سؤال أدناه.</p>
+                                    )}
+                                    {isSubmitting && (
+                                        <div className="flex items-start gap-2 justify-start">
+                                            <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{selectedTeacher.charAt(0)}</AvatarFallback></Avatar>
+                                            <div className="rounded-lg px-3 py-2 bg-muted flex items-center">
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                            {isSubmitting && (
-                                <div className="flex items-start gap-2 justify-start">
-                                    <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{selectedTeacher.charAt(0)}</AvatarFallback></Avatar>
-                                    <div className="rounded-lg px-3 py-2 bg-muted flex items-center">
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </ScrollArea>
+                            </ScrollArea>
 
-                    <form onSubmit={handleSubmit(onSubmit as SubmitHandler<any>)} className="space-y-3 pt-4 border-t shrink-0">
-                        {selectedTeacher === "Sara" && conversationHistory.length === 0 && (
-                            <div>
-                                <Label htmlFor="userLanguageProficiency" className="text-sm sm:text-md font-medium">مستوى إتقانك للغة الإنجليزية</Label>
-                                <Input id="userLanguageProficiency" placeholder="مثال: مبتدئ، متوسط، متقدم" {...register("userLanguageProficiency")}
-                                    className={`mt-1 text-base bg-background focus:ring-2 focus:ring-primary ${errors.userLanguageProficiency ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
-                                    disabled={isSubmitting} />
-                                {errors.userLanguageProficiency && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.userLanguageProficiency.message}</p>}
-                            </div>
-                        )}
-                        <div>
-                            <Label htmlFor="tense-select" className="text-sm sm:text-md font-medium">اختر زمناً ليبدأ الشرح</Label>
-                            <Select onValueChange={handleTenseSelection} disabled={isSubmitting}>
-                                <SelectTrigger id="tense-select" className="mt-1 text-base">
-                                    <SelectValue placeholder="اختر زمناً من القائمة..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {TENSES_LIST.map(tense => ( <SelectItem key={tense} value={tense}>{tense}</SelectItem> ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div>
-                            <Label htmlFor="englishGrammarConcept" className="text-sm sm:text-md font-medium">أو اطرح سؤالاً للمتابعة</Label>
-                            <div className="flex gap-2 mt-1">
-                                <Button type="button" size="icon" variant={isListening ? "destructive" : "outline"} onClick={toggleListening} className="h-auto px-3 shrink-0" disabled={isSubmitting}>
-                                     {isListening ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                                </Button>
-                                <Textarea id="englishGrammarConcept" placeholder="اكتب سؤال متابعة هنا أو استخدم الميكروفون..." {...register("englishGrammarConcept")}
-                                    className={`text-base bg-background focus:ring-2 focus:ring-primary ${errors.englishGrammarConcept ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
-                                    rows={1} disabled={isSubmitting} />
-                                <Button type="submit" size="icon" className="h-auto px-3 shrink-0" disabled={isSubmitting}>
-                                    {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin"/> : <Send className="h-5 w-5" />}
-                                </Button>
-                            </div>
-                            {errors.englishGrammarConcept && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.englishGrammarConcept.message}</p>}
-                        </div>
-                    </form>
-                </CardContent>
-            </Card>
-        </div>
+                            <form onSubmit={handleSubmit(onSubmit as SubmitHandler<any>)} className="space-y-3 p-4 border-t shrink-0 bg-background/50">
+                                {selectedTeacher === "Sara" && conversationHistory.length === 0 && (
+                                    <div>
+                                        <Label htmlFor="userLanguageProficiency" className="text-sm sm:text-md font-medium">مستوى إتقانك للغة الإنجليزية</Label>
+                                        <Input id="userLanguageProficiency" placeholder="مثال: مبتدئ، متوسط، متقدم" {...register("userLanguageProficiency")}
+                                            className={`mt-1 text-base bg-background focus:ring-2 focus:ring-primary ${errors.userLanguageProficiency ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
+                                            disabled={isSubmitting} />
+                                        {errors.userLanguageProficiency && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.userLanguageProficiency.message}</p>}
+                                    </div>
+                                )}
+                                <div>
+                                    <Label htmlFor="tense-select" className="text-sm sm:text-md font-medium">اختر زمناً ليبدأ الشرح</Label>
+                                    <Select onValueChange={handleTenseSelection} disabled={isSubmitting}>
+                                        <SelectTrigger id="tense-select" className="mt-1 text-base">
+                                            <SelectValue placeholder="اختر زمناً من القائمة..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {TENSES_LIST.map(tense => ( <SelectItem key={tense} value={tense}>{tense}</SelectItem> ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label htmlFor="englishGrammarConcept" className="text-sm sm:text-md font-medium">أو اطرح سؤالاً للمتابعة</Label>
+                                    <div className="flex gap-2 mt-1">
+                                        <Button type="button" size="icon" variant={isListening ? "destructive" : "outline"} onClick={toggleListening} className="h-auto px-3 shrink-0" disabled={isSubmitting}>
+                                            {isListening ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                                        </Button>
+                                        <Textarea id="englishGrammarConcept" placeholder="اكتب سؤال متابعة هنا أو استخدم الميكروفون..." {...register("englishGrammarConcept")}
+                                            className={`text-base bg-background focus:ring-2 focus:ring-primary ${errors.englishGrammarConcept ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
+                                            rows={1} disabled={isSubmitting} />
+                                        <Button type="submit" size="icon" className="h-auto px-3 shrink-0" disabled={isSubmitting || !getValues('englishGrammarConcept')}>
+                                            {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin"/> : <Send className="h-5 w-5" />}
+                                        </Button>
+                                    </div>
+                                    {errors.englishGrammarConcept && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.englishGrammarConcept.message}</p>}
+                                </div>
+                            </form>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </ScrollArea>
     </div>
   );
 }
