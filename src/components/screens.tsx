@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
@@ -14,7 +15,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon, Volume2, Award, FileQuestion, CheckCircle, NotebookText, Lock } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon, Volume2, Award, FileQuestion, CheckCircle, NotebookText, Lock, BrainCircuit } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -1530,3 +1531,50 @@ export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => v
     );
 }
 
+function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean, onOpenChange: (open: boolean) => void, userName: string }) {
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        if (isOpen && !imageUrl) {
+            setIsLoading(true);
+            generateCertificateImage({ userName })
+                .then(result => setImageUrl(result.imageUrl))
+                .catch(err => {
+                    console.error("Certificate generation error:", err);
+                    toast({ variant: 'destructive', title: 'فشل إنشاء الشهادة' });
+                })
+                .finally(() => setIsLoading(false));
+        }
+    }, [isOpen, userName, imageUrl, toast]);
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                    <DialogTitle>شهادة إتمام</DialogTitle>
+                    <DialogDescription>تهانينا على تقدمك! هذه شهادتك.</DialogDescription>
+                </DialogHeader>
+                <div className="relative aspect-[4/3] w-full flex items-center justify-center bg-muted rounded-md overflow-hidden">
+                    {isLoading && <Loader2 className="h-12 w-12 animate-spin text-primary" />}
+                    {imageUrl && (
+                        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${imageUrl})` }}>
+                            <div className="w-full h-full flex flex-col items-center justify-center text-center p-8">
+                                <p className="text-xl text-muted-foreground">This certifies that</p>
+                                <h2 className="text-4xl font-bold text-primary my-4">{userName}</h2>
+                                <p className="text-xl text-muted-foreground">has shown outstanding commitment to learning English.</p>
+                                <div className="mt-8 flex items-center gap-4">
+                                    <Image src="https://placehold.co/100x50/ffffff/000000.png?text=Logo" data-ai-hint="company logo" alt="App Logo" width={100} height={50} />
+                                    <div>
+                                        <p className="border-t border-foreground pt-1">Signature</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
