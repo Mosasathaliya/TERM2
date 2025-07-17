@@ -14,7 +14,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon, Volume2, Award, FileQuestion, CheckCircle, NotebookText } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon, Volume2, Award, FileQuestion, CheckCircle, NotebookText, Lock } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -58,6 +58,7 @@ import { translateText } from '@/ai/flows/translate-flow';
 import { useStoryStore, type SavedStory, useQuizStore, type StoryQuizResult } from '@/hooks/use-story-store';
 import { generateStoryQuiz } from '@/ai/flows/story-quiz-flow';
 import type { StoryQuizOutput } from '@/ai/flows/story-quiz-flow';
+import { useProgressStore } from '@/hooks/use-progress-store';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -1219,6 +1220,11 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
 export function BookScreen() {
     const [selectedItem, setSelectedItem] = useState<LearningItem | null>(null);
     const [isQuizOpen, setIsQuizOpen] = useState(false);
+    const { highestLessonCompleted } = useProgressStore();
+
+    const allLessonTitles = learningItems.map(item => item.type === 'lesson' ? item.title : null).filter(Boolean) as string[];
+    const highestCompletedIndex = highestLessonCompleted ? allLessonTitles.indexOf(highestLessonCompleted) : -1;
+
 
     const handleOpenQuiz = () => {
         setIsQuizOpen(true);
@@ -1229,22 +1235,35 @@ export function BookScreen() {
             <h2 className="text-xl font-semibold mb-4 text-center">المكتبة التعليمية</h2>
             <ScrollArea className="h-[calc(100vh-180px)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                    {learningItems.map((item, i) => (
+                    {learningItems.map((item, i) => {
+                         const isLesson = item.type === 'lesson';
+                         const lessonIndex = isLesson ? allLessonTitles.indexOf(item.title) : -1;
+                         const isLocked = isLesson && lessonIndex > highestCompletedIndex + 1;
+
+                        return (
                         <Card 
                             key={i} 
-                            className="transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm flex flex-col cursor-pointer"
-                            onClick={() => setSelectedItem(item)}
+                            className={cn(
+                                "transform transition-all flex flex-col",
+                                isLocked 
+                                ? "bg-muted/30 border-dashed cursor-not-allowed" 
+                                : "hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm cursor-pointer"
+                            )}
+                            onClick={() => !isLocked && setSelectedItem(item)}
                         >
-                            <CardHeader className="flex-row items-center justify-center gap-4 space-y-0">
-                                {item.type === 'lesson' ? (
-                                    <Book className="h-6 w-6 text-primary" />
-                                ) : (
-                                    <BookText className="h-6 w-6 text-accent" />
-                                )}
-                                <CardTitle className="text-lg text-primary text-center">{item.title}</CardTitle>
+                            <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
+                                <div className="flex items-center gap-2">
+                                     {item.type === 'lesson' ? (
+                                        <Book className="h-6 w-6 text-primary" />
+                                    ) : (
+                                        <BookText className="h-6 w-6 text-accent" />
+                                    )}
+                                    <CardTitle className={cn("text-lg", isLocked ? "text-muted-foreground" : "text-primary")}>{item.title}</CardTitle>
+                                </div>
+                                {isLocked && <Lock className="h-5 w-5 text-muted-foreground" />}
                             </CardHeader>
                         </Card>
-                    ))}
+                    )})}
                     <Card
                         className="transform transition-all hover:scale-[1.03] hover:shadow-lg bg-accent/20 backdrop-blur-sm flex flex-col cursor-pointer border-accent"
                         onClick={handleOpenQuiz}

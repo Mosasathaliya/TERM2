@@ -26,6 +26,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { useProgressStore } from '@/hooks/use-progress-store';
 
 interface LessonDetailDialogProps {
   item: LearningItem;
@@ -38,9 +39,12 @@ interface Message {
   content: string;
 }
 
-function LessonQuiz({ mcqs }: { mcqs: MCQ[] }) {
+function LessonQuiz({ lesson }: { lesson: Lesson }) {
     const [answers, setAnswers] = React.useState<Record<number, string>>({});
     const [isSubmitted, setIsSubmitted] = React.useState(false);
+    const { completeLesson } = useProgressStore();
+
+    const mcqs = lesson.mcqs;
 
     const handleAnswerChange = (questionIndex: number, selectedOption: string) => {
         if (isSubmitted) return;
@@ -49,6 +53,14 @@ function LessonQuiz({ mcqs }: { mcqs: MCQ[] }) {
 
     const handleSubmit = () => {
         setIsSubmitted(true);
+        const score = mcqs.reduce((correctCount, mcq, index) => {
+            return answers[index] === mcq.answer ? correctCount + 1 : correctCount;
+        }, 0);
+        
+        // Assuming passing score is >= 70%
+        if (score / mcqs.length >= 0.7) {
+            completeLesson(lesson.title);
+        }
     };
 
     const handleRetry = () => {
@@ -606,7 +618,7 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
                         </ScrollArea>
                     )}
                     {activeTab === 'mcq' && (
-                        <LessonQuiz mcqs={item.mcqs} />
+                        <LessonQuiz lesson={item} />
                     )}
                     {activeTab === 'chatbot' && (
                         <Chatbot lesson={item} />
