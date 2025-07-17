@@ -39,8 +39,8 @@ import LessonDisplay from './lesson/LessonDisplay';
 import { generateLessonContent } from '@/ai/flows/generate-lesson-content';
 import Link from 'next/link';
 
-// Import video links from the text file
-import videoLinks from '@/ai/youy.txt.txt';
+// Import video links from the new data file
+import videoLinks from '@/data/video-links';
 
 function LessonList() {
   return (
