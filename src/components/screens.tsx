@@ -454,9 +454,7 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
   }, [lesson]);
 
   const handlePlayAudio = async (text: string, id: string) => {
-    if (activeAudioId === id) { // If it's already playing, do nothing
-      return;
-    }
+    if (!text || activeAudioId === id) return;
     setActiveAudioId(id);
     try {
       const result = await textToSpeech({ text, voice: 'achernar' });
@@ -467,6 +465,10 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
         audioRef.current.src = result.media;
         audioRef.current.play();
         audioRef.current.onended = () => setActiveAudioId(null);
+        audioRef.current.onerror = () => {
+             toast({ variant: 'destructive', title: 'خطأ في تشغيل الصوت.' });
+             setActiveAudioId(null);
+        }
       } else {
         toast({ variant: 'destructive', title: 'خطأ', description: 'فشل في تشغيل الصوت.' });
         setActiveAudioId(null);
@@ -482,6 +484,7 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
   const handleExplain = async () => {
     if (!lesson || isExplaining) return;
     setIsExplaining(true);
+    setExplanation(null);
     try {
       const response = await translateText({ text: lesson.content, targetLanguage: 'Arabic' });
       setExplanation(response.translation);
@@ -566,7 +569,7 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
               </div>
                <div className="mt-6 flex justify-end">
                   {isSubmitted ? (
-                    <Button variant="outline" onClick={() => setIsSubmitted(false)}>أعد المحاولة</Button>
+                    <Button variant="outline" onClick={() => { setIsSubmitted(false); setAnswers({}); }}>أعد المحاولة</Button>
                   ) : (
                     <Button onClick={handleSubmit}>تحقق من الإجابات</Button>
                   )}
@@ -738,14 +741,17 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
                    <div key={i} className={cn("p-4 border rounded-lg", isSubmitted && (answers[i] === q.correct_answer ? 'border-green-500' : 'border-destructive'))}>
                     <p className="font-semibold mb-3">{i+1}. {q.question}</p>
                     <RadioGroup value={answers[i]} onValueChange={(val) => handleAnswerChange(i, val)} disabled={isSubmitted}>
-                      {q.options.map(opt => (
-                         <div key={opt} className={cn("flex items-center space-x-2 rounded-md p-2", isSubmitted && opt === q.correct_answer && "bg-green-500/10 text-green-800 dark:text-green-300", isSubmitted && answers[i] === opt && opt !== q.correct_answer && "bg-destructive/10 text-destructive")}>
+                      {q.options.map(opt => {
+                         const isCorrect = opt === q.correct_answer;
+                         const isSelected = answers[i] === opt;
+                        return (
+                          <div key={opt} className={cn("flex items-center space-x-2 rounded-md p-2", isSubmitted && isCorrect && "bg-green-500/10 text-green-800 dark:text-green-300", isSubmitted && isSelected && !isCorrect && "bg-destructive/10 text-destructive")}>
                           <RadioGroupItem value={opt} id={`sq${i}-opt-${opt}`} />
                           <Label htmlFor={`sq${i}-opt-${opt}`} className="flex-1 cursor-pointer">{opt}</Label>
-                           {isSubmitted && opt === q.correct_answer && <Check className="h-5 w-5 text-green-500" />}
-                            {isSubmitted && answers[i] === opt && opt !== q.correct_answer && <X className="h-5 w-5 text-destructive" />}
+                           {isSubmitted && isCorrect && <Check className="h-5 w-5 text-green-500" />}
+                            {isSubmitted && isSelected && !isCorrect && <X className="h-5 w-5 text-destructive" />}
                         </div>
-                      ))}
+                      )})}
                     </RadioGroup>
                   </div>
                 ))}
@@ -872,14 +878,23 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     const { stories } = useStoryStore();
     const [selectedStory, setSelectedStory] = useState<SavedStory | null>(null);
 
+    const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
+    const [isAdventureOpen, setIsAdventureOpen] = useState(false);
+    const [isJumbleGameOpen, setIsJumbleGameOpen] = useState(false);
+    const [isTenseTeacherOpen, setIsTenseTeacherOpen] = useState(false);
+    const [isLessonsOpen, setIsLessonsOpen] = useState(false);
+    const [isVideoLearnOpen, setIsVideoLearnOpen] = useState(false);
+
     return (
         <>
-            <section className="animate-fadeIn">
-                <h2 className="text-4xl font-bold mb-4 text-center">لوحة التحكم الخاصة بك</h2>
-                <p className="text-muted-foreground mb-8 text-center max-w-2xl mx-auto">
-                    مرحباً بعودتك! تابع من حيث توقفت أو استكشف قصصك المحفوظة.
-                </p>
-                
+            <section className="animate-fadeIn space-y-8">
+                <div>
+                    <h2 className="text-3xl font-bold mb-4 text-center">مرحباً بعودتك!</h2>
+                    <p className="text-muted-foreground mb-6 text-center max-w-2xl mx-auto">
+                        هذه هي لوحة التحكم الخاصة بك. تابع من حيث توقفت أو استكشف أداة جديدة.
+                    </p>
+                </div>
+
                 <Card>
                     <CardHeader>
                         <CardTitle>قصصي المحفوظة</CardTitle>
@@ -906,8 +921,106 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                         )}
                     </CardContent>
                 </Card>
+
+                <div>
+                     <h3 className="text-2xl font-bold mb-4 text-center">استكشف الأدوات الأخرى</h3>
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <Card 
+                            className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                            onClick={() => setIsLingoleapOpen(true)}
+                        >
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-3">
+                                    <GraduationCap className="h-8 w-8 text-primary" />
+                                    <span>مُنشئ المفردات</span>
+                                </CardTitle>
+                                <CardDescription>
+                                    قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي.
+                                </CardDescription>
+                            </CardHeader>
+                        </Card>
+
+                        <Card 
+                            className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                             onClick={() => setIsAdventureOpen(true)}
+                        >
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-3">
+                                    <Gamepad2 className="h-8 w-8 text-accent" />
+                                    <span>مغامرة جيمني</span>
+                                </CardTitle>
+                                <CardDescription>
+                                    العب لعبة مغامرة نصية لتعلم المفردات في سياقها.
+                                </CardDescription>
+                            </CardHeader>
+                        </Card>
+                        
+                        <Card 
+                            className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                            onClick={() => setIsTenseTeacherOpen(true)}
+                        >
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-3">
+                                    <BookCheck className="h-8 w-8 text-destructive" />
+                                    <span>خبير الأزمنة</span>
+                                </CardTitle>
+                                <CardDescription>
+                                    تحدث مع خبير الذكاء الاصطناعي لإتقان أزمنة اللغة الإنجليزية.
+                                </CardDescription>
+                            </CardHeader>
+                        </Card>
+                    </div>
+                </div>
+
             </section>
+            
             <StoryViewerDialog story={selectedStory} isOpen={!!selectedStory} onOpenChange={(isOpen) => !isOpen && setSelectedStory(null)} />
+
+            <Dialog open={isLingoleapOpen} onOpenChange={setIsLingoleapOpen}>
+                <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+                     <DialogHeader className="p-4 border-b">
+                        <DialogTitle>LinguaLeap Vocabulary Builder</DialogTitle>
+                        <DialogDescription className="sr-only">An AI-powered tool to expand your vocabulary.</DialogDescription>
+                         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Close</span>
+                        </DialogClose>
+                    </DialogHeader>
+                    <div className="flex-grow min-h-0">
+                        <LingoleapApp />
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+             <Dialog open={isAdventureOpen} onOpenChange={setIsAdventureOpen}>
+                <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
+                     <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
+                        <DialogTitle>Gemini Text Adventure</DialogTitle>
+                         <DialogDescription className="sr-only">An interactive text adventure game to learn vocabulary.</DialogDescription>
+                         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Close</span>
+                        </DialogClose>
+                    </DialogHeader>
+                    <div className="flex-grow h-full pt-[65px]">
+                        <TextAdventureApp />
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+             <Dialog open={isTenseTeacherOpen} onOpenChange={setIsTenseTeacherOpen}>
+                <DialogContent className="w-full max-w-4xl h-[90vh] flex flex-col p-0">
+                     <DialogHeader className="p-4 border-b shrink-0">
+                        <DialogTitle>Tense Teacher</DialogTitle>
+                        <DialogDescription>A voice-based AI expert to help you master English tenses.</DialogDescription>
+                         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Close</span>
+                        </DialogClose>
+                    </DialogHeader>
+                    <TenseTeacherApp />
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
