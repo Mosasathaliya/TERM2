@@ -173,7 +173,7 @@ export function TenseTeacherApp() {
         if (selectedTeacher === 'Ahmed') {
             const input: AhmedVoiceCallInput = {
                 englishGrammarConcept: userMessage,
-                conversationHistory: historyForAI.length > 0 ? historyForAI : [],
+                conversationHistory: historyForAI.length > 1 ? historyForAI.slice(0, -1) : [],
             };
             result = await ahmedVoiceCall(input);
         } else {
@@ -181,7 +181,7 @@ export function TenseTeacherApp() {
              const input: SaraVoiceCallInput = {
                 englishGrammarConcept: userMessage,
                 userLanguageProficiency: saraData.userLanguageProficiency || 'Intermediate',
-                conversationHistory: historyForAI.length > 0 ? historyForAI : [],
+                conversationHistory: historyForAI.length > 1 ? historyForAI.slice(0, -1) : [],
             };
             result = await saraVoiceCall(input);
         }
@@ -207,6 +207,7 @@ export function TenseTeacherApp() {
     if(tense) {
         const prompt = `اشرح لي زمن ${tense}`;
         setValue('englishGrammarConcept', prompt);
+        handleSubmit(onSubmit)();
     }
   };
 
@@ -261,39 +262,41 @@ export function TenseTeacherApp() {
                     </div>
                 </CardHeader>
                 
-                <ScrollArea className="flex-grow p-4 min-h-0" viewportRef={scrollViewportRef}>
-                    <div className="space-y-4">
-                        {conversationHistory.length > 0 ? (
-                            conversationHistory.map((entry) => (
-                                <div key={entry.id} className={`flex items-end gap-2 ${entry.speaker === 'User' ? 'justify-end' : 'justify-start'}`}>
-                                    {entry.speaker !== 'User' && <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{entry.speaker.charAt(0)}</AvatarFallback></Avatar>}
-                                    <div className={`rounded-lg px-3 py-2 max-w-[85%] flex items-center gap-2 ${entry.speaker === 'User' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                                        <p className="text-sm whitespace-pre-wrap">{entry.message}</p>
-                                        {entry.speaker !== 'User' && (
-                                        <Button variant="ghost" size="icon" className="shrink-0 h-6 w-6 p-1 text-muted-foreground" onClick={() => handlePlayAudio(entry.message, entry.id)}>
-                                            {activeAudio === entry.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <Volume2 className="h-4 w-4"/>}
-                                        </Button>
-                                        )}
+                <div className="flex-grow p-4 min-h-0">
+                    <ScrollArea className="h-full" viewportRef={scrollViewportRef}>
+                        <div className="space-y-4 pr-4">
+                            {conversationHistory.length > 0 ? (
+                                conversationHistory.map((entry) => (
+                                    <div key={entry.id} className={`flex items-end gap-2 ${entry.speaker === 'User' ? 'justify-end' : 'justify-start'}`}>
+                                        {entry.speaker !== 'User' && <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{entry.speaker.charAt(0)}</AvatarFallback></Avatar>}
+                                        <div className={`rounded-lg px-3 py-2 max-w-[85%] flex items-center gap-2 ${entry.speaker === 'User' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                                            <p className="text-sm whitespace-pre-wrap">{entry.message}</p>
+                                            {entry.speaker !== 'User' && (
+                                            <Button variant="ghost" size="icon" className="shrink-0 h-6 w-6 p-1 text-muted-foreground" onClick={() => handlePlayAudio(entry.message, entry.id)}>
+                                                {activeAudio === entry.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <Volume2 className="h-4 w-4"/>}
+                                            </Button>
+                                            )}
+                                        </div>
+                                        {entry.speaker === 'User' && <Avatar className="h-6 w-6"><AvatarFallback>U</AvatarFallback></Avatar>}
                                     </div>
-                                    {entry.speaker === 'User' && <Avatar className="h-6 w-6"><AvatarFallback>U</AvatarFallback></Avatar>}
+                                ))
+                            ) : (
+                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-8">
+                                    <MessageCircle className="h-10 w-10 mb-2" />
+                                    <p>ابدأ المحادثة باختيار موضوع أو طرح سؤال أدناه.</p>
                                 </div>
-                            ))
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-8">
-                                <MessageCircle className="h-10 w-10 mb-2" />
-                                <p>ابدأ المحادثة باختيار موضوع أو طرح سؤال أدناه.</p>
-                            </div>
-                        )}
-                        {isSubmitting && (
-                            <div className="flex items-start gap-2 justify-start">
-                                <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{selectedTeacher.charAt(0)}</AvatarFallback></Avatar>
-                                <div className="rounded-lg px-3 py-2 bg-muted flex items-center">
-                                    <Loader2 className="h-4 w-4 animate-spin" />
+                            )}
+                            {isSubmitting && (
+                                <div className="flex items-start gap-2 justify-start">
+                                    <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{selectedTeacher.charAt(0)}</AvatarFallback></Avatar>
+                                    <div className="rounded-lg px-3 py-2 bg-muted flex items-center">
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                </ScrollArea>
+                            )}
+                        </div>
+                    </ScrollArea>
+                </div>
 
                 <div className="p-4 border-t shrink-0 bg-background/50">
                     <form onSubmit={handleSubmit(onSubmit as SubmitHandler<any>)} className="space-y-3">
@@ -339,3 +342,5 @@ export function TenseTeacherApp() {
     </div>
   );
 }
+
+    
