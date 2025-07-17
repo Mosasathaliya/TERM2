@@ -70,6 +70,7 @@ export const authenticateUserFlow = ai.defineFlow(
     // --- End of Development Backdoor ---
 
     // Step 1: Query Supabase for the access code
+    // This part will only run for non-developer codes.
     const { data: accessData, error: supabaseError } = await supabase
       .from('user_access') // The table name in Supabase
       .select('user_id, is_active, users(id, name, email)')
