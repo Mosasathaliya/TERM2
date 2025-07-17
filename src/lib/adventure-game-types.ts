@@ -16,6 +16,8 @@ export interface VocabularyWord {
   word: string;
   definition: string;
   imageUrl: string;
+  arabicWord?: string;
+  arabicDefinition?: string;
 }
 
 export interface LoadingStates {

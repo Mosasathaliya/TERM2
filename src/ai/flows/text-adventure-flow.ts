@@ -5,6 +5,7 @@
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { textToSpeech } from './tts-flow';
 
 // Helper function to get the base prompt for the game master AI.
 const getSystemInstruction = (genre: string) => `You are a world-class interactive fiction author and game master. 
@@ -62,7 +63,9 @@ const DefineWordInputSchema = z.object({
   genre: z.string(),
 });
 const DefineWordOutputSchema = z.object({
-  definition: z.string(),
+  definition: z.string().describe("The English definition."),
+  arabicWord: z.string().describe("The Arabic translation of the word."),
+  arabicDefinition: z.string().describe("The Arabic translation of the definition."),
 });
 
 export const defineWord = ai.defineFlow(
@@ -72,12 +75,21 @@ export const defineWord = ai.defineFlow(
     outputSchema: DefineWordOutputSchema,
   },
   async ({ word, genre }) => {
-    const prompt = `Provide a concise, dictionary-style definition for the fictional ${genre} word: "${word}". The definition should be creative and fit the established tone. Do not repeat the word in the definition itself.`;
-    const response = await ai.generate({
+    const prompt = `You are a creative linguist. For the fictional ${genre} word "${word}", provide the following:
+1.  A concise, dictionary-style definition in English.
+2.  A plausible Arabic translation for the word itself.
+3.  A direct Arabic translation of the English definition.
+You must respond in a valid JSON format.`;
+
+    const { output } = await ai.generate({
       model: 'googleai/gemini-2.5-flash',
       prompt,
+      output: {
+        format: 'json',
+        schema: DefineWordOutputSchema,
+      },
     });
-    return { definition: response.text.trim() };
+    return output!;
   }
 );
 

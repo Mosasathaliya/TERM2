@@ -89,12 +89,23 @@ export function TextAdventureApp() {
   const handleWordClick = useCallback(async (word: string) => {
     if (!word) return;
     setLoading(prev => ({ ...prev, vocab: true }));
-    setSelectedWord({ word, definition: 'Generating definition...', imageUrl: '' });
+    setSelectedWord({ 
+      word, 
+      definition: 'Generating definition...', 
+      imageUrl: '',
+      arabicWord: 'جاري الترجمة...',
+      arabicDefinition: 'جاري الترجمة...'
+    });
     setError(null);
 
     try {
       const definitionResult = await defineWord({ word, genre: gameGenre });
-      setSelectedWord(prev => prev ? { ...prev, definition: definitionResult.definition } : null);
+      setSelectedWord(prev => prev ? { 
+        ...prev, 
+        definition: definitionResult.definition,
+        arabicWord: definitionResult.arabicWord,
+        arabicDefinition: definitionResult.arabicDefinition,
+      } : null);
 
       const imageResult = await generateImageForWord({ word, definition: definitionResult.definition, genre: gameGenre });
       setSelectedWord(prev => prev ? { ...prev, imageUrl: imageResult.imageUrl } : null);
