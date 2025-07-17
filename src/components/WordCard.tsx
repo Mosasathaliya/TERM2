@@ -115,7 +115,7 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
             onClick={() => handleSpeak(word.english, 'word')}
             aria-label={`Listen to ${word.english}`}
             title="Listen to pronunciation"
-            className="text-secondary hover:text-secondary/80"
+            className="text-primary hover:text-primary/80"
             disabled={audioLoading['word']}
         >
             <Volume2 className={`h-6 w-6 ${audioLoading['word'] ? 'animate-pulse' : ''}`} />
@@ -141,7 +141,7 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
                     onClick={() => handleSpeak(word.definition, 'definition')}
                     aria-label="Listen to English definition"
                     title="Listen to definition"
-                    className="text-secondary hover:text-secondary/80 h-5 w-5 p-0"
+                    className="text-primary hover:text-primary/80 h-5 w-5 p-0"
                     disabled={audioLoading['definition']}
                 >
                     <Volume2 className={`h-4 w-4 ${audioLoading['definition'] ? 'animate-pulse' : ''}`} />
@@ -158,7 +158,7 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
                     onClick={() => handleSpeak(word.example, 'example')}
                     aria-label="Listen to English example sentence"
                     title="Listen to example"
-                    className="text-secondary hover:text-secondary/80 h-5 w-5 p-0"
+                    className="text-primary hover:text-primary/80 h-5 w-5 p-0"
                     disabled={audioLoading['example']}
                 >
                     <Volume2 className={`h-4 w-4 ${audioLoading['example'] ? 'animate-pulse' : ''}`} />
