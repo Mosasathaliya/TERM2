@@ -43,8 +43,8 @@ export function useVoiceChat() {
       }
 
       const userMessage: Message = { role: 'user', content: transcribedText };
-      const newHistory = [...history, userMessage];
-      setHistory(newHistory);
+      // Use a functional update to ensure we have the latest history
+      setHistory(prev => [...prev, userMessage]);
       
       const { contextualizedPersona } = await contextualizeAIPersona({
         personality: currentAgent.personality,
@@ -52,9 +52,10 @@ export function useVoiceChat() {
         userInfo: userSettings.info,
       });
 
+      // Pass the new history directly to the AI
       const { response } = await personalizeAgentResponse({
         contextualizedPersona,
-        history: newHistory,
+        history: [...history, userMessage], // Pass updated history
         prompt: transcribedText,
       });
 
@@ -67,14 +68,13 @@ export function useVoiceChat() {
         audioRef.current.src = audioDataUri;
         await audioRef.current.play();
       } else {
-        // If audio element isn't ready, we can't play, so we're not "talking" anymore.
         setIsTalking(false);
       }
     } catch (error) {
       console.error('Voice chat pipeline error:', error);
       setIsTalking(false);
     }
-  }, [isMuted, isTalking, currentAgent, userSettings, history]);
+  }, [isMuted, isTalking, currentAgent, userSettings, history]); // Add history to dependency array
 
   const { isRecording, start, stop } = useAudioProcessor(handleAudioData);
 
@@ -85,20 +85,6 @@ export function useVoiceChat() {
     }
     setIsConnected(true);
   }, []);
-  
-  // Effect to manage the onended event listener for the audio element.
-  // This ensures the listener always has the current `setIsTalking` function.
-  useEffect(() => {
-    const audioEl = audioRef.current;
-    if (audioEl) {
-      const handlePlaybackEnd = () => setIsTalking(false);
-      audioEl.addEventListener('ended', handlePlaybackEnd);
-      return () => {
-        audioEl.removeEventListener('ended', handlePlaybackEnd);
-      };
-    }
-  }, [setIsTalking]);
-
 
   const disconnect = useCallback(() => {
     if (isRecording) {
@@ -124,26 +110,44 @@ export function useVoiceChat() {
     }
   }, [isRecording, start, stop]);
   
+  // Effect to manage the onended event listener for the audio element.
+  // This ensures the listener is always up-to-date with the current state.
+  useEffect(() => {
+    const audioEl = audioRef.current;
+    if (!audioEl) return;
+
+    const handlePlaybackEnd = () => setIsTalking(false);
+
+    // If the AI is talking, add the listener.
+    if (isTalking) {
+      audioEl.addEventListener('ended', handlePlaybackEnd);
+    }
+
+    // Cleanup function to remove the listener.
+    return () => {
+      audioEl.removeEventListener('ended', handlePlaybackEnd);
+    };
+  }, [isTalking]); // This effect now correctly depends on isTalking.
+  
   useEffect(() => {
     let lipSyncFrameId: number;
 
     const setupAudioAnalysis = () => {
         if (!audioRef.current) return;
-        
-        if (!audioContextRef.current) {
+        if (audioContextRef.current) return;
+
+        try {
             const context = new (window.AudioContext || (window as any).webkitAudioContext)();
             audioContextRef.current = context;
             analyserRef.current = context.createAnalyser();
-            try {
-                sourceNodeRef.current = context.createMediaElementSource(audioRef.current);
-                sourceNodeRef.current.connect(analyserRef.current);
-                analyserRef.current.connect(context.destination);
-            } catch (e) {
-                 if (e instanceof DOMException && e.name === 'InvalidStateError') {
-                    // This error means the source node is already connected, which is fine.
-                } else {
-                    console.error("Error setting up audio source node:", e);
-                }
+            sourceNodeRef.current = context.createMediaElementSource(audioRef.current);
+            sourceNodeRef.current.connect(analyserRef.current);
+            analyserRef.current.connect(context.destination);
+        } catch (e) {
+             if (e instanceof DOMException && e.name === 'InvalidStateError') {
+                // This error means the source node is already connected, which is fine.
+            } else {
+                console.error("Error setting up audio source node:", e);
             }
         }
     };
@@ -159,7 +163,7 @@ export function useVoiceChat() {
         const animate = () => {
           analyser.getByteFrequencyData(dataArray);
           const average = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
-          setAudioLevel(average / 128); // Normalize the audio level
+          setAudioLevel(average / 128);
           lipSyncFrameId = requestAnimationFrame(animate);
         };
         animate();
