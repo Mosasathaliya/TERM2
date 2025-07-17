@@ -5,7 +5,10 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { GamePanel } from '@/components/adventure-game-panel';
 import { VocabularyPanel } from '@/components/adventure-vocabulary-panel';
 import { textAdventureFlow, defineWord, generateImageForWord } from '@/ai/flows/text-adventure-flow';
-import type { GameState, StoryPart, VocabularyWord, LoadingStates, GameGenre, TextAdventureAction } from '@/lib/adventure-game-types';
+import type { GameState, StoryPart, VocabularyWord, LoadingStates, GameGenre, TextAdventureAction, TranslationState } from '@/lib/adventure-game-types';
+import { textToSpeech } from '@/ai/flows/tts-flow';
+import { translateText } from '@/ai/flows/translate-flow';
+import { useToast } from "@/hooks/use-toast";
 
 const GAME_GENRES: GameGenre[] = ['fantasy', 'sci-fi', 'mystery', 'cyberpunk', 'steampunk', 'saudi-folklore'];
 
@@ -32,6 +35,8 @@ export function TextAdventureApp() {
   const [loading, setLoading] = useState<LoadingStates>({ story: false, vocab: false });
   const [error, setError] = useState<string | null>(null);
   const [gameGenre, setGameGenre] = useState<GameGenre>('fantasy');
+  const [translation, setTranslation] = useState<TranslationState | null>(null);
+  const { toast } = useToast();
 
   const handleAction = useCallback(async (action: TextAdventureAction, prompt?: string) => {
     setLoading(prev => ({ ...prev, story: true }));
@@ -101,6 +106,25 @@ export function TextAdventureApp() {
       setLoading(prev => ({ ...prev, vocab: false }));
     }
   }, [gameGenre]);
+
+  const handleNarrativeWordClick = useCallback(async (word: string) => {
+    const cleanedWord = word.replace(/[^a-zA-Z]/g, '').trim();
+    if (!cleanedWord) return;
+
+    // Pronounce the word
+    textToSpeech(cleanedWord).catch(err => console.error("TTS error:", err));
+
+    // Translate the word
+    setTranslation({ word: word, text: 'جاري الترجمة...', isLoading: true });
+    try {
+        const result = await translateText({ text: cleanedWord, targetLanguage: 'Arabic' });
+        setTranslation({ word: word, text: result.translation, isLoading: false });
+    } catch (error) {
+        console.error('Translation error:', error);
+        setTranslation({ word: word, text: 'فشل الترجمة', isLoading: false });
+        toast({ variant: 'destructive', title: 'خطأ في الترجمة' });
+    }
+  }, [toast]);
   
   const GameSetup = () => (
       <div className="flex-grow flex flex-col items-center justify-center text-center p-4 bg-gray-900 text-white">
@@ -142,8 +166,10 @@ export function TextAdventureApp() {
               storyHistory={storyHistory} 
               onSendAction={(prompt) => handleAction('continue', prompt)} 
               onWordClick={handleWordClick}
+              onNarrativeWordClick={handleNarrativeWordClick}
               loading={loading.story}
               error={error}
+              translation={translation}
             />
           </div>
         )}

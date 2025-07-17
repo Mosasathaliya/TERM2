@@ -22,3 +22,9 @@ export interface LoadingStates {
   story: boolean;
   vocab: boolean;
 }
+
+export interface TranslationState {
+  word: string;
+  text: string;
+  isLoading: boolean;
+}

@@ -2,13 +2,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { StoryPart } from '@/lib/adventure-game-types';
 import { UserIcon, WandSparklesIcon, SendIcon } from '@/components/adventure-icon-components';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import type { TranslationState } from '@/lib/adventure-game-types';
 
 interface GamePanelProps {
   storyHistory: StoryPart[];
   onSendAction: (action: string) => void;
   onWordClick: (word: string) => void;
+  onNarrativeWordClick: (word: string) => void; // New prop
   loading: boolean;
   error: string | null;
+  translation: TranslationState | null; // New prop
 }
 
 const HighlightedText: React.FC<{ text: string; word: string; onClick: (word: string) => void }> = ({ text, word, onClick }) => {
@@ -35,8 +39,42 @@ const HighlightedText: React.FC<{ text: string; word: string; onClick: (word: st
     );
 };
 
+const ClickableNarrative: React.FC<{ text: string; onWordClick: (word: string) => void; translation: TranslationState | null }> = ({ text, onWordClick, translation }) => {
+    return (
+        <>
+            {text.split(/(\s+)/).map((segment, index) => {
+                const word = segment.trim().replace(/[^a-zA-Z]/g, '');
+                if (word.length > 0) {
+                    return (
+                        <Popover key={index}>
+                            <PopoverTrigger asChild>
+                                <span
+                                    className="cursor-pointer hover:bg-primary/20 rounded-sm transition-colors"
+                                    onClick={() => onWordClick(segment.trim())}
+                                >
+                                    {segment}
+                                </span>
+                            </PopoverTrigger>
+                            {translation?.word === segment.trim() && (
+                                <PopoverContent className="w-auto p-2" side="top">
+                                    {translation.isLoading ? (
+                                        <div className="text-sm">...</div>
+                                    ) : (
+                                        <div className="text-sm font-semibold">{translation.text}</div>
+                                    )}
+                                </PopoverContent>
+                            )}
+                        </Popover>
+                    );
+                }
+                return <span key={index}>{segment}</span>; // Render spaces
+            })}
+        </>
+    );
+};
 
-export const GamePanel: React.FC<GamePanelProps> = ({ storyHistory, onSendAction, onWordClick, loading, error }) => {
+
+export const GamePanel: React.FC<GamePanelProps> = ({ storyHistory, onSendAction, onWordClick, onNarrativeWordClick, loading, error, translation }) => {
   const [inputValue, setInputValue] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -73,8 +111,12 @@ export const GamePanel: React.FC<GamePanelProps> = ({ storyHistory, onSendAction
             )}
             <div className={`p-4 rounded-xl max-w-xl ${part.sender === 'ai' ? 'bg-gray-800' : 'bg-blue-600/80'}`}>
               <p className="text-white whitespace-pre-wrap">
-                {part.sender === 'ai' && part.vocabularyWord ? (
-                   <HighlightedText text={part.text} word={part.vocabularyWord} onClick={onWordClick} />
+                {part.sender === 'ai' ? (
+                  part.vocabularyWord ? (
+                    <HighlightedText text={part.text} word={part.vocabularyWord} onClick={onWordClick} />
+                  ) : (
+                    <ClickableNarrative text={part.text} onWordClick={onNarrativeWordClick} translation={translation} />
+                  )
                 ) : (
                    part.text
                 )}
