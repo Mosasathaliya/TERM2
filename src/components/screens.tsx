@@ -15,7 +15,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2 } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -25,8 +25,7 @@ import { LingoleapApp } from './lingoleap-app';
 
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
-    const [isJumpleGameOpen, setIsJumpleGameOpen] = useState(false);
-
+    
   return (
     <>
     <section className="animate-fadeIn">
@@ -53,7 +52,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
 
             <Card 
                 className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                onClick={() => setIsJumpleGameOpen(true)}
+                 onClick={() => window.open('https://mumble-jumble-108473853069.us-west1.run.app/', '_blank')}
             >
                 <CardHeader>
                     <CardTitle className="flex items-center gap-3">
@@ -84,27 +83,6 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             </div>
         </DialogContent>
     </Dialog>
-
-    <Dialog open={isJumpleGameOpen} onOpenChange={setIsJumpleGameOpen}>
-        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
-             <DialogHeader className="p-4 border-b">
-                <DialogTitle>Jumple Game</DialogTitle>
-                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                </DialogClose>
-            </DialogHeader>
-            <div className="flex-grow min-h-0">
-                 <iframe
-                    src="https://mumble-jumble-108473853069.us-west1.run.app/"
-                    className="w-full h-full border-0"
-                    title="Jumple Game"
-                    allow="microphone"
-                ></iframe>
-            </div>
-        </DialogContent>
-    </Dialog>
-
     </>
   );
 }
@@ -151,9 +129,7 @@ interface AiScreenProps {
   setActiveTab: (tab: ActiveTab) => void;
 }
 
-type AiSubScreen = 'chat' | 'story';
-
-function AiChatScreen({ onNavigate }: { onNavigate: () => void }) {
+function AiChat() {
   const [input, setInput] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
@@ -196,59 +172,51 @@ function AiChatScreen({ onNavigate }: { onNavigate: () => void }) {
   };
   
   return (
-    <>
-      <Card className="bg-card/70 backdrop-blur-sm">
-        <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>اسأل الذكاء الاصطناعي</CardTitle>
-            <div className='flex items-center'>
-             <Button variant="ghost" size="icon" onClick={onNavigate}>
-                <ArrowRight className="h-5 w-5" />
-            </Button>
-            </div>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="اكتب سؤالك هنا عن اللغة الإنجليزية..."
-            rows={3}
-            className="w-full p-3 rounded-md focus:ring-2 focus:ring-primary outline-none transition bg-background"
-            disabled={loading}
-             onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    askAI();
-                }
-            }}
-          />
-          <Button
-            onClick={askAI}
-            className="mt-3"
-            disabled={loading || !input.trim()}
-          >
-            {loading ? '...جارٍ التفكير' : 'إرسال السؤال'}
-          </Button>
-        </CardContent>
-      </Card>
-      
-      {(loading || response) && (
-        <Card className="mt-4 bg-card/70 backdrop-blur-sm">
+      <div className="flex flex-col h-full">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot />
-              <span>إجابة الذكاء الاصطناعي</span>
-            </CardTitle>
+              <CardTitle>اسأل الذكاء الاصطناعي</CardTitle>
+               <CardDescription>اطرح أي سؤال عام حول اللغة الإنجليزية.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="whitespace-pre-wrap">{response}{loading && response.length === 0 ? '...' : ''}</p>
+          <CardContent className="flex-grow flex flex-col gap-4">
+              <div className="flex-grow rounded-lg border bg-muted/50 p-4 space-y-2 overflow-y-auto">
+                 {response ? (
+                    <p className="whitespace-pre-wrap">{response}</p>
+                 ) : (
+                    <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full">
+                        <Bot className="h-10 w-10 mb-2"/>
+                        <p>جاهز للإجابة على أسئلتك</p>
+                    </div>
+                 )}
+                 {loading && !response && <span>...جارٍ التفكير</span>}
+              </div>
+              <div className="flex gap-2">
+                 <Textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="اكتب سؤالك هنا..."
+                    rows={1}
+                    className="w-full p-2 rounded-md focus:ring-2 focus:ring-primary outline-none transition resize-none bg-background"
+                    disabled={loading}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            askAI();
+                        }
+                    }}
+                />
+                 <Button
+                    onClick={askAI}
+                    disabled={loading || !input.trim()}
+                    >
+                    {loading ? '...' : 'إرسال'}
+                </Button>
+              </div>
           </CardContent>
-        </Card>
-      )}
-    </>
+      </div>
   );
 }
 
-function AiStoryScreen({ onNavigate }: { onNavigate: () => void }) {
+function AiStoryMaker() {
     const [prompt, setPrompt] = useState("");
     const [story, setStory] = useState("");
     const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -263,7 +231,6 @@ function AiStoryScreen({ onNavigate }: { onNavigate: () => void }) {
         setImageUrl(null);
 
         try {
-            // 1. Generate story text in English
             const storyStream = await chatStream(`Write a short, creative story in English about: ${prompt}`);
             if (!storyStream) throw new Error("Could not get story stream.");
 
@@ -278,7 +245,6 @@ function AiStoryScreen({ onNavigate }: { onNavigate: () => void }) {
                 fullStory += decodedChunk;
             }
 
-            // 2. Generate image for the completed story
             const imageResult = await generateStoryImage({ story: fullStory });
             setImageUrl(imageResult.imageUrl);
 
@@ -295,38 +261,26 @@ function AiStoryScreen({ onNavigate }: { onNavigate: () => void }) {
     };
 
     return (
-        <>
-            <Card className="bg-card/70 backdrop-blur-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>مولد قصص الذكاء الاصطناعي</CardTitle>
-                    <Button variant="ghost" size="icon" onClick={onNavigate}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
-                </CardHeader>
-                <CardContent>
-                    <Textarea
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        placeholder="اكتب فكرة لقصة، مثل 'رائد فضاء يجد حديقة على المريخ'..."
-                        rows={2}
-                        className="w-full p-3 rounded-md focus:ring-2 focus:ring-primary outline-none transition bg-background"
-                        disabled={loading}
-                    />
-                    <Button onClick={generateStory} className="mt-3" disabled={loading || !prompt.trim()}>
-                        {loading ? '...جاري الكتابة' : <><Sparkles className="mr-2 h-4 w-4"/> إنشاء قصة</>}
-                    </Button>
-                </CardContent>
-            </Card>
+        <div className="flex flex-col h-full">
+            <CardHeader>
+                <CardTitle>مولد قصص الذكاء الاصطناعي</CardTitle>
+                <CardDescription>اكتب فكرة وسيقوم الذكاء الاصطناعي بكتابة قصة قصيرة باللغة الإنجليزية وتوضيحها.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-grow flex flex-col gap-4">
+                 <Textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="اكتب فكرة لقصة، مثل 'رائد فضاء يجد حديقة على المريخ'..."
+                    rows={2}
+                    className="w-full p-3 rounded-md focus:ring-2 focus:ring-primary outline-none transition bg-background"
+                    disabled={loading}
+                />
+                <Button onClick={generateStory} disabled={loading || !prompt.trim()}>
+                    {loading ? '...جاري الكتابة' : <><Sparkles className="mr-2 h-4 w-4"/> إنشاء قصة</>}
+                </Button>
 
-            {(loading || story) && (
-                <Card className="mt-4 bg-card/70 backdrop-blur-sm">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Bot />
-                            <span>قصتك (باللغة الإنجليزية)</span>
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                 {(loading || story) && (
+                    <ScrollArea className="flex-grow rounded-lg border bg-muted/50 p-4">
                         {imageUrl && (
                              <div className="mb-4 border rounded-lg overflow-hidden">
                                 <Image
@@ -345,20 +299,66 @@ function AiStoryScreen({ onNavigate }: { onNavigate: () => void }) {
                             </div>
                         )}
                         <p className="whitespace-pre-wrap" dir="ltr">{story}{loading && story.length === 0 ? '...' : ''}</p>
-                    </CardContent>
-                </Card>
-            )}
-        </>
+                    </ScrollArea>
+                )}
+            </CardContent>
+        </div>
     );
 }
 
 export function AiScreen({ setActiveTab }: AiScreenProps) {
-    const [subScreen, setSubScreen] = useState<AiSubScreen>('chat');
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [isStoryMakerOpen, setIsStoryMakerOpen] = useState(false);
 
     return (
         <section className="animate-fadeIn">
-            {subScreen === 'chat' && <AiChatScreen onNavigate={() => setSubScreen('story')} />}
-            {subScreen === 'story' && <AiStoryScreen onNavigate={() => setSubScreen('chat')} />}
+            <h2 className="text-3xl font-bold mb-2 text-center">أدوات الذكاء الاصطناعي</h2>
+            <p className="text-muted-foreground mb-6 text-center">اختر أداة لمساعدتك في رحلة تعلم اللغة.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsChatOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <MessageCircle className="h-8 w-8 text-primary" />
+                            <span>دردشة الذكاء الاصطناعي</span>
+                        </CardTitle>
+                        <CardDescription>
+                            اطرح أسئلة عامة عن اللغة الإنجليزية واحصل على إجابات فورية.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+
+                <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsStoryMakerOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <Sparkles className="h-8 w-8 text-accent" />
+                            <span>صانع القصص</span>
+                        </CardTitle>
+                        <CardDescription>
+                            حوّل أفكارك إلى قصص قصيرة مصورة باللغة الإنجليزية.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+            </div>
+
+            {/* AI Chat Dialog */}
+            <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
+                <DialogContent className="max-w-2xl h-[70vh] flex flex-col p-0">
+                    <AiChat />
+                </DialogContent>
+            </Dialog>
+
+            {/* Story Maker Dialog */}
+            <Dialog open={isStoryMakerOpen} onOpenChange={setIsStoryMakerOpen}>
+                <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
+                   <AiStoryMaker />
+                </DialogContent>
+            </Dialog>
         </section>
     );
 }
