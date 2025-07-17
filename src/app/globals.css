@@ -5,17 +5,17 @@
 
 @layer base {
   :root {
-    --background: 220 13% 96%; /* Lighter gray for light mode */
+    --background: 0 0% 100%; /* White */
     --foreground: 224 71% 4%;
 
-    --card: 220 13% 100%;
+    --card: 0 0% 100%;
     --card-foreground: 224 71% 4%;
  
-    --popover: 220 13% 100%;
+    --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
  
-    --primary: 151 59% 43%; /* Vibrant Green */
-    --primary-foreground: 355 100% 97%;
+    --primary: 217 91% 60%; /* Bright Blue */
+    --primary-foreground: 210 20% 98%;
  
     --secondary: 220 13% 91%;
     --secondary-foreground: 224 71% 4%;
@@ -23,7 +23,7 @@
     --muted: 220 13% 91%;
     --muted-foreground: 220 9% 46%;
  
-    --accent: 151 49% 72%; /* Light green accent */
+    --accent: 35 92% 56%; /* Warm Orange */
     --accent-foreground: 224 71% 4%;
  
     --destructive: 0 84% 60%;
@@ -31,51 +31,51 @@
 
     --border: 220 13% 86%;
     --input: 220 13% 89%;
-    --ring: 151 59% 43%;
+    --ring: 217 91% 60%;
  
     --radius: 0.5rem;
 
     /* Light Theme Animated Background Colors */
-    --bg-color-1: 151 59% 53%; /* Primary Green */
-    --bg-color-2: 43 74% 66%;  /* Soft Orange */
-    --bg-color-3: 220 100% 70%;/* Sky Blue */
-    --bg-color-4: 300 76% 72%; /* Soft Pink */
+    --bg-color-1: 217 91% 60%; /* Bright Blue */
+    --bg-color-2: 190 84% 67%; /* Soft Cyan */
+    --bg-color-3: 35 92% 56%;  /* Warm Orange */
+    --bg-color-4: 280 84% 77%; /* Light Lavender */
   }
  
   .dark {
-    --background: 224 10% 16%; /* Desaturated dark gray */
+    --background: 224 10% 10%; /* Dark Slate */
     --foreground: 210 20% 98%;
  
-    --card: 224 10% 20%;
+    --card: 224 10% 15%;
     --card-foreground: 210 20% 98%;
  
-    --popover: 224 10% 16%;
+    --popover: 224 10% 10%;
     --popover-foreground: 210 20% 98%;
  
-    --primary: 151 59% 43%; /* Vibrant Green */
-    --primary-foreground: 355 100% 97%;
+    --primary: 188 88% 50%; /* Vibrant Cyan */
+    --primary-foreground: 224 71% 4%;
  
-    --secondary: 224 10% 24%;
+    --secondary: 224 10% 20%;
     --secondary-foreground: 210 20% 98%;
  
-    --muted: 224 10% 24%;
+    --muted: 224 10% 20%;
     --muted-foreground: 215 20% 65%;
  
-    --accent: 151 49% 52%; /* Light green accent for dark mode */
-    --accent-foreground: 355 100% 97%;
+    --accent: 45 88% 50%; /* Gold */
+    --accent-foreground: 224 71% 4%;
  
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 20% 98%;
  
-    --border: 224 10% 24%;
-    --input: 224 10% 24%;
-    --ring: 151 59% 43%;
+    --border: 224 10% 20%;
+    --input: 224 10% 20%;
+    --ring: 188 88% 50%;
 
     /* Dark Theme Animated Background Colors */
-    --bg-color-1: 151 59% 33%; /* Darker Primary Green */
-    --bg-color-2: 250 50% 30%; /* Deep Purple */
-    --bg-color-3: 220 50% 25%; /* Midnight Blue */
-    --bg-color-4: 0 50% 28%;   /* Dark Red */
+    --bg-color-1: 188 88% 40%; /* Deeper Cyan */
+    --bg-color-2: 260 60% 30%; /* Deep Indigo */
+    --bg-color-3: 45 88% 40%;  /* Dark Gold */
+    --bg-color-4: 330 60% 25%; /* Rich Maroon */
   }
 }
  
