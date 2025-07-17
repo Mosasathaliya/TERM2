@@ -59,37 +59,38 @@ export function MainApp() {
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-500 relative overflow-hidden">
       <BackgroundShapes />
+      <div className="relative z-10 flex flex-col h-screen">
+        {/* Header */}
+        <header className="flex justify-between items-center p-6 shrink-0">
+          <h1 className="text-2xl font-bold">
+              {activeTab !== 'home' && 'Learn English'}
+          </h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="p-2 rounded-full hover:bg-accent"
+          >
+            {mounted && (theme === "dark" ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />)}
+            <span className="sr-only">تبديل الوضع</span>
+          </Button>
+        </header>
 
-      {/* Header */}
-      <header className="relative z-10 flex justify-between items-center p-6">
-        <h1 className="text-2xl font-bold">
-            {activeTab !== 'home' && 'Learn English'}
-        </h1>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          className="p-2 rounded-full hover:bg-accent"
-        >
-          {mounted && (theme === "dark" ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />)}
-          <span className="sr-only">تبديل الوضع</span>
-        </Button>
-      </header>
+        {/* Main Content */}
+        <main className="px-6 pb-24 flex-grow overflow-y-auto">
+          {renderScreen()}
+        </main>
 
-      {/* Main Content */}
-      <main className="relative z-10 px-6 pb-24">
-        {renderScreen()}
-      </main>
-
-      {/* Transparent Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 backdrop-blur-lg bg-background/70 border-t border-border/50 z-10">
-        <div className="flex justify-around py-3">
-          <NavItem icon={<Home />} label="الرئيسية" isActive={activeTab === "home"} onClick={() => setActiveTab("home")} />
-          <NavItem icon={<Book />} label="المكتبة" isActive={activeTab === "book"} onClick={() => setActiveTab("book")} />
-          <NavItem icon={<Bot />} label="الذكاء الاصطناعي" isActive={activeTab === "ai"} onClick={() => setActiveTab("ai")} />
-          <NavItem icon={<BarChart />} label="التقدم" isActive={activeTab === "progress"} onClick={() => setActiveTab("progress")} />
-        </div>
-      </nav>
+        {/* Transparent Bottom Navigation */}
+        <nav className="fixed bottom-0 left-0 right-0 backdrop-blur-lg bg-background/70 border-t border-border/50 shrink-0">
+          <div className="flex justify-around py-3">
+            <NavItem icon={<Home />} label="الرئيسية" isActive={activeTab === "home"} onClick={() => setActiveTab("home")} />
+            <NavItem icon={<Book />} label="المكتبة" isActive={activeTab === "book"} onClick={() => setActiveTab("book")} />
+            <NavItem icon={<Bot />} label="الذكاء الاصطناعي" isActive={activeTab === "ai"} onClick={() => setActiveTab("ai")} />
+            <NavItem icon={<BarChart />} label="التقدم" isActive={activeTab === "progress"} onClick={() => setActiveTab("progress")} />
+          </div>
+        </nav>
+      </div>
     </div>
   );
 }
