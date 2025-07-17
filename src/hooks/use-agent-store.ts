@@ -8,7 +8,7 @@
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 // Define the valid, high-quality voices for gemini-2.5-flash-preview-tts
 const VALID_VOICES = [
@@ -32,6 +32,7 @@ export interface UserSettings {
 
 // Define the structure of the entire store's state
 interface AgentState {
+  version: number; // Add version number for migration
   agents: Agent[];
   currentAgent: Agent;
   userSettings: UserSettings;
@@ -40,6 +41,8 @@ interface AgentState {
   setUserSettings: (settings: UserSettings) => void;
   setAudioLevel: (level: number) => void;
 }
+
+const STORAGE_VERSION = 2; // Increment this to force a state reset
 
 // Define the default list of agents with valid voices
 const defaultAgents: Agent[] = [
@@ -63,27 +66,40 @@ const defaultAgents: Agent[] = [
   },
 ];
 
+const initialState = {
+  version: STORAGE_VERSION,
+  agents: defaultAgents,
+  currentAgent: defaultAgents[0],
+  userSettings: {
+    name: '',
+    info: '',
+  },
+  audioLevel: 0,
+};
+
+
 // Create the Zustand store with persistence middleware
 export const useAgentStore = create<AgentState>()(
   persist(
     (set) => ({
-      // State
-      agents: defaultAgents,
-      currentAgent: defaultAgents[0],
-      userSettings: {
-        name: '',
-        info: '',
-      },
-      audioLevel: 0,
-
+      ...initialState,
       // Actions
       setCurrentAgent: (agent) => set({ currentAgent: agent }),
       setUserSettings: (settings) => set({ userSettings: settings }),
       setAudioLevel: (level) => set({ audioLevel: level }),
     }),
     {
-      // Configuration for the persistence middleware
       name: 'agent-storage', // Name for the storage item in localStorage
+      storage: createJSONStorage(() => localStorage), // Explicitly set storage
+      version: STORAGE_VERSION, // Set the version for the storage
+      migrate: (persistedState, version) => {
+        // If the stored version is older than the current version,
+        // ignore the stored state and use the new initial state.
+        if (version < STORAGE_VERSION) {
+          return initialState;
+        }
+        return persistedState as AgentState;
+      },
     }
   )
 );
