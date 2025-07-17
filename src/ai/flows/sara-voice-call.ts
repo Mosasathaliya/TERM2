@@ -20,7 +20,7 @@ const ConversationEntrySchema = z.object({
 const SaraVoiceCallInputSchema = z.object({
   englishGrammarConcept: z.string().describe('The English grammar concept or question from the user.'),
   userLanguageProficiency: z.string().describe('The user\u0027s proficiency level in English.'),
-  conversationHistory: z.array(ConversationEntrySchema).optional().describe('The history of the conversation so far.'),
+  conversationHistory: z.array(ConversationEntrySchema).optional().default([]).describe('The history of the conversation so far.'),
 });
 export type SaraVoiceCallInput = z.infer<typeof SaraVoiceCallInputSchema>;
 
@@ -75,3 +75,5 @@ const saraVoiceCallFlow = ai.defineFlow(
     return output!;
   }
 );
+
+    

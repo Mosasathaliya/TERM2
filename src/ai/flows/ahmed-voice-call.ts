@@ -19,7 +19,7 @@ const ConversationEntrySchema = z.object({
 
 const AhmedVoiceCallInputSchema = z.object({
   englishGrammarConcept: z.string().describe('The English grammar concept or question from the user.'),
-  conversationHistory: z.array(ConversationEntrySchema).optional().describe('The history of the conversation so far.'),
+  conversationHistory: z.array(ConversationEntrySchema).optional().default([]).describe('The history of the conversation so far.'),
 });
 export type AhmedVoiceCallInput = z.infer<typeof AhmedVoiceCallInputSchema>;
 
@@ -36,7 +36,7 @@ const prompt = ai.definePrompt({
   name: 'ahmedVoiceCallPrompt',
   input: {schema: AhmedVoiceCallInputSchema},
   output: {schema: AhmedVoiceCallOutputSchema},
-  prompt: `You are Ahmed, a friendly and helpful male AI teacher from Speed of Mastery. Your specialty is explaining English grammar concepts in Arabic.
+  prompt: `You are Ahmed, an AI teacher from Speed of Mastery. You are a friendly and helpful male expert specializing in explaining English grammar concepts in Arabic.
 Your goal is to provide clear, simple explanations with useful examples.
 
 {{#if conversationHistory.length}}
@@ -65,3 +65,5 @@ const ahmedVoiceCallFlow = ai.defineFlow(
     return output!;
   }
 );
+
+    

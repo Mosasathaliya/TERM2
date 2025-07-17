@@ -36,9 +36,6 @@ const saraSchema = z.object({
 type SaraFormData = z.infer<typeof saraSchema>;
 
 type Teacher = "Ahmed" | "Sara";
-type CallState = "idle" | "calling" | "active" | "error";
-type SpeechLanguage = 'en-US' | 'ar-SA';
-
 export interface ConversationEntry {
   speaker: 'User' | 'Ahmed' | 'Sara';
   message: string;
@@ -56,18 +53,10 @@ const TENSES_LIST = [
 
 export function TenseTeacherApp() {
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher>("Ahmed");
-  const [callState, setCallState] = useState<CallState>("idle");
-  const [isMuted, setIsMuted] = useState(false);
+  const [isCalling, setIsCalling] = useState(false);
   const { toast } = useToast();
-
-  const [isListening, setIsListening] = useState(false);
-  const [listeningLanguage, setListeningLanguage] = useState<SpeechLanguage | null>(null);
-  const [speechRecognitionSupported, setSpeechRecognitionSupported] = useState(true);
-  const speechRecognitionRef = useRef<SpeechRecognition | null>(null);
   const [conversationHistory, setConversationHistory] = useState<ConversationEntry[]>([]);
-  const [selectedTense, setSelectedTense] = useState<string>("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
-
 
   const ahmedForm = useForm<AhmedFormData>({
     resolver: zodResolver(ahmedSchema),
@@ -79,179 +68,73 @@ export function TenseTeacherApp() {
     defaultValues: { englishGrammarConcept: "", userLanguageProficiency: "" },
   });
 
+  const currentForm = selectedTeacher === 'Ahmed' ? ahmedForm : saraForm;
+  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue } = currentForm;
+
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [conversationHistory]);
 
-
-  // Effect to reset state when teacher changes
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-    }
-    if (speechRecognitionRef.current && isListening) {
-      speechRecognitionRef.current.abort();
-      setIsListening(false);
-      setListeningLanguage(null);
-    }
-    setCallState("idle");
-    setConversationHistory([]); 
-    setSelectedTense("");
-    ahmedForm.reset({ englishGrammarConcept: "" });
-    saraForm.reset({ englishGrammarConcept: "", userLanguageProficiency: "" });
-    ahmedForm.clearErrors();
-    saraForm.clearErrors();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTeacher]);
-
   const handlePlayAudio = async (text: string) => {
-      if (isMuted) return;
       try {
         const result = await textToSpeech(text);
         if (result && result.media) {
             const audio = new Audio(result.media);
             audio.play();
-        } else {
-            toast({
-              title: "TTS Error",
-              description: "Could not generate audio.",
-              variant: "destructive",
-            });
         }
       } catch (error) {
           console.error("TTS Error:", error);
-          toast({
-            title: "TTS Error",
-            description: "An unexpected error occurred.",
-            variant: "destructive",
-          });
       }
-  };
-
-  const commonSubmitLogic = () => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-    }
-    if (speechRecognitionRef.current && isListening) {
-      speechRecognitionRef.current.abort();
-      setIsListening(false);
-      setListeningLanguage(null);
-    }
-    setCallState("calling");
   };
   
-  const handleAhmedSubmit: SubmitHandler<AhmedFormData> = async (data) => {
-    commonSubmitLogic();
-    const userEntry: ConversationEntry = { speaker: 'User', message: data.englishGrammarConcept };
-    const currentHistory = [...conversationHistory, userEntry];
-    setConversationHistory(currentHistory);
+  const onSubmit = async (data: AhmedFormData | SaraFormData) => {
+    setIsCalling(true);
+    const userMessage = data.englishGrammarConcept;
+    const newHistory: ConversationEntry[] = [...conversationHistory, { speaker: 'User', message: userMessage }];
+    setConversationHistory(newHistory);
+    setValue('englishGrammarConcept', '');
 
     try {
-      const input: AhmedVoiceCallInput = { 
-        englishGrammarConcept: data.englishGrammarConcept,
-        conversationHistory: conversationHistory, // Pass history *before* this turn
-      };
-      const result = await ahmedVoiceCall(input);
-      setCallState("active");
-      
-      const aiEntry: ConversationEntry = { speaker: 'Ahmed', message: result.explanation };
-      setConversationHistory(prev => [...prev, aiEntry].slice(- (MAX_HISTORY_PAIRS * 2)));
-      ahmedForm.reset({ englishGrammarConcept: "" });
-
-      handlePlayAudio(result.explanation);
-
-    } catch (error) {
-      console.error("Error calling Ahmed:", error);
-      toast({
-        variant: "destructive",
-        title: "فشل الاتصال",
-        description: "تعذر الاتصال بـ أحمد. يرجى المحاولة مرة أخرى.",
-      });
-      setCallState("error");
-      setConversationHistory(prev => prev.slice(0, -1)); // Remove user message on failure
-    }
-  };
-
-  const handleSaraSubmit: SubmitHandler<SaraFormData> = async (data) => {
-    commonSubmitLogic();
-    const userEntry: ConversationEntry = { speaker: 'User', message: data.englishGrammarConcept };
-    const currentHistory = [...conversationHistory, userEntry];
-    setConversationHistory(currentHistory);
-    
-    try {
-      const input: SaraVoiceCallInput = { 
-        ...data, 
-        conversationHistory: conversationHistory, // Pass history *before* this turn
-      };
-      const result = await saraVoiceCall(input);
-      setCallState("active");
-
-      const aiEntry: ConversationEntry = { speaker: 'Sara', message: result.explanation };
-      setConversationHistory(prev => [...prev, aiEntry].slice(- (MAX_HISTORY_PAIRS * 2)));
-      saraForm.reset({ ...saraForm.getValues(), englishGrammarConcept: "" });
-
-      handlePlayAudio(result.explanation);
-
-    } catch (error) {
-      console.error("Error calling Sara:", error);
-      toast({
-        variant: "destructive",
-        title: "فشل الاتصال",
-        description: "تعذر الاتصال بـ سارة. يرجى المحاولة مرة أخرى.",
-      });
-      setCallState("error");
-      setConversationHistory(prev => prev.slice(0, -1));
-    }
-  };
-
-  useEffect(() => {
-    if (selectedTense) {
-        const currentForm = selectedTeacher === 'Ahmed' ? ahmedForm : saraForm;
-        currentForm.setValue('englishGrammarConcept', `Explain ${selectedTense}`);
-        const values = currentForm.getValues();
-        
-        if (selectedTeacher === 'Sara' && !(values as SaraFormData).userLanguageProficiency) {
-            toast({
-                title: "مطلوب مستوى الإتقان",
-                description: "يرجى إدخال مستوى إتقانك للغة الإنجليزية قبل اختيار زمن.",
-                variant: "destructive"
-            });
-            setSelectedTense("");
-            return;
+        let result;
+        if (selectedTeacher === 'Ahmed') {
+            const input: AhmedVoiceCallInput = {
+                englishGrammarConcept: userMessage,
+                conversationHistory: conversationHistory,
+            };
+            result = await ahmedVoiceCall(input);
+        } else {
+             const saraData = data as SaraFormData;
+             const input: SaraVoiceCallInput = {
+                englishGrammarConcept: userMessage,
+                userLanguageProficiency: saraData.userLanguageProficiency || 'Intermediate',
+                conversationHistory: conversationHistory,
+            };
+            result = await saraVoiceCall(input);
         }
 
-        currentForm.handleSubmit(selectedTeacher === 'Ahmed' ? handleAhmedSubmit : handleSaraSubmit)();
-        setSelectedTense(""); 
+        const aiEntry: ConversationEntry = { speaker: selectedTeacher, message: result.explanation };
+        setConversationHistory(prev => [...prev, aiEntry].slice(- (MAX_HISTORY_PAIRS * 2)));
+        handlePlayAudio(result.explanation);
+    } catch (error) {
+        console.error(`Error calling ${selectedTeacher}:`, error);
+        toast({
+            variant: "destructive",
+            title: "فشل الاتصال",
+            description: `تعذر الاتصال بـ ${selectedTeacher}. يرجى المحاولة مرة أخرى.`,
+        });
+        // Remove the user's message if the call fails
+        setConversationHistory(prev => prev.slice(0, -1));
+    } finally {
+        setIsCalling(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTense, selectedTeacher]);
-
-  const endCall = () => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-    }
-    if (speechRecognitionRef.current && isListening) {
-      speechRecognitionRef.current.abort();
-      setIsListening(false);
-      setListeningLanguage(null);
-    }
-    setCallState("idle");
-    setConversationHistory([]);
-    setSelectedTense("");
-    if (selectedTeacher === "Ahmed") ahmedForm.reset();
-    if (selectedTeacher === "Sara") saraForm.reset();
   };
-
-  const toggleMute = () => {
-    setIsMuted(prevMuted => {
-      const newMutedState = !prevMuted;
-      if (newMutedState && typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-      return newMutedState;
-    });
+  
+  const handleTenseSelection = (tense: string) => {
+    if(tense) {
+        setValue('englishGrammarConcept', `Explain ${tense}`);
+    }
   };
 
   const teacherDetails = {
@@ -259,68 +142,44 @@ export function TenseTeacherApp() {
       name: "أحمد",
       avatarSrc: "https://placehold.co/128x128/3498db/ffffff.png",
       avatarHint: "male teacher",
-      onSubmit: handleAhmedSubmit,
+      onSubmit: onSubmit,
     },
     Sara: {
       name: "سارة",
       avatarSrc: "https://placehold.co/128x128/e91e63/ffffff.png",
       avatarHint: "female teacher",
-      onSubmit: handleSaraSubmit,
+      onSubmit: onSubmit,
     },
   };
 
   const currentTeacherInfo = teacherDetails[selectedTeacher];
-  const currentForm = selectedTeacher === 'Ahmed' ? ahmedForm : saraForm;
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = currentForm;
 
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
-        <ScrollArea className="flex-grow">
-            <header className="mb-10 text-center pt-8 sm:pt-16">
-                <MessageSquareQuote className="mx-auto h-16 w-16 sm:h-20 sm:w-20 text-primary mb-4 animate-pulse" />
-                <h1 className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight">خبير الأزمنة</h1>
-                <p className="text-lg sm:text-xl text-muted-foreground mt-2">
-                    معلموك الذكاء الاصطناعي لإتقان قواعد اللغة الإنجليزية، مع شرح باللغة العربية.
-                </p>
-            </header>
+        <header className="mb-4 text-center pt-8 sm:pt-16">
+            <MessageSquareQuote className="mx-auto h-16 w-16 sm:h-20 sm:w-20 text-primary mb-4 animate-pulse" />
+            <h1 className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight">خبير الأزمنة</h1>
+            <p className="text-lg sm:text-xl text-muted-foreground mt-2">
+                معلموك الذكاء الاصطناعي لإتقان قواعد اللغة الإنجليزية، مع شرح باللغة العربية.
+            </p>
+        </header>
 
-            <div className="px-4 pb-4 w-full max-w-2xl mx-auto">
-                <Tabs value={selectedTeacher} onValueChange={(value) => setSelectedTeacher(value as Teacher)} className="w-full bg-card rounded-t-lg shadow-xl overflow-hidden">
-                    <TabsList className="grid w-full grid-cols-2 rounded-none h-auto">
-                        <TabsTrigger value="Ahmed" className="py-3 sm:py-4 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-none">
-                            <User className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> أحمد
-                        </TabsTrigger>
-                        <TabsTrigger value="Sara" className="py-3 sm:py-4 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-none">
-                            <User className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> سارة
-                        </TabsTrigger>
-                    </TabsList>
-                </Tabs>
-                
-                <Card className="w-full shadow-xl bg-card rounded-t-none">
-                    <CardHeader className="text-center p-6 bg-muted/30 relative">
-                        <div className="flex justify-center mb-4">
-                            <Avatar className="w-24 h-24 sm:w-28 sm:h-28 border-2 sm:border-4 border-primary shadow-lg">
-                                <Image 
-                                    src={currentTeacherInfo.avatarSrc} 
-                                    alt={currentTeacherInfo.name} 
-                                    width={128} 
-                                    height={128} 
-                                    data-ai-hint={currentTeacherInfo.avatarHint}
-                                    className="object-cover"
-                                />
-                                <AvatarFallback className="text-3xl sm:text-4xl">{selectedTeacher.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                        </div>
-                        <Button
-                            variant="ghost" size="icon" onClick={toggleMute}
-                            className="absolute top-4 rtl:left-4 ltr:right-4 text-muted-foreground hover:text-primary"
-                            aria-label={isMuted ? "إلغاء كتم الصوت" : "كتم الصوت"}>
-                            {isMuted ? <VolumeX className="h-5 w-5 sm:h-6 sm:w-6" /> : <Volume2 className="h-5 w-5 sm:h-6 sm:w-6" />}
-                        </Button>
-                    </CardHeader>
-                    
-                    <CardContent className="p-4 sm:p-6 space-y-4">
-                        <div ref={chatContainerRef} className="h-64 overflow-y-auto p-2 border rounded-md bg-background space-y-4">
+        <div className="flex-grow px-4 pb-4 w-full max-w-2xl mx-auto flex flex-col min-h-0">
+             <Tabs value={selectedTeacher} onValueChange={(value) => setSelectedTeacher(value as Teacher)} className="w-full bg-card rounded-t-lg shadow-xl overflow-hidden shrink-0">
+                <TabsList className="grid w-full grid-cols-2 rounded-none h-auto">
+                    <TabsTrigger value="Ahmed" className="py-3 sm:py-4 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-none">
+                        <User className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> أحمد
+                    </TabsTrigger>
+                    <TabsTrigger value="Sara" className="py-3 sm:py-4 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-none">
+                        <User className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> سارة
+                    </TabsTrigger>
+                </TabsList>
+            </Tabs>
+            
+            <Card className="w-full shadow-xl bg-card rounded-t-none flex flex-col flex-grow min-h-0">
+                <CardContent className="p-4 sm:p-6 space-y-4 flex flex-col flex-grow min-h-0">
+                    <ScrollArea className="flex-grow h-64 border rounded-md bg-background">
+                        <div ref={chatContainerRef} className="p-2 space-y-4">
                             {conversationHistory.length > 0 ? (
                                 conversationHistory.map((entry, index) => (
                                     <div key={index} className={`flex items-start gap-2 ${entry.speaker === 'User' ? 'justify-end' : 'justify-start'}`}>
@@ -337,7 +196,7 @@ export function TenseTeacherApp() {
                                     <p>ابدأ المحادثة باختيار موضوع أو طرح سؤال أدناه.</p>
                                 </div>
                             )}
-                            {callState === "calling" && (
+                            {isCalling && (
                                 <div className="flex items-start gap-2 justify-start">
                                     <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{selectedTeacher.charAt(0)}</AvatarFallback></Avatar>
                                     <div className="rounded-lg px-3 py-2 bg-muted flex items-center">
@@ -346,50 +205,47 @@ export function TenseTeacherApp() {
                                 </div>
                             )}
                         </div>
+                    </ScrollArea>
 
-                        <form onSubmit={handleSubmit(currentTeacherInfo.onSubmit as SubmitHandler<any>)} className="space-y-3 pt-4 border-t">
-                            {selectedTeacher === "Sara" && conversationHistory.length === 0 && (
-                                <div>
-                                    <Label htmlFor="userLanguageProficiency" className="text-sm sm:text-md font-medium">مستوى إتقانك للغة الإنجليزية</Label>
-                                    <Input id="userLanguageProficiency" placeholder="مثال: مبتدئ، متوسط، متقدم" {...register("userLanguageProficiency")}
-                                        className={`mt-1 text-base bg-background focus:ring-2 focus:ring-primary ${errors.userLanguageProficiency ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
-                                        disabled={isSubmitting} />
-                                    {errors.userLanguageProficiency && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.userLanguageProficiency.message}</p>}
-                                </div>
-                            )}
+                    <form onSubmit={handleSubmit(onSubmit as SubmitHandler<any>)} className="space-y-3 pt-4 border-t shrink-0">
+                        {selectedTeacher === "Sara" && conversationHistory.length === 0 && (
                             <div>
-                                <Label htmlFor="tense-select" className="text-sm sm:text-md font-medium">اختر زمناً ليبدأ الشرح</Label>
-                                <Select value={selectedTense} onValueChange={setSelectedTense} disabled={isSubmitting}>
-                                    <SelectTrigger id="tense-select" className="mt-1 text-base">
-                                        <SelectValue placeholder="اختر زمناً من القائمة..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {TENSES_LIST.map(tense => ( <SelectItem key={tense} value={tense}>{tense}</SelectItem> ))}
-                                    </SelectContent>
-                                </Select>
+                                <Label htmlFor="userLanguageProficiency" className="text-sm sm:text-md font-medium">مستوى إتقانك للغة الإنجليزية</Label>
+                                <Input id="userLanguageProficiency" placeholder="مثال: مبتدئ، متوسط، متقدم" {...register("userLanguageProficiency")}
+                                    className={`mt-1 text-base bg-background focus:ring-2 focus:ring-primary ${errors.userLanguageProficiency ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
+                                    disabled={isSubmitting} />
+                                {errors.userLanguageProficiency && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.userLanguageProficiency.message}</p>}
                             </div>
-                            <div>
-                                <Label htmlFor="englishGrammarConcept" className="text-sm sm:text-md font-medium">أو اطرح سؤالاً للمتابعة</Label>
-                                <div className="flex gap-2 mt-1">
-                                    <Textarea id="englishGrammarConcept" placeholder="اكتب سؤال متابعة هنا..." {...register("englishGrammarConcept")}
-                                        className={`text-base bg-background focus:ring-2 focus:ring-primary ${errors.englishGrammarConcept ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
-                                        rows={1} disabled={isSubmitting || isListening} />
-                                    <Button type="submit" size="icon" className="h-auto px-3" disabled={isSubmitting || isListening}>
-                                        <Send className="h-5 w-5" />
-                                    </Button>
-                                </div>
-                                {errors.englishGrammarConcept && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.englishGrammarConcept.message}</p>}
-                            </div>
-                            {callState === "active" && (
-                                <Button type="button" onClick={endCall} variant="outline" className="w-full max-w-xs mx-auto py-2.5 sm:py-3 text-base sm:text-lg border-destructive text-destructive hover:bg-destructive/10 rounded-md shadow-sm flex items-center justify-center">
-                                    <PhoneOff className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> إنهاء المحادثة
+                        )}
+                        <div>
+                            <Label htmlFor="tense-select" className="text-sm sm:text-md font-medium">اختر زمناً ليبدأ الشرح</Label>
+                            <Select onValueChange={handleTenseSelection} disabled={isSubmitting}>
+                                <SelectTrigger id="tense-select" className="mt-1 text-base">
+                                    <SelectValue placeholder="اختر زمناً من القائمة..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {TENSES_LIST.map(tense => ( <SelectItem key={tense} value={tense}>{tense}</SelectItem> ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label htmlFor="englishGrammarConcept" className="text-sm sm:text-md font-medium">أو اطرح سؤالاً للمتابعة</Label>
+                            <div className="flex gap-2 mt-1">
+                                <Textarea id="englishGrammarConcept" placeholder="اكتب سؤال متابعة هنا..." {...register("englishGrammarConcept")}
+                                    className={`text-base bg-background focus:ring-2 focus:ring-primary ${errors.englishGrammarConcept ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
+                                    rows={1} disabled={isSubmitting} />
+                                <Button type="submit" size="icon" className="h-auto px-3 shrink-0" disabled={isSubmitting}>
+                                    {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin"/> : <Send className="h-5 w-5" />}
                                 </Button>
-                            )}
-                        </form>
-                    </CardContent>
-                </Card>
-            </div>
-        </ScrollArea>
+                            </div>
+                            {errors.englishGrammarConcept && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.englishGrammarConcept.message}</p>}
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
+        </div>
     </div>
   );
 }
+
+    
