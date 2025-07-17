@@ -11,6 +11,7 @@ import '@/ai/flows/suggest-new-words.ts';
 import '@/ai/flows/translate-flow.ts';
 import '@/ai/flows/explain-video-flow.ts';
 import '@/ai/flows/generate-certificate-image.ts';
+import '@/ai/flows/generate-quiz-flow.ts';
 
 
 // Voice Chat Agent flows
