@@ -780,7 +780,7 @@ function AiStoryMaker() {
     );
 }
 
-function MyStoriesDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) {
+function MyStoriesDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
   const { stories } = useStoryStore();
   const { quizResults } = useQuizStore();
   const [viewingStory, setViewingStory] = useState<SavedStory | null>(null);
@@ -1464,8 +1464,8 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
 }
 
 export function ProgressScreen() {
-    const [isCertificateOpen, setIsCertificateOpen] = useState(false);
     const { finalExamPassed } = useProgressStore();
+    const [isCertificateOpen, setIsCertificateOpen] = useState(false);
     
     const chartData = [
       { day: "الأحد", lessons: 2 },
@@ -1631,3 +1631,5 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
         </Dialog>
     );
 }
+
+    
