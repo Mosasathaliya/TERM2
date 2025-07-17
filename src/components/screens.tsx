@@ -1,11 +1,10 @@
-
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -15,7 +14,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2 } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -39,6 +38,9 @@ import type { Lesson } from '@/types/lesson';
 import LessonDisplay from './lesson/LessonDisplay';
 import { generateLessonContent } from '@/ai/flows/generate-lesson-content';
 import Link from 'next/link';
+
+// Import video links from the text file
+import videoLinks from '@/ai/youy.txt.txt';
 
 function LessonList() {
   return (
@@ -101,6 +103,61 @@ function LessonList() {
   );
 }
 
+function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
+    const getYouTubeEmbedUrl = (url: string): string | null => {
+        let videoId = null;
+        try {
+            const urlObj = new URL(url);
+            if (urlObj.hostname === 'youtu.be') {
+                videoId = urlObj.pathname.slice(1);
+            } else if (urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') {
+                videoId = urlObj.searchParams.get('v');
+            }
+        } catch (e) {
+            // Invalid URL format
+            return null;
+        }
+
+        if (videoId) {
+            return `https://www.youtube.com/embed/${videoId}`;
+        }
+        return null;
+    };
+
+    const videoUrls = videoLinks.split('\n').map(getYouTubeEmbedUrl).filter(Boolean);
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
+                <DialogHeader className="p-4 border-b shrink-0">
+                    <DialogTitle>تعلم بالفيديو</DialogTitle>
+                    <DialogDescription>شاهد هذه الفيديوهات التعليمية لتعزيز تعلمك.</DialogDescription>
+                    <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Close</span>
+                    </DialogClose>
+                </DialogHeader>
+                <ScrollArea className="flex-grow min-h-0">
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {videoUrls.map((url, index) => (
+                            <div key={index} className="aspect-video bg-muted rounded-lg overflow-hidden shadow-lg">
+                                <iframe
+                                    width="100%"
+                                    height="100%"
+                                    src={url!}
+                                    title={`YouTube video player ${index + 1}`}
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
+                        ))}
+                    </div>
+                </ScrollArea>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
@@ -108,6 +165,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     const [isJumbleGameOpen, setIsJumbleGameOpen] = useState(false);
     const [isTenseTeacherOpen, setIsTenseTeacherOpen] = useState(false);
     const [isLessonsOpen, setIsLessonsOpen] = useState(false);
+    const [isVideoLearnOpen, setIsVideoLearnOpen] = useState(false);
     
   return (
     <>
@@ -179,7 +237,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             </Card>
             
             <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm md:col-span-2"
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
                 onClick={() => setIsJumbleGameOpen(true)}
             >
                 <CardHeader>
@@ -189,6 +247,21 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                     </CardTitle>
                     <CardDescription>
                         أعد ترتيب الحروف لتكوين كلمات وحسّن مهاراتك الإملائية.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+            
+            <Card 
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                onClick={() => setIsVideoLearnOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <Youtube className="h-8 w-8 text-red-600" />
+                        <span>تعلم بالفيديو</span>
+                    </CardTitle>
+                    <CardDescription>
+                        شاهد فيديوهات يوتيوب تعليمية مباشرة داخل التطبيق.
                     </CardDescription>
                 </CardHeader>
             </Card>
@@ -272,6 +345,8 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             <LessonList />
         </DialogContent>
     </Dialog>
+    
+    <VideoLearnDialog isOpen={isVideoLearnOpen} onOpenChange={setIsVideoLearnOpen} />
     </>
   );
 }
