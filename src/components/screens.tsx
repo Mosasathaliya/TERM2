@@ -19,7 +19,7 @@ import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIco
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { LingoleapApp } from './lingoleap-app';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
@@ -32,6 +32,8 @@ import {
 import { TextAdventureApp } from './text-adventure-app';
 import { MumbleJumbleApp } from './mumble-jumble-app';
 import { TenseTeacherApp } from './tense-teacher-app';
+import { ChatterbotApp } from './chatterbot-app';
+import { DialogDescription } from './ui/dialog';
 
 
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
