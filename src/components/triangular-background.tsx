@@ -24,14 +24,14 @@ const AnimatedBlob = ({
   yEnd: string;
 }) => (
   <div
-    className="absolute rounded-full opacity-50 mix-blend-multiply blur-xl animate-move"
+    className="absolute rounded-full opacity-50 mix-blend-multiply blur-xl"
     style={{
       backgroundColor: `hsl(var(${color}))`,
       top: y,
       left: x,
       width: size,
       height: size,
-      animationDuration: duration,
+      animation: `move ${duration} ease-in-out infinite alternate`,
       animationDelay: delay,
       '--x-end': xEnd,
       '--y-end': yEnd,

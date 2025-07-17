@@ -88,10 +88,10 @@
   }
 
   @keyframes move {
-    from {
+    0% {
       transform: translate(0, 0) rotate(0deg);
     }
-    to {
+    100% {
       transform: translate(var(--x-end), var(--y-end)) rotate(360deg);
     }
   }
@@ -146,4 +146,3 @@
     --input: 217 33% 25%;
     --ring: 206 69% 63%;
 }
-
