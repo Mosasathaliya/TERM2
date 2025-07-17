@@ -104,7 +104,7 @@ function LessonList() {
   );
 }
 
-function VideoPlayerModal({ videoUrl, onClose }: { videoUrl: string, onClose: () => void }) {
+function VideoPlayerModal({ videoUrl, onClose }: { videoUrl: string | null; onClose: () => void }) {
   if (!videoUrl) return null;
 
   return (
@@ -189,7 +189,7 @@ function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
             </DialogContent>
         </Dialog>
 
-        {selectedVideoUrl && <VideoPlayerModal videoUrl={selectedVideoUrl} onClose={() => setSelectedVideoUrl(null)} />}
+        <VideoPlayerModal videoUrl={selectedVideoUrl} onClose={() => setSelectedVideoUrl(null)} />
       </>
     );
 }
@@ -221,7 +221,7 @@ function AevyTvDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
                                             <div className="w-full h-full p-1">
                                                 <iframe
                                                     className="w-full h-full rounded-lg"
-                                                    src={`https://www.youtube.com/embed/shorts/${id}`}
+                                                    src={`https://www.youtube.com/embed/${id}`}
                                                     title="YouTube video player"
                                                     frameBorder="0"
                                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
