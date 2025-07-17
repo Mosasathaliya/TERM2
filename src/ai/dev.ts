@@ -13,6 +13,7 @@ import '@/ai/flows/explain-video-flow.ts';
 import '@/ai/flows/generate-certificate-image.ts';
 import '@/ai/flows/generate-quiz-flow.ts';
 import '@/ai/flows/generate-vocabulary-quiz.ts';
+import '@/ai/flows/story-quiz-flow.ts';
 
 
 // Voice Chat Agent flows

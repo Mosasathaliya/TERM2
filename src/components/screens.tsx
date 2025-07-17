@@ -56,6 +56,9 @@ import { Label } from './ui/label';
 import { Alert, AlertTitle } from './ui/alert';
 import { cn } from '@/lib/utils';
 import { translateText } from '@/ai/flows/translate-flow';
+import { useStoryStore, type SavedStory } from '@/hooks/use-story-store';
+import { generateStoryQuiz } from '@/ai/flows/story-quiz-flow';
+import type { StoryQuizOutput } from '@/ai/flows/story-quiz-flow';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -663,18 +666,119 @@ function AiChat() {
   );
 }
 
+function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory | null, isOpen: boolean, onOpenChange: (open: boolean) => void }) {
+  const [activeTab, setActiveTab] = useState<'story' | 'quiz'>('story');
+  const [quiz, setQuiz] = useState<StoryQuizOutput['questions'] | null>(null);
+  const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
+  const { toast } = useToast();
+  
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  
+  useEffect(() => {
+    // Reset state when a new story is opened
+    setActiveTab('story');
+    setQuiz(null);
+    setAnswers({});
+    setIsSubmitted(false);
+  }, [isOpen, story]);
+
+  const handleStartQuiz = async () => {
+    if (!story) return;
+    setIsLoadingQuiz(true);
+    try {
+      const result = await generateStoryQuiz({ storyContent: story.content });
+      setQuiz(result.questions);
+      setActiveTab('quiz');
+    } catch (err) {
+      console.error("Quiz generation error:", err);
+      toast({ variant: 'destructive', title: 'فشل إنشاء الاختبار' });
+    } finally {
+      setIsLoadingQuiz(false);
+    }
+  };
+  
+  const handleAnswerChange = (qIndex: number, option: string) => {
+    if (isSubmitted) return;
+    setAnswers(prev => ({ ...prev, [qIndex]: option }));
+  };
+
+  const handleSubmitQuiz = () => {
+    setIsSubmitted(true);
+    const score = quiz?.reduce((acc, q, i) => (answers[i] === q.correct_answer ? acc + 1 : acc), 0) || 0;
+    toast({ title: `Quiz Finished!`, description: `Your score: ${score} / ${quiz?.length}` });
+  };
+  
+  if (!story) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+        <DialogHeader className="p-4 border-b shrink-0">
+          <DialogTitle>{story.prompt}</DialogTitle>
+        </DialogHeader>
+        {activeTab === 'story' && (
+          <ScrollArea className="flex-grow">
+            <div className="p-6">
+              {story.imageUrl && <Image src={story.imageUrl} alt={story.prompt} width={600} height={400} className="w-full h-auto object-cover rounded-md mb-4" />}
+              <p className="whitespace-pre-wrap leading-relaxed">{story.content}</p>
+            </div>
+          </ScrollArea>
+        )}
+        {activeTab === 'quiz' && quiz && (
+           <ScrollArea className="flex-grow">
+             <div className="p-6">
+              {isSubmitted && (
+                <Alert className="mb-4">
+                  <AlertTitle>Quiz Complete! Score: {quiz.reduce((acc, q, i) => (answers[i] === q.correct_answer ? acc + 1 : acc), 0)} / {quiz.length}</AlertTitle>
+                </Alert>
+              )}
+              <div className="space-y-6">
+                {quiz.map((q, i) => (
+                   <div key={i} className={cn("p-4 border rounded-lg", isSubmitted && (answers[i] === q.correct_answer ? 'border-green-500' : 'border-destructive'))}>
+                    <p className="font-semibold mb-3">{i+1}. {q.question}</p>
+                    <RadioGroup value={answers[i]} onValueChange={(val) => handleAnswerChange(i, val)} disabled={isSubmitted}>
+                      {q.options.map(opt => (
+                         <div key={opt} className={cn("flex items-center space-x-2 rounded-md p-2", isSubmitted && opt === q.correct_answer && "bg-green-500/10 text-green-800 dark:text-green-300", isSubmitted && answers[i] === opt && opt !== q.correct_answer && "bg-destructive/10 text-destructive")}>
+                          <RadioGroupItem value={opt} id={`sq${i}-opt-${opt}`} />
+                          <Label htmlFor={`sq${i}-opt-${opt}`} className="flex-1 cursor-pointer">{opt}</Label>
+                           {isSubmitted && opt === q.correct_answer && <Check className="h-5 w-5 text-green-500" />}
+                            {isSubmitted && answers[i] === opt && opt !== q.correct_answer && <X className="h-5 w-5 text-destructive" />}
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                ))}
+              </div>
+             </div>
+           </ScrollArea>
+        )}
+        <DialogFooter className="p-4 border-t">
+          {activeTab === 'story' && <Button onClick={handleStartQuiz} disabled={isLoadingQuiz}>{isLoadingQuiz ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null} Take Quiz</Button>}
+          {activeTab === 'quiz' && !isSubmitted && <Button onClick={handleSubmitQuiz}>Submit Answers</Button>}
+          {activeTab === 'quiz' && isSubmitted && <Button variant="outline" onClick={() => setActiveTab('story')}>Back to Story</Button>}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
 function AiStoryMaker() {
+    const { stories, addStory } = useStoryStore();
     const [prompt, setPrompt] = useState("");
-    const [story, setStory] = useState("");
+    const [storyContent, setStoryContent] = useState("");
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
 
+    const canGenerate = stories.length < 3;
+
     const generateStory = async () => {
-        if (!prompt.trim() || loading) return;
+        if (!prompt.trim() || loading || !canGenerate) return;
 
         setLoading(true);
-        setStory("");
+        setStoryContent("");
         setImageUrl(null);
 
         try {
@@ -688,12 +792,17 @@ function AiStoryMaker() {
                 const { done, value } = await reader.read();
                 if (done) break;
                 const decodedChunk = decoder.decode(value, { stream: true });
-                setStory(prev => prev + decodedChunk);
+                setStoryContent(prev => prev + decodedChunk);
                 fullStory += decodedChunk;
             }
 
             const imageResult = await generateStoryImage({ story: fullStory });
             setImageUrl(imageResult.imageUrl);
+            
+            // Save the story
+            addStory({ id: Date.now().toString(), prompt, content: fullStory, imageUrl: imageResult.imageUrl });
+            
+            toast({ title: "Story Generated!", description: "Your new story has been saved to your dashboard." });
 
         } catch (err) {
             console.error("AI story generation error:", err);
@@ -711,7 +820,7 @@ function AiStoryMaker() {
         <div className="flex flex-col h-full">
             <DialogHeader className="p-4 border-b shrink-0">
                 <DialogTitle>مولد قصص الذكاء الاصطناعي</DialogTitle>
-                <DialogDescription>Turn your ideas into illustrated stories.</DialogDescription>
+                <DialogDescription>Turn your ideas into illustrated stories. You can generate {3 - stories.length} more stories.</DialogDescription>
                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
                     <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
@@ -724,14 +833,15 @@ function AiStoryMaker() {
                     placeholder="اكتب فكرة لقصة، مثل 'رائد فضاء يجد حديقة على المريخ'..."
                     rows={2}
                     className="w-full p-3 rounded-md focus:ring-2 focus:ring-primary outline-none transition bg-background"
-                    disabled={loading}
+                    disabled={loading || !canGenerate}
                 />
-                <Button onClick={generateStory} disabled={loading || !prompt.trim()}>
+                <Button onClick={generateStory} disabled={loading || !prompt.trim() || !canGenerate}>
                     {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> ...جاري الكتابة</> : <><Sparkles className="mr-2 h-4 w-4"/> إنشاء قصة</>}
                 </Button>
+                 {!canGenerate && <p className="text-center text-sm text-destructive">You have reached the maximum of 3 stories.</p>}
             </div>
             <div className="flex-grow p-4 pt-0 min-h-0">
-                 {(loading || story) && (
+                 {(loading || storyContent) && (
                     <ScrollArea className="h-full rounded-lg border bg-muted/50 p-4">
                         {imageUrl && (
                              <div className="mb-4 border rounded-lg overflow-hidden">
@@ -750,7 +860,7 @@ function AiStoryMaker() {
                                 <span className="text-muted-foreground mr-2">...يتم إنشاء الصورة</span>
                             </div>
                         )}
-                        <p className="whitespace-pre-wrap" dir="ltr">{story}{loading && story.length === 0 ? '...' : ''}</p>
+                        <p className="whitespace-pre-wrap" dir="ltr">{storyContent}{loading && storyContent.length === 0 ? '...' : ''}</p>
                     </ScrollArea>
                 )}
             </div>
@@ -759,228 +869,47 @@ function AiStoryMaker() {
 }
 
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
-    const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
-    const [isAdventureOpen, setIsAdventureOpen] = useState(false);
-    const [isJumbleGameOpen, setIsJumbleGameOpen] = useState(false);
-    const [isTenseTeacherOpen, setIsTenseTeacherOpen] = useState(false);
-    const [isLessonsOpen, setIsLessonsOpen] = useState(false);
-    const [isVideoLearnOpen, setIsVideoLearnOpen] = useState(false);
-    const [isWhatIfOpen, setIsWhatIfOpen] = useState(false);
-    const [isMotivationOpen, setIsMotivationOpen] = useState(false);
-    
-  return (
-    <>
-    <section className="animate-fadeIn">
-        <h2 className="text-4xl font-bold mb-4 text-center">أهلاً بك في رحلتك لتعلم الإنجليزية</h2>
-         <p className="text-muted-foreground mb-8 text-center max-w-2xl mx-auto">
-            استكشف الدروس التفاعلية، وتحدث مع مدرس الذكاء الاصطناعي، وتتبع تقدمك وأنت تتقن اللغة الإنجليزية.
-        </p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                onClick={() => setIsLingoleapOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <GraduationCap className="h-8 w-8 text-primary" />
-                        <span>مُنشئ المفردات</span>
-                    </CardTitle>
-                    <CardDescription>
-                        قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
+    const { stories } = useStoryStore();
+    const [selectedStory, setSelectedStory] = useState<SavedStory | null>(null);
 
-            <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                 onClick={() => setIsAdventureOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <Gamepad2 className="h-8 w-8 text-accent" />
-                        <span>مغامرة جيمني</span>
-                    </CardTitle>
-                    <CardDescription>
-                        العب لعبة مغامرة نصية لتعلم المفردات في سياقها.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-            
-            <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                onClick={() => setIsTenseTeacherOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <BookCheck className="h-8 w-8 text-destructive" />
-                        <span>خبير الأزمنة</span>
-                    </CardTitle>
-                    <CardDescription>
-                        تحدث مع خبير الذكاء الاصطناعي لإتقان أزمنة اللغة الإنجليزية.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-
-            <Card
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                onClick={() => setIsLessonsOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <Library className="h-8 w-8 text-green-500" />
-                        <span>مواد تعليمية إضافية</span>
-                    </CardTitle>
-                    <CardDescription>
-                        تصفح مكتبة الدروس المنظمة حسب المستوى والموضوع.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-            
-            <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                onClick={() => setIsJumbleGameOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <Puzzle className="h-8 w-8 text-secondary" />
-                        <span>لعبة الكلمات المبعثرة</span>
-                    </CardTitle>
-                    <CardDescription>
-                        أعد ترتيب الحروف لتكوين كلمات وحسّن مهاراتك الإملائية.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-            
-            <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                onClick={() => setIsVideoLearnOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <Youtube className="h-8 w-8 text-red-600" />
-                        <span>تعلم بالفيديو</span>
-                    </CardTitle>
-                    <CardDescription>
-                        شاهد فيديوهات يوتيوب تعليمية مباشرة داخل التطبيق.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-
-            <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                onClick={() => setIsWhatIfOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <Brain className="h-8 w-8 text-cyan-500" />
-                        <span>ماذا لو؟</span>
-                    </CardTitle>
-                    <CardDescription>
-                        استكشف سيناريوهات افتراضية رائعة مع سلسلة الفيديوهات هذه.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-             <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                onClick={() => setIsMotivationOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <Flame className="h-8 w-8 text-orange-500" />
-                        <span>دعنا نتحفز!</span>
-                    </CardTitle>
-                    <CardDescription>
-                        شاهد فيديوهات قصيرة ملهمة لتعزيز رحلتك التعليمية.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-
-        </div>
-        
-    </section>
-
-    <Dialog open={isLingoleapOpen} onOpenChange={setIsLingoleapOpen}>
-        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
-             <DialogHeader className="p-4 border-b">
-                <DialogTitle>LinguaLeap Vocabulary Builder</DialogTitle>
-                <DialogDescription className="sr-only">An AI-powered tool to expand your vocabulary.</DialogDescription>
-                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                </DialogClose>
-            </DialogHeader>
-            <div className="flex-grow min-h-0">
-                <LingoleapApp />
-            </div>
-        </DialogContent>
-    </Dialog>
-
-     <Dialog open={isAdventureOpen} onOpenChange={setIsAdventureOpen}>
-        <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
-             <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
-                <DialogTitle>Gemini Text Adventure</DialogTitle>
-                 <DialogDescription className="sr-only">An interactive text adventure game to learn vocabulary.</DialogDescription>
-                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                </DialogClose>
-            </DialogHeader>
-            <div className="flex-grow h-full pt-[65px]">
-                <TextAdventureApp />
-            </div>
-        </DialogContent>
-    </Dialog>
-
-     <Dialog open={isJumbleGameOpen} onOpenChange={setIsJumbleGameOpen}>
-        <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
-             <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
-                <DialogTitle>Jumble Game</DialogTitle>
-                <DialogDescription className="sr-only">A game to unscramble letters and improve spelling.</DialogDescription>
-                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                </DialogClose>
-            </DialogHeader>
-            <div className="flex-grow h-full pt-[65px]">
-                <MumbleJumbleApp />
-            </div>
-        </DialogContent>
-    </Dialog>
-
-     <Dialog open={isTenseTeacherOpen} onOpenChange={setIsTenseTeacherOpen}>
-        <DialogContent className="w-full max-w-4xl h-[90vh] flex flex-col p-0">
-             <DialogHeader className="p-4 border-b shrink-0">
-                <DialogTitle>Tense Teacher</DialogTitle>
-                <DialogDescription>A voice-based AI expert to help you master English tenses.</DialogDescription>
-                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                </DialogClose>
-            </DialogHeader>
-            <TenseTeacherApp />
-        </DialogContent>
-    </Dialog>
-
-    <Dialog open={isLessonsOpen} onOpenChange={setIsLessonsOpen}>
-        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
-            <DialogHeader className="p-4 border-b shrink-0">
-                <DialogTitle>Extra Learning Materials</DialogTitle>
-                <DialogDescription>Browse our library of lessons.</DialogDescription>
-                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                </DialogClose>
-            </DialogHeader>
-            <LessonList />
-        </DialogContent>
-    </Dialog>
-    
-    <VideoLearnDialog isOpen={isVideoLearnOpen} onOpenChange={setIsVideoLearnOpen} />
-    <WhatIfDialog isOpen={isWhatIfOpen} onOpenChange={setIsWhatIfOpen} />
-    <MotivationDialog isOpen={isMotivationOpen} onOpenChange={setIsMotivationOpen} />
-    </>
-  );
+    return (
+        <>
+            <section className="animate-fadeIn">
+                <h2 className="text-4xl font-bold mb-4 text-center">لوحة التحكم الخاصة بك</h2>
+                <p className="text-muted-foreground mb-8 text-center max-w-2xl mx-auto">
+                    مرحباً بعودتك! تابع من حيث توقفت أو استكشف قصصك المحفوظة.
+                </p>
+                
+                <Card>
+                    <CardHeader>
+                        <CardTitle>قصصي المحفوظة</CardTitle>
+                        <CardDescription>لديك {stories.length} من أصل 3 قصص تم إنشاؤها. انقر على قصة لقراءتها وإجراء الاختبار.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {stories.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {stories.map(story => (
+                                    <Card key={story.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setSelectedStory(story)}>
+                                        <CardHeader>
+                                            {story.imageUrl && <Image src={story.imageUrl} alt={story.prompt} width={300} height={150} className="w-full h-auto object-cover rounded-md mb-2" />}
+                                            <CardTitle className="text-lg line-clamp-2">{story.prompt}</CardTitle>
+                                        </CardHeader>
+                                    </Card>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-10 border-2 border-dashed rounded-lg">
+                                <p className="text-muted-foreground">لم تقم بإنشاء أي قصص بعد.</p>
+                                <p className="text-sm text-muted-foreground">اذهب إلى قسم الذكاء الاصطناعي لتبدأ!</p>
+                                <Button variant="link" onClick={() => setActiveTab('ai')}>اذهب إلى أدوات الذكاء الاصطناعي</Button>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </section>
+            <StoryViewerDialog story={selectedStory} isOpen={!!selectedStory} onOpenChange={(isOpen) => !isOpen && setSelectedStory(null)} />
+        </>
+    );
 }
 
 export function BookScreen() {
