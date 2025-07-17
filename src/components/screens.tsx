@@ -349,6 +349,9 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
             {/* AI Chat Dialog */}
             <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
                 <DialogContent className="max-w-2xl h-[70vh] flex flex-col p-0">
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>AI Chat</DialogTitle>
+                    </DialogHeader>
                     <AiChat />
                 </DialogContent>
             </Dialog>
@@ -356,6 +359,9 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
             {/* Story Maker Dialog */}
             <Dialog open={isStoryMakerOpen} onOpenChange={setIsStoryMakerOpen}>
                 <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>AI Story Maker</DialogTitle>
+                    </DialogHeader>
                    <AiStoryMaker />
                 </DialogContent>
             </Dialog>
