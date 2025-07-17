@@ -10,6 +10,8 @@ import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Loader2, CheckCircle, XCircle, Award, RefreshCw } from 'lucide-react';
 import { Progress } from './ui/progress';
+import { useProgressStore } from '@/hooks/use-progress-store';
+import { useToast } from '@/hooks/use-toast';
 
 type QuizState = 'loading' | 'active' | 'finished';
 
@@ -21,6 +23,8 @@ export function QuizScreen() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const { setFinalExamPassed } = useProgressStore();
+  const { toast } = useToast();
 
   const fetchQuiz = async () => {
     setQuizState('loading');
@@ -51,12 +55,39 @@ export function QuizScreen() {
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
       } else {
+        // This is the last question, so we calculate score and finish
+        const finalAnswers = [...newAnswers];
+        const finalScore = finalAnswers.reduce((acc, answer, index) => {
+            if (questions[index] && answer === questions[index].correct_answer) {
+                return acc + 1;
+            }
+            return acc;
+        }, 0);
+        
+        const passed = finalScore / QUIZ_LENGTH >= 0.7;
+        setFinalExamPassed(passed);
+        
+        if (passed) {
+            toast({
+                title: "Quiz Passed!",
+                description: `You scored ${finalScore}/${QUIZ_LENGTH}. You can now generate your certificate!`,
+                className: "bg-green-100 dark:bg-green-900",
+            });
+        } else {
+             toast({
+                variant: "destructive",
+                title: "Quiz Failed",
+                description: `You scored ${finalScore}/${QUIZ_LENGTH}. You need at least 70% to pass.`,
+            });
+        }
+        
         setQuizState('finished');
       }
     }
   };
   
   const score = useMemo(() => {
+    // Only calculate score when the quiz is finished
     if (quizState !== 'finished') return 0;
     return userAnswers.reduce((acc, answer, index) => {
       if (questions[index] && answer === questions[index].correct_answer) {
@@ -68,10 +99,8 @@ export function QuizScreen() {
 
   const getResultMessage = () => {
       const percentage = (score / QUIZ_LENGTH) * 100;
-      if (percentage === 100) return { message: "Extraordinary! Perfect Score!", icon: <Award className="h-16 w-16 text-amber-500" />, color: 'text-amber-500' };
-      if (percentage > 90) return { message: "Excellent Work!", icon: <Award className="h-16 w-16 text-green-500" />, color: 'text-green-500' };
-      if (percentage >= 70) return { message: "Great Job! You've Passed.", icon: <CheckCircle className="h-16 w-16 text-primary" />, color: 'text-primary' };
-      return { message: "Good effort! Keep practicing.", icon: <XCircle className="h-16 w-16 text-destructive" />, color: 'text-destructive' };
+      if (percentage >= 70) return { message: `Congratulations! You Passed!`, icon: <Award className="h-16 w-16 text-amber-500" />, color: 'text-amber-500' };
+      return { message: "Good effort! Keep studying and try again.", icon: <XCircle className="h-16 w-16 text-destructive" />, color: 'text-destructive' };
   };
 
   if (quizState === 'loading') {
@@ -107,7 +136,7 @@ export function QuizScreen() {
   return (
     <div className="flex flex-col h-full p-4 md:p-6">
       <CardHeader>
-        <CardTitle>Quiz Time!</CardTitle>
+        <CardTitle>Final Exam</CardTitle>
         <CardDescription>Question {currentQuestionIndex + 1} of {questions.length}</CardDescription>
         <Progress value={((currentQuestionIndex + 1) / questions.length) * 100} className="w-full mt-2" />
       </CardHeader>

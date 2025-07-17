@@ -57,8 +57,6 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { cn } from '@/lib/utils';
 import { translateText } from '@/ai/flows/translate-flow';
 import { useStoryStore, type SavedStory, useQuizStore, type StoryQuizResult } from '@/hooks/use-story-store';
-import { generateStoryQuiz } from '@/ai/flows/story-quiz-flow';
-import type { StoryQuizOutput } from '@/ai/flows/story-quiz-flow';
 import { useProgressStore } from '@/hooks/use-progress-store';
 import {
   Tooltip,
@@ -1273,7 +1271,7 @@ export function BookScreen() {
 
     const allItemTitles = learningItems.map(item => item.title);
     const highestCompletedIndex = highestItemCompleted ? allItemTitles.indexOf(highestItemCompleted) : -1;
-
+    const allLessonsAndStoriesCompleted = (highestCompletedIndex + 1) >= learningItems.length;
 
     const handleOpenQuiz = () => {
         setIsQuizOpen(true);
@@ -1312,20 +1310,45 @@ export function BookScreen() {
                             </CardHeader>
                         </Card>
                     )})}
-                    <Card
-                        className="transform transition-all hover:scale-[1.03] hover:shadow-lg bg-accent/20 backdrop-blur-sm flex flex-col cursor-pointer border-accent"
-                        onClick={handleOpenQuiz}
-                    >
-                         <CardHeader className="flex-row items-center justify-center gap-4 space-y-0">
-                            <FileQuestion className="h-6 w-6 text-accent" />
-                            <CardTitle className="text-lg text-accent text-center">إنشاء اختبار</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <CardDescription className="text-center text-muted-foreground">
-                                أنشئ اختبارًا عشوائيًا من 20 سؤالًا بناءً على المواد التعليمية.
-                            </CardDescription>
-                        </CardContent>
-                    </Card>
+                     <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div
+                                    onClick={allLessonsAndStoriesCompleted ? handleOpenQuiz : undefined}
+                                >
+                                    <Card
+                                        className={cn(
+                                            "transform transition-all flex flex-col h-full",
+                                            allLessonsAndStoriesCompleted
+                                                ? "hover:scale-[1.03] hover:shadow-lg bg-accent/20 backdrop-blur-sm cursor-pointer border-accent"
+                                                : "bg-muted/30 border-dashed cursor-not-allowed relative overflow-hidden"
+                                        )}
+                                    >
+                                        {allLessonsAndStoriesCompleted ? null : (
+                                            <>
+                                                <div className="absolute inset-0 bg-black/20 z-10"></div>
+                                                <Lock className="absolute top-4 right-4 h-5 w-5 text-white/50 z-20" />
+                                            </>
+                                        )}
+                                        <CardHeader className="flex-row items-center justify-center gap-4 space-y-0">
+                                            <FileQuestion className="h-6 w-6 text-accent" />
+                                            <CardTitle className="text-lg text-accent text-center">إنشاء اختبار</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <CardDescription className="text-center text-muted-foreground">
+                                                أنشئ اختبارًا عشوائيًا من 20 سؤالًا بناءً على المواد التعليمية.
+                                            </CardDescription>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </TooltipTrigger>
+                            {!allLessonsAndStoriesCompleted && (
+                                <TooltipContent>
+                                    <p>أكمل جميع الدروس والقصص لفتح الاختبار النهائي.</p>
+                                </TooltipContent>
+                            )}
+                        </Tooltip>
+                    </TooltipProvider>
                 </div>
             </ScrollArea>
             {selectedItem && (
@@ -1350,10 +1373,6 @@ export function BookScreen() {
             </Dialog>
         </section>
     );
-}
-
-interface AiScreenProps {
-  setActiveTab: (tab: ActiveTab) => void;
 }
 
 export function AiScreen({ setActiveTab }: AiScreenProps) {
@@ -1446,6 +1465,7 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
 
 export function ProgressScreen() {
     const [isCertificateOpen, setIsCertificateOpen] = useState(false);
+    const { finalExamPassed } = useProgressStore();
     
     const chartData = [
       { day: "الأحد", lessons: 2 },
@@ -1541,11 +1561,16 @@ export function ProgressScreen() {
       <Card className="bg-card/70 backdrop-blur-sm">
         <CardHeader>
             <CardTitle className="flex items-center gap-2"><Award className="text-accent" /> تهانينا!</CardTitle>
-            <CardDescription>لقد أحرزت تقدمًا كبيرًا. قم بإنشاء شهادتك للاحتفال بإنجازاتك.</CardDescription>
+            <CardDescription>
+                {finalExamPassed 
+                  ? "لقد أكملت جميع المتطلبات! قم بإنشاء شهادتك الآن."
+                  : "أكمل جميع الدروس والامتحان النهائي لفتح شهادتك."
+                }
+            </CardDescription>
         </CardHeader>
         <CardContent>
-            <Button className="w-full" onClick={() => setIsCertificateOpen(true)}>
-                إنشاء شهادة
+            <Button className="w-full" onClick={() => setIsCertificateOpen(true)} disabled={!finalExamPassed}>
+                {finalExamPassed ? 'إنشاء شهادة' : <><Lock className="mr-2 h-4 w-4" /> الشهادة مقفلة</>}
             </Button>
         </CardContent>
       </Card>

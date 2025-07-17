@@ -9,8 +9,10 @@ interface ProgressState {
   highestItemCompleted: string | null;
   // A derived value for the number of completed items.
   completedItemsCount: number;
+  finalExamPassed: boolean;
   // Function to mark an item as completed.
   completeItem: (itemId: string) => void;
+  setFinalExamPassed: (passed: boolean) => void;
   // Function to reset all progress.
   resetProgress: () => void;
 }
@@ -24,6 +26,7 @@ export const useProgressStore = create<ProgressState>()(
     (set, get) => ({
       highestItemCompleted: null,
       completedItemsCount: 0,
+      finalExamPassed: false,
       completeItem: (itemId: string) => {
         const allItemTitles = learningItems.map(item => item.title);
         const currentHighestId = get().highestItemCompleted;
@@ -39,7 +42,10 @@ export const useProgressStore = create<ProgressState>()(
           });
         }
       },
-      resetProgress: () => set({ highestItemCompleted: null, completedItemsCount: 0 }),
+      setFinalExamPassed: (passed: boolean) => {
+        set({ finalExamPassed: passed });
+      },
+      resetProgress: () => set({ highestItemCompleted: null, completedItemsCount: 0, finalExamPassed: false }),
     }),
     {
       name: 'learning-progress-storage', // name of the item in the storage (must be unique)
@@ -50,6 +56,9 @@ export const useProgressStore = create<ProgressState>()(
             const allItemTitles = learningItems.map(item => item.title);
             const index = state.highestItemCompleted ? allItemTitles.indexOf(state.highestItemCompleted) : -1;
             state.completedItemsCount = index + 1;
+            if (state.finalExamPassed === undefined) {
+                state.finalExamPassed = false;
+            }
         }
       }
     }
