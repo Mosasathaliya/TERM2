@@ -1160,6 +1160,9 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl p-0 border-0">
+        <DialogHeader>
+            <DialogTitle className="sr-only">Certificate of Completion</DialogTitle>
+        </DialogHeader>
         <div className="aspect-[1.414] w-full relative bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100">
           {isLoading && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80">
