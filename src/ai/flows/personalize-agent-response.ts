@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -42,6 +43,7 @@ const personalizeAgentResponseFlow = ai.defineFlow(
   async ({ contextualizedPersona, history, prompt }) => {
     // Generate a response using the Gemini model
     const response = await ai.generate({
+      model: 'googleai/gemini-2.5-flash',
       // Use the provided persona as the system instruction
       system: contextualizedPersona,
       // Provide the user's prompt
