@@ -15,7 +15,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon, Volume2, ArrowLeft } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon, Volume2, ArrowLeft, Award } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -49,6 +49,7 @@ import { textToSpeech } from '@/ai/flows/tts-flow';
 
 import type { AiLesson } from '@/lib/ai-lessons';
 import { aiLessons } from '@/lib/ai-lessons';
+import { generateCertificateImage } from '@/ai/flows/generate-certificate-image';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -1132,8 +1133,72 @@ const chartConfig: ChartConfig = {
   },
 };
 
-export function ProgressScreen() {
+function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean; onOpenChange: (open: boolean) => void; userName: string }) {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (isOpen && !imageUrl && !isLoading) {
+      setIsLoading(true);
+      generateCertificateImage({ userName: userName || "Student" })
+        .then(result => setImageUrl(result.imageUrl))
+        .catch(err => {
+          console.error("Certificate image generation error:", err);
+          toast({ variant: 'destructive', title: 'خطأ', description: 'فشل إنشاء خلفية الشهادة.' });
+        })
+        .finally(() => setIsLoading(false));
+    }
+  }, [isOpen, imageUrl, isLoading, userName, toast]);
+
+  const certificateDate = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
   return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl p-0 border-0">
+        <div className="aspect-[1.414] w-full relative bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100">
+          {isLoading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80">
+              <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+              <p>...جاري إنشاء شهادتك</p>
+            </div>
+          )}
+          {imageUrl && (
+            <Image src={imageUrl} layout="fill" alt="Certificate background" objectFit="cover" className="rounded-lg" />
+          )}
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-8 md:p-12" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-widest uppercase text-center">Certificate of Completion</h2>
+            <p className="mt-4 text-lg md:text-xl">This certificate is proudly presented to</p>
+            <p className="mt-4 text-3xl md:text-5xl font-extrabold text-primary tracking-tight">{userName || "Valued Student"}</p>
+            <div className="mt-6 w-1/2 border-t border-gray-400"></div>
+            <p className="mt-6 text-center max-w-lg text-sm md:text-base">for successfully completing the English Language Foundations course with Speed of Mastery.</p>
+            <div className="mt-12 flex justify-between w-full max-w-md">
+              <div className="text-center">
+                <p className="font-semibold">{certificateDate}</p>
+                <p className="text-xs border-t border-gray-500 mt-1 pt-1">DATE</p>
+              </div>
+              <Award className="h-16 w-16 text-accent" />
+              <div className="text-center">
+                <p className="font-semibold italic">Speed of Mastery</p>
+                <p className="text-xs border-t border-gray-500 mt-1 pt-1">SIGNATURE</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
+export function ProgressScreen() {
+    const [isCertificateOpen, setIsCertificateOpen] = useState(false);
+  return (
+    <>
     <section className="animate-fadeIn space-y-6">
       <Card className="bg-card/70 backdrop-blur-sm">
         <CardContent className="pt-6 flex items-center gap-4">
@@ -1205,6 +1270,24 @@ export function ProgressScreen() {
           </ChartContainer>
         </CardContent>
       </Card>
+
+      <Card className="bg-card/70 backdrop-blur-sm">
+        <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Award className="text-accent" /> تهانينا!</CardTitle>
+            <CardDescription>لقد أحرزت تقدمًا كبيرًا. قم بإنشاء شهادتك للاحتفال بإنجازاتك.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Button className="w-full" onClick={() => setIsCertificateOpen(true)}>
+                إنشاء شهادة
+            </Button>
+        </CardContent>
+      </Card>
     </section>
+    <CertificateDialog 
+        isOpen={isCertificateOpen} 
+        onOpenChange={setIsCertificateOpen}
+        userName="طالب مجتهد"
+    />
+    </>
   );
 }

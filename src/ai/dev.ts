@@ -10,6 +10,7 @@ import '@/ai/flows/story-image-flow.ts';
 import '@/ai/flows/suggest-new-words.ts';
 import '@/ai/flows/translate-flow.ts';
 import '@/ai/flows/explain-video-flow.ts';
+import '@/ai/flows/generate-certificate-image.ts';
 
 
 // Voice Chat Agent flows
