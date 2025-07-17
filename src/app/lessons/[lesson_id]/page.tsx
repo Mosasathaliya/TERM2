@@ -1,12 +1,12 @@
 
 import type { Metadata } from 'next';
 import { lessons } from '@/data/lingo-lessons-data';
-import LessonDisplay from '@/components/lesson/LessonDisplay';
 import type { Lesson } from '@/types/lesson';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { generateLessonContent } from '@/ai/flows/generate-lesson-content';
+import LessonClientComponent from '@/components/lesson/LessonClientComponent';
 
 interface LessonPageProps {
   params: {
@@ -43,7 +43,6 @@ async function getLessonData(lessonId: string): Promise<Lesson | null> {
 
   if (lesson.meta?.englishGrammarTopic) {
     try {
-      // Input for AI does not include `examples` to avoid conflict.
       const aiContent = await generateLessonContent({
         lessonTitle: lesson.title,
         englishGrammarTopic: lesson.meta.englishGrammarTopic,
@@ -92,17 +91,5 @@ export default async function LessonPage({ params }: LessonPageProps) {
     );
   }
 
-  return (
-    <div className="container mx-auto max-w-3xl py-8 px-4">
-      <div className="mb-6">
-        <Button asChild variant="outline">
-          <Link href="/">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            All Lessons
-          </Link>
-        </Button>
-      </div>
-      <LessonDisplay lesson={lesson} />
-    </div>
-  );
+  return <LessonClientComponent lesson={lesson} />;
 }
