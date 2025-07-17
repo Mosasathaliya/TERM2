@@ -10,10 +10,19 @@ import type { GameState, StoryPart, VocabularyWord, LoadingStates, GameGenre, Te
 const GAME_GENRES: GameGenre[] = ['fantasy', 'sci-fi', 'mystery', 'cyberpunk', 'steampunk', 'saudi-folklore'];
 
 const formatGenreName = (genre: string) => {
-    return genre
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
+    switch(genre) {
+        case 'fantasy': return 'خيال';
+        case 'sci-fi': return 'خيال علمي';
+        case 'mystery': return 'غموض';
+        case 'cyberpunk': return 'سايبربانك';
+        case 'steampunk': return 'ستيمبنك';
+        case 'saudi-folklore': return 'فولكلور سعودي';
+        default:
+            return genre
+                .split('-')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+    }
 };
 
 export function TextAdventureApp() {
@@ -95,10 +104,10 @@ export function TextAdventureApp() {
   
   const GameSetup = () => (
       <div className="flex-grow flex flex-col items-center justify-center text-center p-4 bg-gray-900 text-white">
-         {gameState === 'gameOver' && <h2 className="text-4xl font-bold text-red-500 mb-4">Game Over</h2>}
-        <p className="text-lg text-gray-300 mb-6">{gameState === 'setup' ? 'Choose a genre and begin your quest.' : 'Thanks for playing!'}</p>
+         {gameState === 'gameOver' && <h2 className="text-4xl font-bold text-red-500 mb-4">انتهت اللعبة</h2>}
+        <p className="text-lg text-gray-300 mb-6">{gameState === 'setup' ? 'اختر نوعًا وابدأ مهمتك.' : 'شكرا للعب!'}</p>
         <div className="mb-6 w-full max-w-xs">
-            <label htmlFor="genre-select" className="block text-sm font-medium text-gray-400 mb-2">Select Genre</label>
+            <label htmlFor="genre-select" className="block text-sm font-medium text-gray-400 mb-2">اختر النوع</label>
             <select 
               id="genre-select"
               value={gameGenre}
@@ -116,7 +125,7 @@ export function TextAdventureApp() {
         >
           {loading.story ? (
              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-          ) : (gameState === 'gameOver' ? 'Play Again' : 'Start Adventure')}
+          ) : (gameState === 'gameOver' ? 'العب مرة أخرى' : 'ابدأ المغامرة')}
         </button>
       </div>
   );
