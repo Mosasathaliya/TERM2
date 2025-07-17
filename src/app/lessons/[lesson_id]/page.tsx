@@ -22,19 +22,6 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ params }: LessonPageProps): Promise<Metadata> {
-  const lesson = lessons.find((l) => l.lesson_id === params.lesson_id);
-  if (!lesson) {
-    return {
-      title: 'Lesson Not Found',
-    };
-  }
-  return {
-    title: `${lesson.title} | Lingo Lessons`,
-    description: `Learn about ${lesson.topic}: ${lesson.title}. Level: ${lesson.level}.`,
-  };
-}
-
 async function getLessonData(lessonId: string): Promise<Lesson | null> {
   const baseLessonData = lessons.find((l) => l.lesson_id === lessonId);
   if (!baseLessonData) return null;
