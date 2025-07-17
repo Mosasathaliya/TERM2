@@ -55,6 +55,7 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
 import { Alert, AlertTitle } from './ui/alert';
 import { cn } from '@/lib/utils';
+import { translateText } from '@/ai/flows/translate-flow';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -430,17 +431,50 @@ function AiLessonsDialog({ isOpen, onOpenChange, onSelectLesson }: { isOpen: boo
 function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson: AiLesson | null, isOpen: boolean, onOpenChange: (isOpen: boolean) => void, onBack: () => void }) {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
-  const [audioLoading, setAudioLoading] = useState(false);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
+  
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [activeAudioId, setActiveAudioId] = useState<string | null>(null);
 
   useEffect(() => {
     // Reset state when a new lesson is opened
     setExplanation(null);
     setAnswers({});
     setIsSubmitted(false);
+    if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+    }
+    setActiveAudioId(null);
   }, [lesson]);
+
+  const handlePlayAudio = async (text: string, id: string) => {
+    if (activeAudioId === id) { // If it's already playing, do nothing
+      return;
+    }
+    setActiveAudioId(id);
+    try {
+      const result = await textToSpeech({ text, voice: 'achernar' });
+      if (result?.media) {
+        if (!audioRef.current) {
+          audioRef.current = new Audio();
+        }
+        audioRef.current.src = result.media;
+        audioRef.current.play();
+        audioRef.current.onended = () => setActiveAudioId(null);
+      } else {
+        toast({ variant: 'destructive', title: 'خطأ', description: 'فشل في تشغيل الصوت.' });
+        setActiveAudioId(null);
+      }
+    } catch (err) {
+      console.error("TTS Error:", err);
+      toast({ variant: 'destructive', title: 'خطأ في تشغيل الصوت.' });
+      setActiveAudioId(null);
+    }
+  };
+
 
   const handleExplain = async () => {
     if (!lesson || isExplaining) return;
@@ -448,7 +482,7 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
     try {
       const response = await translateText({ text: lesson.content, targetLanguage: 'Arabic' });
       setExplanation(response.translation);
-      await handlePlayAudio(response.translation);
+      await handlePlayAudio(response.translation, 'explanation');
     } catch (err) {
       toast({ variant: 'destructive', title: 'خطأ', description: 'فشل في الحصول على الشرح.' });
     } finally {
@@ -456,21 +490,6 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
     }
   };
   
-  const handlePlayAudio = async (text: string) => {
-    setAudioLoading(true);
-    try {
-        const result = await textToSpeech({ text, voice: 'achernar' });
-        if(result?.media) {
-            const audio = new Audio(result.media);
-            audio.play();
-        }
-    } catch(err) {
-        toast({variant: 'destructive', title: 'خطأ في تشغيل الصوت'});
-    } finally {
-        setAudioLoading(false);
-    }
-  };
-
   const handleAnswerChange = (qIndex: number, option: string) => {
     if (isSubmitted) return;
     setAnswers(prev => ({ ...prev, [qIndex]: option }));
@@ -1078,7 +1097,7 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl p-0 border-0">
         <DialogHeader className="sr-only">
-            <DialogTitle>Certificate of Completion</DialogTitle>
+            <DialogTitle>Certificate of Completion for {userName}</DialogTitle>
         </DialogHeader>
         <div className="aspect-[1.414] w-full relative bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100">
           {isLoading && (
