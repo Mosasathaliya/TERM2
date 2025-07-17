@@ -47,6 +47,8 @@ import motivationLinks from '@/data/motivation-links';
 import { explainVideoTopic, type ExplainVideoOutput } from '@/ai/flows/explain-video-flow';
 import { textToSpeech } from '@/ai/flows/tts-flow';
 
+import type { AiLesson } from '@/lib/ai-lessons';
+import { aiLessons } from '@/lib/ai-lessons';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -392,6 +394,111 @@ function MotivationDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
     );
 }
 
+// Dialog for listing AI lessons
+function AiLessonsDialog({ isOpen, onOpenChange, onSelectLesson }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void, onSelectLesson: (lesson: AiLesson) => void }) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl h-[80vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>تعلم عن الذكاء الاصطناعي</DialogTitle>
+          <DialogDescription>اختر موضوعًا لتبدأ التعلم.</DialogDescription>
+        </DialogHeader>
+        <ScrollArea className="flex-grow">
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {aiLessons.map(lesson => (
+              <Card key={lesson.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => onSelectLesson(lesson)}>
+                <CardHeader>
+                  <CardTitle>{lesson.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Image src={lesson.image} alt={lesson.title} width={300} height={150} className="w-full object-cover rounded-md" data-ai-hint={lesson.image_hint} />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Dialog for viewing a single AI lesson
+function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson: AiLesson | null, isOpen: boolean, onOpenChange: (isOpen: boolean) => void, onBack: () => void }) {
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [isExplaining, setIsExplaining] = useState(false);
+  const [audioLoading, setAudioLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleExplain = async () => {
+    if (!lesson || isExplaining) return;
+    setIsExplaining(true);
+    try {
+      const response = await translateText({ text: lesson.content, targetLanguage: 'Arabic' });
+      setExplanation(response.translation);
+      await handlePlayAudio(response.translation);
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'خطأ', description: 'فشل في الحصول على الشرح.' });
+    } finally {
+      setIsExplaining(false);
+    }
+  };
+  
+  const handlePlayAudio = async (text: string) => {
+    setAudioLoading(true);
+    try {
+        const result = await textToSpeech({ text, voice: 'achernar' });
+        if(result?.media) {
+            const audio = new Audio(result.media);
+            audio.play();
+        }
+    } catch(err) {
+        toast({variant: 'destructive', title: 'خطأ في تشغيل الصوت'});
+    } finally {
+        setAudioLoading(false);
+    }
+  };
+
+  if (!lesson) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={onBack}><ArrowLeft/></Button>
+            {lesson.title}
+          </DialogTitle>
+        </DialogHeader>
+        <ScrollArea className="flex-grow">
+          <div className="p-6">
+            <Image src={lesson.image} alt={lesson.title} width={600} height={400} className="w-full object-cover rounded-md mb-4" data-ai-hint={lesson.image_hint}/>
+            <p className="text-foreground/90 leading-relaxed mb-4">{lesson.content}</p>
+            <Button onClick={handleExplain} disabled={isExplaining}>
+              {isExplaining ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Volume2 className="mr-2 h-4 w-4"/>}
+              اشرح بالعربية
+            </Button>
+            {explanation && <p className="mt-4 p-4 bg-muted rounded-md" dir="rtl">{explanation}</p>}
+
+            <div className="mt-8">
+              <h3 className="text-xl font-bold mb-4">اختبر معلوماتك</h3>
+              <div className="space-y-6">
+                {lesson.questions.map((q, i) => (
+                  <div key={i} className="p-4 border rounded-lg">
+                    <p className="font-semibold mb-3">{i+1}. {q.question}</p>
+                    <div className="space-y-2">
+                      {q.options.map(opt => <Button key={opt} variant="outline" className="w-full justify-start">{opt}</Button>)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
@@ -656,9 +763,174 @@ export function BookScreen() {
 }
 
 
-interface AiScreenProps {
-  setActiveTab: (tab: ActiveTab) => void;
+function AiLessonsScreen() {
+  const [selectedLesson, setSelectedLesson] = useState<AiLesson | null>(null);
+  const [isListOpen, setIsListOpen] = useState(true);
+
+  const handleSelectLesson = (lesson: AiLesson) => {
+    setSelectedLesson(lesson);
+    setIsListOpen(false);
+  };
+
+  const handleBackToList = () => {
+    setSelectedLesson(null);
+    setIsListOpen(true);
+  };
+  
+  const handleCloseViewer = () => {
+    setSelectedLesson(null);
+  }
+
+  return (
+    <div>
+      <AiLessonsDialog 
+        isOpen={isListOpen} 
+        onOpenChange={setIsListOpen} 
+        onSelectLesson={handleSelectLesson}
+      />
+      <AiLessonViewerDialog
+        lesson={selectedLesson}
+        isOpen={!!selectedLesson}
+        onOpenChange={handleCloseViewer}
+        onBack={handleBackToList}
+      />
+    </div>
+  );
 }
+
+
+export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [isStoryMakerOpen, setIsStoryMakerOpen] = useState(false);
+    const [isVoiceChatOpen, setIsVoiceChatOpen] = useState(false);
+    const [isAiLessonsOpen, setIsAiLessonsOpen] = useState(false);
+    
+    // State for the single lesson viewer dialog
+    const [selectedAiLesson, setSelectedAiLesson] = useState<AiLesson | null>(null);
+    const [isAiLessonViewerOpen, setIsAiLessonViewerOpen] = useState(false);
+
+    const handleSelectLesson = (lesson: AiLesson) => {
+        setSelectedAiLesson(lesson);
+        setIsAiLessonsOpen(false); // Close the list dialog
+        setIsAiLessonViewerOpen(true); // Open the viewer dialog
+    };
+    
+    const handleBackToList = () => {
+        setIsAiLessonViewerOpen(false); // Close viewer
+        setIsAiLessonsOpen(true); // Re-open list
+    }
+
+    return (
+        <section className="animate-fadeIn">
+            <h2 className="text-3xl font-bold mb-2 text-center">أدوات الذكاء الاصطناعي</h2>
+            <p className="text-muted-foreground mb-6 text-center">اختر أداة لمساعدتك في رحلة تعلم اللغة.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsChatOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <MessageCircle className="h-8 w-8 text-primary" />
+                            <span>دردشة الذكاء الاصطناعي</span>
+                        </CardTitle>
+                        <CardDescription>
+                            اطرح أسئلة عامة عن اللغة الإنجليزية واحصل على إجابات فورية.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+
+                <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsStoryMakerOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <Sparkles className="h-8 w-8 text-accent" />
+                            <span>صانع القصص</span>
+                        </CardTitle>
+                        <CardDescription>
+                            حوّل أفكارك إلى قصص قصيرة مصورة باللغة الإنجليزية.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+
+                <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsVoiceChatOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <Ear className="h-8 w-8 text-destructive" />
+                            <span>المساعد الصوتي</span>
+                        </CardTitle>
+                        <CardDescription>
+                            تدرب على المحادثة مع مساعد صوتي يعمل بالذكاء الاصطناعي.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+
+                <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsAiLessonsOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <Brain className="h-8 w-8 text-green-500" />
+                            <span>تعلم عن الذكاء الاصطناعي</span>
+                        </CardTitle>
+                        <CardDescription>
+                            دروس للمبتدئين حول مفاهيم الذكاء الاصطناعي الأساسية.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+            </div>
+
+            {/* AI Chat Dialog */}
+            <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
+                <DialogContent className="max-w-2xl h-[70vh] flex flex-col p-0">
+                    <AiChat />
+                </DialogContent>
+            </Dialog>
+
+            {/* Story Maker Dialog */}
+            <Dialog open={isStoryMakerOpen} onOpenChange={setIsStoryMakerOpen}>
+                <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
+                   <AiStoryMaker />
+                </DialogContent>
+            </Dialog>
+
+             {/* Voice Chat Dialog */}
+            <Dialog open={isVoiceChatOpen} onOpenChange={setIsVoiceChatOpen}>
+                <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>Voice Assistant</DialogTitle>
+                        <DialogDescription>Practice conversation with a voice-based AI assistant.</DialogDescription>
+                    </DialogHeader>
+                    <ChatterbotApp />
+                     <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20 text-white">
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Close</span>
+                    </DialogClose>
+                </DialogContent>
+            </Dialog>
+
+             {/* AI Lessons Dialogs */}
+             <AiLessonsDialog 
+                isOpen={isAiLessonsOpen} 
+                onOpenChange={setIsAiLessonsOpen}
+                onSelectLesson={handleSelectLesson}
+            />
+            <AiLessonViewerDialog
+                lesson={selectedAiLesson}
+                isOpen={isAiLessonViewerOpen}
+                onOpenChange={setIsAiLessonViewerOpen}
+                onBack={handleBackToList}
+            />
+        </section>
+    );
+}
+
 
 function AiChat() {
   const [input, setInput] = useState("");
@@ -840,94 +1112,6 @@ function AiStoryMaker() {
                 )}
             </div>
         </div>
-    );
-}
-
-export function AiScreen({ setActiveTab }: AiScreenProps) {
-    const [isChatOpen, setIsChatOpen] = useState(false);
-    const [isStoryMakerOpen, setIsStoryMakerOpen] = useState(false);
-    const [isVoiceChatOpen, setIsVoiceChatOpen] = useState(false);
-
-    return (
-        <section className="animate-fadeIn">
-            <h2 className="text-3xl font-bold mb-2 text-center">أدوات الذكاء الاصطناعي</h2>
-            <p className="text-muted-foreground mb-6 text-center">اختر أداة لمساعدتك في رحلة تعلم اللغة.</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 <Card 
-                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                    onClick={() => setIsChatOpen(true)}
-                >
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                            <MessageCircle className="h-8 w-8 text-primary" />
-                            <span>دردشة الذكاء الاصطناعي</span>
-                        </CardTitle>
-                        <CardDescription>
-                            اطرح أسئلة عامة عن اللغة الإنجليزية واحصل على إجابات فورية.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
-
-                <Card 
-                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                    onClick={() => setIsStoryMakerOpen(true)}
-                >
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                            <Sparkles className="h-8 w-8 text-accent" />
-                            <span>صانع القصص</span>
-                        </CardTitle>
-                        <CardDescription>
-                            حوّل أفكارك إلى قصص قصيرة مصورة باللغة الإنجليزية.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
-
-                <Card 
-                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                    onClick={() => setIsVoiceChatOpen(true)}
-                >
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                            <Ear className="h-8 w-8 text-destructive" />
-                            <span>المساعد الصوتي</span>
-                        </CardTitle>
-                        <CardDescription>
-                            تدرب على المحادثة مع مساعد صوتي يعمل بالذكاء الاصطناعي.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
-            </div>
-
-            {/* AI Chat Dialog */}
-            <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
-                <DialogContent className="max-w-2xl h-[70vh] flex flex-col p-0">
-                    <AiChat />
-                </DialogContent>
-            </Dialog>
-
-            {/* Story Maker Dialog */}
-            <Dialog open={isStoryMakerOpen} onOpenChange={setIsStoryMakerOpen}>
-                <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
-                   <AiStoryMaker />
-                </DialogContent>
-            </Dialog>
-
-             {/* Voice Chat Dialog */}
-            <Dialog open={isVoiceChatOpen} onOpenChange={setIsVoiceChatOpen}>
-                <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
-                    <DialogHeader className="sr-only">
-                        <DialogTitle>Voice Assistant</DialogTitle>
-                        <DialogDescription>Practice conversation with a voice-based AI assistant.</DialogDescription>
-                    </DialogHeader>
-                    <ChatterbotApp />
-                     <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20 text-white">
-                        <X className="h-4 w-4" />
-                        <span className="sr-only">Close</span>
-                    </DialogClose>
-                </DialogContent>
-            </Dialog>
-        </section>
     );
 }
 
