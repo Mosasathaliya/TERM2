@@ -20,12 +20,10 @@ import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { LingoleapApp } from './lingoleap-app';
-import { MumbleJumbleApp } from './mumble-jumble-app';
 
 
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
-    const [isMumbleJumbleOpen, setIsMumbleJumbleOpen] = useState(false);
 
   return (
     <>
@@ -51,20 +49,6 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 </CardHeader>
             </Card>
 
-            <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                onClick={() => setIsMumbleJumbleOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <Mic className="h-8 w-8 text-accent" />
-                        <span>Mumble Jumble</span>
-                    </CardTitle>
-                    <CardDescription>
-                        اكتشف أصواتًا إبداعية مع محادثة صوتية بالذكاء الاصطناعي.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
         </div>
         
     </section>
@@ -73,23 +57,14 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
         <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
              <DialogHeader className="p-4 border-b">
                 <DialogTitle>LinguaLeap Vocabulary Builder</DialogTitle>
-            </DialogHeader>
-            <div className="flex-grow min-h-0">
-                <LingoleapApp />
-            </div>
-        </DialogContent>
-    </Dialog>
-
-    <Dialog open={isMumbleJumbleOpen} onOpenChange={setIsMumbleJumbleOpen}>
-        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0 bg-transparent border-0 shadow-none">
-            <DialogHeader className='pointer-events-none'>
-                <DialogTitle className="sr-only">Mumble Jumble</DialogTitle>
-                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary pointer-events-auto z-50 text-white bg-black/20 hover:bg-black/40">
+                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
                     <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
                 </DialogClose>
             </DialogHeader>
-             <MumbleJumbleApp />
+            <div className="flex-grow min-h-0">
+                <LingoleapApp />
+            </div>
         </DialogContent>
     </Dialog>
     </>
