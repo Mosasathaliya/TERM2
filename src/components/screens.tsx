@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/chart"
 import { TextAdventureApp } from './text-adventure-app';
 import { MumbleJumbleApp } from './mumble-jumble-app';
-import { ChatterbotApp } from './chatterbot-app';
 import { TenseTeacherApp } from './tense-teacher-app';
 
 
@@ -163,16 +162,16 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     </Dialog>
 
      <Dialog open={isTenseTeacherOpen} onOpenChange={setIsTenseTeacherOpen}>
-        <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
-             <DialogHeader className="sr-only">
+        <DialogContent className="w-full max-w-4xl h-[90vh] flex flex-col p-0">
+             <DialogHeader className="p-4 border-b shrink-0">
                 <DialogTitle>Tense Teacher</DialogTitle>
                 <DialogDescription>A voice-based AI expert to help you master English tenses.</DialogDescription>
+                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </DialogClose>
             </DialogHeader>
             <TenseTeacherApp />
-             <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20 text-foreground dark:text-white">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-            </DialogClose>
         </DialogContent>
     </Dialog>
     </>
@@ -267,6 +266,7 @@ function AiChat() {
       <div className="flex flex-col h-full">
           <DialogHeader className="p-4 border-b">
               <DialogTitle>اسأل الذكاء الاصطناعي</DialogTitle>
+              <DialogDescription>Your general-purpose English learning assistant.</DialogDescription>
           </DialogHeader>
           <CardContent className="flex-grow flex flex-col gap-4 pt-4">
               <div className="flex-grow rounded-lg border bg-muted/50 p-4 space-y-2 overflow-y-auto">
@@ -355,7 +355,7 @@ function AiStoryMaker() {
         <div className="flex flex-col h-full">
             <DialogHeader className="p-4 border-b shrink-0">
                 <DialogTitle>مولد قصص الذكاء الاصطناعي</DialogTitle>
-                <DialogDescription className="sr-only">Turn your ideas into illustrated stories.</DialogDescription>
+                <DialogDescription>Turn your ideas into illustrated stories.</DialogDescription>
                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
                     <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>

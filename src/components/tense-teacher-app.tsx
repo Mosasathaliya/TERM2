@@ -18,7 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, User, MessageCircle, Mic, AlertTriangle, Volume2, MicOff, MessageSquareQuote, Send, Square, VolumeX } from 'lucide-react';
+import { Loader2, User, MessageCircle, Mic, Volume2, MicOff, Send, Square, VolumeX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
 
@@ -60,8 +60,8 @@ export function TenseTeacherApp() {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [activeAudio, setActiveAudio] = useState<number | null>(null);
-  const scrollViewportRef = useRef<HTMLDivElement>(null);
-
+  
+  const lastMessageRef = useRef<HTMLDivElement>(null);
 
   const ahmedForm = useForm<AhmedFormData>({
     resolver: zodResolver(ahmedSchema),
@@ -88,9 +88,7 @@ export function TenseTeacherApp() {
 
 
   useEffect(() => {
-    if (scrollViewportRef.current) {
-        scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
-    }
+    lastMessageRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [conversationHistory]);
 
 
@@ -227,15 +225,8 @@ export function TenseTeacherApp() {
 
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
-        <header className="p-4 sm:p-6 text-center shrink-0 border-b">
-            <MessageSquareQuote className="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-primary mb-2" />
-            <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">خبير الأزمنة</h1>
-            <p className="text-md sm:text-lg text-muted-foreground mt-1">
-            تحدث مع معلمي الذكاء الاصطناعي لإتقان قواعد اللغة الإنجليزية.
-            </p>
-        </header>
-
-        <Card className="w-full max-w-3xl mx-auto my-4 shadow-xl bg-card rounded-lg flex-grow flex flex-col min-h-0">
+        
+        <Card className="w-full h-full max-w-3xl mx-auto my-4 shadow-xl bg-card rounded-lg flex flex-col min-h-0">
             <CardHeader className="p-4 border-b shrink-0">
                 <Tabs value={selectedTeacher} onValueChange={(value) => setSelectedTeacher(value as Teacher)} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 h-auto">
@@ -261,11 +252,11 @@ export function TenseTeacherApp() {
             </CardHeader>
             
             <div className="flex-grow min-h-0">
-                <ScrollArea className="h-full" viewportRef={scrollViewportRef}>
+                <ScrollArea className="h-full">
                     <div className="p-4 space-y-4">
                         {conversationHistory.length > 0 ? (
-                            conversationHistory.map((entry) => (
-                                <div key={entry.id} className={`flex items-end gap-2 ${entry.speaker === 'User' ? 'justify-end' : 'justify-start'}`}>
+                            conversationHistory.map((entry, index) => (
+                                <div key={entry.id} className={`flex items-end gap-2 ${entry.speaker === 'User' ? 'justify-end' : 'justify-start'}`} ref={index === conversationHistory.length - 1 ? lastMessageRef : null}>
                                     {entry.speaker !== 'User' && <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{entry.speaker.charAt(0)}</AvatarFallback></Avatar>}
                                     <div className={`rounded-lg px-3 py-2 max-w-[85%] flex items-center gap-2 ${entry.speaker === 'User' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                                         <p className="text-sm whitespace-pre-wrap">{entry.message}</p>
@@ -339,5 +330,3 @@ export function TenseTeacherApp() {
     </div>
   );
 }
-
-    
