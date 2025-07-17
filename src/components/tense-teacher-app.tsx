@@ -141,7 +141,7 @@ export function TenseTeacherApp() {
     try {
       const input: AhmedVoiceCallInput = { 
         ...data, 
-        conversationHistory: conversationHistory 
+        conversationHistory: conversationHistory || [] // Ensure it's an array
       };
       const result = await ahmedVoiceCall(input);
       setExplanation(result.explanation);
@@ -177,7 +177,7 @@ export function TenseTeacherApp() {
     try {
       const input: SaraVoiceCallInput = { 
         ...data, 
-        conversationHistory: conversationHistory 
+        conversationHistory: conversationHistory || [] // Ensure it's an array
       };
       const result = await saraVoiceCall(input);
       setExplanation(result.explanation);
@@ -280,146 +280,147 @@ export function TenseTeacherApp() {
 
   return (
     <div className="flex flex-col h-full max-h-screen bg-background text-foreground">
-        {/* Main Content Area */}
-        <ScrollArea className="flex-grow">
-            <div className="p-4 sm:p-8">
-                <header className="mb-10 text-center">
-                    <MessageSquareQuote className="mx-auto h-16 w-16 sm:h-20 sm:w-20 text-primary mb-4 animate-pulse" />
-                    <h1 className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight">خبير الأزمنة</h1>
-                    <p className="text-lg sm:text-xl text-muted-foreground mt-2">
-                        معلموك الذكاء الاصطناعي لإتقان قواعد اللغة الإنجليزية، مع شرح باللغة العربية.
-                    </p>
-                </header>
+        <div className="flex-grow-0 shrink-0">
+          <header className="mb-10 text-center pt-8 sm:pt-16">
+              <MessageSquareQuote className="mx-auto h-16 w-16 sm:h-20 sm:w-20 text-primary mb-4 animate-pulse" />
+              <h1 className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight">خبير الأزمنة</h1>
+              <p className="text-lg sm:text-xl text-muted-foreground mt-2">
+                  معلموك الذكاء الاصطناعي لإتقان قواعد اللغة الإنجليزية، مع شرح باللغة العربية.
+              </p>
+          </header>
 
-                <Card className="w-full max-w-2xl mx-auto shadow-xl overflow-hidden bg-card">
-                    <CardHeader className="text-center p-6 bg-muted/30 relative">
-                        <div className="flex justify-center mb-4">
-                            <Avatar className="w-24 h-24 sm:w-28 sm:h-28 border-2 sm:border-4 border-primary shadow-lg">
-                                <Image 
-                                    src={currentTeacherInfo.avatarSrc} 
-                                    alt={currentTeacherInfo.name} 
-                                    width={128} 
-                                    height={128} 
-                                    data-ai-hint={currentTeacherInfo.avatarHint}
-                                    className="object-cover"
-                                />
-                                <AvatarFallback className="text-3xl sm:text-4xl">{selectedTeacher.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                        </div>
-                        <CardTitle className="text-2xl sm:text-3xl font-semibold text-foreground">{currentTeacherInfo.name}</CardTitle>
-                        <CardDescription className="text-muted-foreground mt-1 text-sm sm:text-base">{currentTeacherInfo.description}</CardDescription>
-                         <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={toggleMute}
-                            className="absolute top-4 rtl:left-4 ltr:right-4 text-muted-foreground hover:text-primary"
-                            aria-label={isMuted ? "إلغاء كتم الصوت" : "كتم الصوت"}
-                            >
-                            {isMuted ? <VolumeX className="h-5 w-5 sm:h-6 sm:w-6" /> : <Volume2 className="h-5 w-5 sm:h-6 sm:w-6" />}
-                        </Button>
-                    </CardHeader>
+          <Card className="w-full max-w-2xl mx-auto shadow-xl overflow-hidden bg-card">
+              <CardHeader className="text-center p-6 bg-muted/30 relative">
+                  <div className="flex justify-center mb-4">
+                      <Avatar className="w-24 h-24 sm:w-28 sm:h-28 border-2 sm:border-4 border-primary shadow-lg">
+                          <Image 
+                              src={currentTeacherInfo.avatarSrc} 
+                              alt={currentTeacherInfo.name} 
+                              width={128} 
+                              height={128} 
+                              data-ai-hint={currentTeacherInfo.avatarHint}
+                              className="object-cover"
+                          />
+                          <AvatarFallback className="text-3xl sm:text-4xl">{selectedTeacher.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                  </div>
+                  <CardTitle className="text-2xl sm:text-3xl font-semibold text-foreground">{currentTeacherInfo.name}</CardTitle>
+                  <CardDescription className="text-muted-foreground mt-1 text-sm sm:text-base">{currentTeacherInfo.description}</CardDescription>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={toggleMute}
+                      className="absolute top-4 rtl:left-4 ltr:right-4 text-muted-foreground hover:text-primary"
+                      aria-label={isMuted ? "إلغاء كتم الصوت" : "كتم الصوت"}
+                      >
+                      {isMuted ? <VolumeX className="h-5 w-5 sm:h-6 sm:w-6" /> : <Volume2 className="h-5 w-5 sm:h-6 sm:w-6" />}
+                  </Button>
+              </CardHeader>
 
-                    <Tabs value={selectedTeacher} onValueChange={(value) => setSelectedTeacher(value as Teacher)} className="w-full">
-                        <TabsList className="grid w-full grid-cols-2 rounded-none h-auto">
-                            <TabsTrigger value="Ahmed" className="py-3 sm:py-4 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-none">
-                                <User className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> أحمد
-                            </TabsTrigger>
-                            <TabsTrigger value="Sara" className="py-3 sm:py-4 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-none">
-                                <User className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> سارة
-                            </TabsTrigger>
-                        </TabsList>
+              <Tabs value={selectedTeacher} onValueChange={(value) => setSelectedTeacher(value as Teacher)} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 rounded-none h-auto">
+                      <TabsTrigger value="Ahmed" className="py-3 sm:py-4 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-none">
+                          <User className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> أحمد
+                      </TabsTrigger>
+                      <TabsTrigger value="Sara" className="py-3 sm:py-4 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-none">
+                          <User className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> سارة
+                      </TabsTrigger>
+                  </TabsList>
+              </Tabs>
+          </Card>
+        </div>
+        
+        <div className="flex-grow flex flex-col p-4 w-full max-w-2xl mx-auto min-h-0">
+             <Card className="w-full flex flex-col flex-grow shadow-xl overflow-hidden bg-card">
+              <CardContent className="p-4 sm:p-6 space-y-4 flex flex-col flex-grow">
+                  {(callState === "active" || callState === "calling") && conversationHistory.length > 0 ? (
+                      <ScrollArea className="flex-grow h-64">
+                          <div className="space-y-4">
+                              {conversationHistory.map((entry, index) => (
+                                  <div key={index} className={`flex items-start gap-2 ${entry.speaker === 'User' ? 'justify-end' : 'justify-start'}`}>
+                                      {entry.speaker !== 'User' && <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{entry.speaker.charAt(0)}</AvatarFallback></Avatar>}
+                                      <div className={`rounded-lg px-3 py-2 max-w-[85%] ${entry.speaker === 'User' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                                          <p className="text-sm whitespace-pre-wrap">{entry.message}</p>
+                                      </div>
+                                      {entry.speaker === 'User' && <Avatar className="h-6 w-6"><AvatarFallback>U</AvatarFallback></Avatar>}
+                                  </div>
+                              ))}
+                              {callState === "calling" && (
+                                  <div className="flex items-center gap-2">
+                                      <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{selectedTeacher.charAt(0)}</AvatarFallback></Avatar>
+                                      <div className="rounded-lg px-3 py-2 bg-muted">
+                                          <Loader2 className="h-4 w-4 animate-spin" />
+                                      </div>
+                                  </div>
+                              )}
+                          </div>
+                      </ScrollArea>
+                  ) : (
+                    <div className="flex-grow flex items-center justify-center text-center text-muted-foreground">
+                      <div>
+                        <MessageCircle className="h-12 w-12 mx-auto mb-2" />
+                        <p>ابدأ باختيار زمن أو طرح سؤال.</p>
+                      </div>
+                    </div>
+                  )}
 
-                        <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-                            <form onSubmit={handleSubmit(currentTeacherInfo.onSubmit as SubmitHandler<any>)} className="space-y-4 sm:space-y-6">
-                                {selectedTeacher === "Sara" && (
-                                    <div>
-                                        <Label htmlFor="userLanguageProficiency" className="text-sm sm:text-md font-medium">مستوى إتقانك للغة الإنجليزية</Label>
-                                        <Input
-                                            id="userLanguageProficiency"
-                                            placeholder="مثال: مبتدئ، متوسط، متقدم"
-                                            {...register("userLanguageProficiency")}
-                                            className={`mt-2 text-base bg-background focus:ring-2 focus:ring-primary ${errors.userLanguageProficiency ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
-                                            disabled={callState === "calling" || isSubmitting}
-                                        />
-                                        {errors.userLanguageProficiency && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.userLanguageProficiency.message}</p>}
-                                    </div>
-                                )}
-                                <div>
-                                    <Label htmlFor="tense-select" className="text-sm sm:text-md font-medium">اختر زمناً ليبدأ الشرح</Label>
-                                    <Select value={selectedTense} onValueChange={setSelectedTense} disabled={callState === "calling" || isSubmitting}>
-                                        <SelectTrigger id="tense-select" className="mt-2 text-base">
-                                            <SelectValue placeholder="اختر زمناً من القائمة..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {TENSES_LIST.map(tense => (
-                                                <SelectItem key={tense} value={tense}>{tense}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <Label htmlFor="englishGrammarConcept" className="text-sm sm:text-md font-medium">أو اطرح سؤالاً للمتابعة</Label>
-                                    <div className="flex gap-2 mt-1">
-                                        <Textarea
-                                            id="englishGrammarConcept"
-                                            placeholder="اكتب سؤال متابعة هنا..."
-                                            {...register("englishGrammarConcept")}
-                                            className={`text-base bg-background focus:ring-2 focus:ring-primary ${errors.englishGrammarConcept ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
-                                            rows={2}
-                                            disabled={callState === "calling" || isSubmitting || isListening}
-                                        />
-                                        <Button type="submit" size="icon" className="h-auto px-3" disabled={isSubmitting || isListening}>
-                                            <Send className="h-5 w-5" />
-                                        </Button>
-                                    </div>
-                                    {errors.englishGrammarConcept && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.englishGrammarConcept.message}</p>}
-                                </div>
-                                {callState === "active" && (
-                                    <Button type="button" onClick={endCall} variant="outline" className="w-full max-w-xs mx-auto py-2.5 sm:py-3 text-base sm:text-lg border-destructive text-destructive hover:bg-destructive/10 rounded-md shadow-sm flex items-center justify-center">
-                                        <PhoneOff className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> إنهاء المحادثة
-                                    </Button>
-                                )}
-                            </form>
-                            {(callState === "active" || callState === "calling") && (
-                                <ScrollArea className="h-64 mt-4 sm:mt-6 p-4 bg-muted/30 rounded-lg shadow-inner border border-border">
-                                    <div className="space-y-4">
-                                        {conversationHistory.map((entry, index) => (
-                                            <div key={index} className={`flex items-start gap-2 ${entry.speaker === 'User' ? 'justify-end' : 'justify-start'}`}>
-                                                {entry.speaker !== 'User' && <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{entry.speaker.charAt(0)}</AvatarFallback></Avatar>}
-                                                <div className={`rounded-lg px-3 py-2 max-w-[85%] ${entry.speaker === 'User' ? 'bg-primary text-primary-foreground' : 'bg-card'}`}>
-                                                    <p className="text-sm whitespace-pre-wrap">{entry.message}</p>
-                                                </div>
-                                                {entry.speaker === 'User' && <Avatar className="h-6 w-6"><AvatarFallback>U</AvatarFallback></Avatar>}
-                                            </div>
-                                        ))}
-                                        {callState === "calling" && (
-                                            <div className="flex items-center gap-2">
-                                                <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{selectedTeacher.charAt(0)}</AvatarFallback></Avatar>
-                                                <div className="rounded-lg px-3 py-2 bg-card">
-                                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </ScrollArea>
-                            )}
-                            {callState === "error" && (
-                                <div className="mt-4 sm:mt-6 p-4 bg-destructive/10 text-destructive rounded-lg shadow-inner border border-destructive/30 flex items-center gap-2 sm:gap-3">
-                                    <AlertTriangle className="h-6 w-6 sm:h-8 sm:h-8 flex-shrink-0" />
-                                    <div>
-                                        <h3 className="text-base sm:text-lg font-semibold">فشل الاتصال</h3>
-                                        <p className="text-xs sm:text-sm">تعذر الاتصال بـ {currentTeacherInfo.name}. يرجى المحاولة مرة أخرى.</p>
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Tabs>
-                </Card>
-            </div>
-        </ScrollArea>
-        <footer className="p-4 border-t border-border shrink-0">
-            <p className="text-center text-sm text-muted-foreground">&copy; {new Date().getFullYear()} لينجوا ليرن الثنائي الذكاء الاصطناعي. مقدم من سبيد أوف ماستري.</p>
-        </footer>
+                  <div className="mt-auto pt-4 border-t">
+                      <form onSubmit={handleSubmit(currentTeacherInfo.onSubmit as SubmitHandler<any>)} className="space-y-3">
+                          {selectedTeacher === "Sara" && !saraForm.getValues().userLanguageProficiency && (
+                              <div>
+                                  <Label htmlFor="userLanguageProficiency" className="text-sm sm:text-md font-medium">مستوى إتقانك للغة الإنجليزية</Label>
+                                  <Input
+                                      id="userLanguageProficiency"
+                                      placeholder="مثال: مبتدئ، متوسط، متقدم"
+                                      {...register("userLanguageProficiency")}
+                                      className={`mt-1 text-base bg-background focus:ring-2 focus:ring-primary ${errors.userLanguageProficiency ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
+                                      disabled={callState === "calling" || isSubmitting}
+                                  />
+                                  {errors.userLanguageProficiency && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.userLanguageProficiency.message}</p>}
+                              </div>
+                          )}
+                          <div>
+                              <Label htmlFor="tense-select" className="text-sm sm:text-md font-medium">اختر زمناً ليبدأ الشرح</Label>
+                              <Select value={selectedTense} onValueChange={setSelectedTense} disabled={callState === "calling" || isSubmitting}>
+                                  <SelectTrigger id="tense-select" className="mt-1 text-base">
+                                      <SelectValue placeholder="اختر زمناً من القائمة..." />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                      {TENSES_LIST.map(tense => (
+                                          <SelectItem key={tense} value={tense}>{tense}</SelectItem>
+                                      ))}
+                                  </SelectContent>
+                              </Select>
+                          </div>
+                          <div>
+                              <Label htmlFor="englishGrammarConcept" className="text-sm sm:text-md font-medium">أو اطرح سؤالاً للمتابعة</Label>
+                              <div className="flex gap-2 mt-1">
+                                  <Textarea
+                                      id="englishGrammarConcept"
+                                      placeholder="اكتب سؤال متابعة هنا..."
+                                      {...register("englishGrammarConcept")}
+                                      className={`text-base bg-background focus:ring-2 focus:ring-primary ${errors.englishGrammarConcept ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
+                                      rows={1}
+                                      disabled={callState === "calling" || isSubmitting || isListening}
+                                  />
+                                  <Button type="submit" size="icon" className="h-auto px-3" disabled={isSubmitting || isListening}>
+                                      <Send className="h-5 w-5" />
+                                  </Button>
+                              </div>
+                              {errors.englishGrammarConcept && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.englishGrammarConcept.message}</p>}
+                          </div>
+                          {callState === "active" && (
+                              <Button type="button" onClick={endCall} variant="outline" className="w-full max-w-xs mx-auto py-2.5 sm:py-3 text-base sm:text-lg border-destructive text-destructive hover:bg-destructive/10 rounded-md shadow-sm flex items-center justify-center">
+                                  <PhoneOff className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> إنهاء المحادثة
+                              </Button>
+                          )}
+                      </form>
+                  </div>
+              </CardContent>
+            </Card>
+        </div>
     </div>
   );
 }
+
+    
