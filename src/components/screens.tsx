@@ -15,7 +15,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -30,11 +30,13 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart"
 import { TextAdventureApp } from './text-adventure-app';
+import { MumbleJumbleApp } from './mumble-jumble-app';
 
 
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
     const [isAdventureOpen, setIsAdventureOpen] = useState(false);
+    const [isJumbleGameOpen, setIsJumbleGameOpen] = useState(false);
     
   return (
     <>
@@ -44,7 +46,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             استكشف الدروس التفاعلية، وتحدث مع مدرس الذكاء الاصطناعي، وتتبع تقدمك وأنت تتقن اللغة الإنجليزية.
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card 
                 className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
                 onClick={() => setIsLingoleapOpen(true)}
@@ -52,7 +54,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-3">
                         <GraduationCap className="h-8 w-8 text-primary" />
-                        <span>مُنشئ المفردات بالذكاء الاصطناعي</span>
+                        <span>مُنشئ المفردات</span>
                     </CardTitle>
                     <CardDescription>
                         قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي.
@@ -71,6 +73,21 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                     </CardTitle>
                     <CardDescription>
                         العب لعبة مغامرة نصية لتعلم المفردات في سياقها.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+            
+            <Card 
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm md:col-span-2 lg:col-span-1"
+                onClick={() => setIsJumbleGameOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <Puzzle className="h-8 w-8 text-secondary" />
+                        <span>لعبة الكلمات المبعثرة</span>
+                    </CardTitle>
+                    <CardDescription>
+                        أعد ترتيب الحروف لتكوين كلمات وحسّن مهاراتك الإملائية.
                     </CardDescription>
                 </CardHeader>
             </Card>
@@ -105,6 +122,21 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             </DialogHeader>
             <div className="flex-grow h-full pt-[65px]">
                 <TextAdventureApp />
+            </div>
+        </DialogContent>
+    </Dialog>
+
+     <Dialog open={isJumbleGameOpen} onOpenChange={setIsJumbleGameOpen}>
+        <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
+             <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
+                <DialogTitle>Jumble Game</DialogTitle>
+                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </DialogClose>
+            </DialogHeader>
+            <div className="flex-grow h-full pt-[65px]">
+                <MumbleJumbleApp />
             </div>
         </DialogContent>
     </Dialog>
@@ -198,7 +230,7 @@ function AiChat() {
   
   return (
       <div className="flex flex-col h-full">
-          <DialogHeader>
+          <DialogHeader className="p-4 border-b">
               <DialogTitle>اسأل الذكاء الاصطناعي</DialogTitle>
           </DialogHeader>
           <CardContent className="flex-grow flex flex-col gap-4 pt-4">
@@ -348,12 +380,10 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
                     onClick={() => setIsChatOpen(true)}
                 >
                     <CardHeader>
-                        <DialogTitle>
-                            <CardTitle className="flex items-center gap-3">
-                                <MessageCircle className="h-8 w-8 text-primary" />
-                                <span>دردشة الذكاء الاصطناعي</span>
-                            </CardTitle>
-                        </DialogTitle>
+                        <CardTitle className="flex items-center gap-3">
+                            <MessageCircle className="h-8 w-8 text-primary" />
+                            <span>دردشة الذكاء الاصطناعي</span>
+                        </CardTitle>
                         <CardDescription>
                             اطرح أسئلة عامة عن اللغة الإنجليزية واحصل على إجابات فورية.
                         </CardDescription>
@@ -365,12 +395,10 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
                     onClick={() => setIsStoryMakerOpen(true)}
                 >
                     <CardHeader>
-                        <DialogTitle>
-                            <CardTitle className="flex items-center gap-3">
-                                <Sparkles className="h-8 w-8 text-accent" />
-                                <span>صانع القصص</span>
-                            </CardTitle>
-                        </DialogTitle>
+                        <CardTitle className="flex items-center gap-3">
+                            <Sparkles className="h-8 w-8 text-accent" />
+                            <span>صانع القصص</span>
+                        </CardTitle>
                         <CardDescription>
                             حوّل أفكارك إلى قصص قصيرة مصورة باللغة الإنجليزية.
                         </CardDescription>
