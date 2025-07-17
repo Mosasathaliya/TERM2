@@ -83,10 +83,6 @@ export function useVoiceChat() {
     if (!audioRef.current) {
         const audio = new Audio();
         audioRef.current = audio;
-        
-        audio.onended = () => {
-          setIsTalking(false);
-        };
     }
     setIsConnected(true);
   }, []);
@@ -129,18 +125,18 @@ export function useVoiceChat() {
     let lipSyncFrameId: number;
 
     const setupAudioContext = () => {
-      if (audioRef.current && !audioContextRef.current) {
-        const context = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const analyser = context.createAnalyser();
-        const source = context.createMediaElementSource(audioRef.current);
-        
-        source.connect(analyser);
-        analyser.connect(context.destination);
-        
-        audioContextRef.current = context;
-        analyserRef.current = analyser;
-        sourceNodeRef.current = source;
-      }
+        if (audioRef.current && !audioContextRef.current) {
+            const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const source = context.createMediaElementSource(audioRef.current);
+            const analyser = context.createAnalyser();
+            
+            source.connect(analyser);
+            analyser.connect(context.destination);
+            
+            audioContextRef.current = context;
+            analyserRef.current = analyser;
+            sourceNodeRef.current = source;
+        }
     };
     
     if (isTalking) {
@@ -152,7 +148,11 @@ export function useVoiceChat() {
         const dataArray = new Uint8Array(bufferLength);
 
         const animate = () => {
-          if (!analyserRef.current) return;
+          if (!analyserRef.current || !isTalking) {
+            cancelAnimationFrame(lipSyncFrameId);
+            setAudioLevel(0);
+            return;
+          }
           analyserRef.current.getByteFrequencyData(dataArray);
           const average = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
           setAudioLevel(average / 128);
@@ -173,15 +173,17 @@ export function useVoiceChat() {
 
   useEffect(() => {
     const audioEl = audioRef.current;
-    const onEnded = () => setIsTalking(false);
+    if (!audioEl) return;
+    
+    const handleAudioEnd = () => {
+      setIsTalking(false);
+    };
 
-    if (audioEl) {
-      audioEl.addEventListener('ended', onEnded);
-      return () => {
-        audioEl.removeEventListener('ended', onEnded);
-      };
-    }
-  }, []);
+    audioEl.addEventListener('ended', handleAudioEnd);
+    return () => {
+      audioEl.removeEventListener('ended', handleAudioEnd);
+    };
+  }, [isTalking]); // Rerun this effect if isTalking changes to ensure the handler has the correct scope
 
   return {
     isConnected,
