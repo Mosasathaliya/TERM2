@@ -15,7 +15,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -34,6 +34,73 @@ import { MumbleJumbleApp } from './mumble-jumble-app';
 import { TenseTeacherApp } from './tense-teacher-app';
 import { ChatterbotApp } from './chatterbot-app';
 import { DialogDescription } from './ui/dialog';
+import { lessons } from '@/data/lingo-lessons-data';
+import LessonDisplay from './lesson/LessonDisplay';
+import { generateLessonContent } from '@/ai/flows/generate-lesson-content';
+import Link from 'next/link';
+
+function LessonList({ onLessonClick }: { onLessonClick: (lesson: Lesson) => void }) {
+  return (
+    <ScrollArea className="h-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+            {lessons.map((lesson) => {
+                 let displayExplanation: string;
+                 if (typeof lesson.arabic_explanation === 'string' && lesson.arabic_explanation.length > 0) {
+                     displayExplanation = lesson.arabic_explanation;
+                     if (displayExplanation.length > 150) {
+                         displayExplanation = displayExplanation.substring(0, 147) + "...";
+                     }
+                 } else {
+                     displayExplanation = `Tap to learn about ${lesson.topic}. AI will generate the details.`;
+                 }
+
+                 return (
+                     <Card 
+                        key={lesson.lesson_id} 
+                        className="h-full flex flex-col hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer group"
+                        onClick={() => onLessonClick(lesson)}
+                    >
+                         <CardHeader>
+                             <div className="flex justify-between items-start mb-2">
+                                 <div>
+                                     <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                                         {lesson.title}
+                                     </CardTitle>
+                                     {lesson.title_arabic && (
+                                         <CardTitle
+                                             className="text-lg text-muted-foreground mt-1 group-hover:text-primary/80 transition-colors"
+                                             dir="rtl"
+                                         >
+                                             {lesson.title_arabic}
+                                         </CardTitle>
+                                     )}
+                                 </div>
+                             </div>
+                             <CardDescription className="text-sm text-muted-foreground">
+                                 {lesson.topic}
+                                 {lesson.topic_arabic && (
+                                     <span className="block mt-0.5" dir="rtl">{lesson.topic_arabic}</span>
+                                 )}
+                             </CardDescription>
+                         </CardHeader>
+                         <CardContent className="flex-grow">
+                             <p className="text-sm text-foreground/80 line-clamp-3">
+                                 {displayExplanation}
+                             </p>
+                         </CardContent>
+                         <CardFooter className="mt-auto pt-4">
+                            <div className="flex items-center text-sm text-primary font-semibold group-hover:underline">
+                                 ابدأ الدرس
+                                 <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                             </div>
+                         </CardFooter>
+                     </Card>
+                 );
+            })}
+        </div>
+    </ScrollArea>
+  );
+}
 
 
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
@@ -41,6 +108,38 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     const [isAdventureOpen, setIsAdventureOpen] = useState(false);
     const [isJumbleGameOpen, setIsJumbleGameOpen] = useState(false);
     const [isTenseTeacherOpen, setIsTenseTeacherOpen] = useState(false);
+    const [isLessonsOpen, setIsLessonsOpen] = useState(false);
+    const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+    const [loadingLesson, setLoadingLesson] = useState(false);
+
+    const handleLessonClick = async (lesson: Lesson) => {
+        setLoadingLesson(true);
+        try {
+            if (lesson.meta?.englishGrammarTopic) {
+                const aiContent = await generateLessonContent({
+                    lessonTitle: lesson.title,
+                    englishGrammarTopic: lesson.meta.englishGrammarTopic,
+                    lessonLevel: lesson.level,
+                    englishAdditionalNotes: lesson.additional_notes,
+                    englishCommonMistakes: lesson.common_mistakes,
+                });
+                setSelectedLesson({
+                    ...lesson,
+                    arabic_explanation: aiContent.arabicExplanation,
+                    examples: aiContent.examples.map(ex => ({ ...ex })),
+                    additional_notes_arabic: aiContent.additionalNotesInArabic,
+                    common_mistakes_arabic: aiContent.commonMistakesInArabic,
+                });
+            } else {
+                setSelectedLesson(lesson);
+            }
+        } catch (e) {
+            console.error("Failed to generate lesson content", e);
+            // Handle error, maybe show a toast
+        } finally {
+            setLoadingLesson(false);
+        }
+    };
     
   return (
     <>
@@ -95,9 +194,24 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                     </CardDescription>
                 </CardHeader>
             </Card>
+
+            <Card
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                onClick={() => setIsLessonsOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <Library className="h-8 w-8 text-green-500" />
+                        <span>مواد تعليمية إضافية</span>
+                    </CardTitle>
+                    <CardDescription>
+                        تصفح مكتبة الدروس المنظمة حسب المستوى والموضوع.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
             
             <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm md:col-span-2 lg:col-span-3"
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm md:col-span-2"
                 onClick={() => setIsJumbleGameOpen(true)}
             >
                 <CardHeader>
@@ -176,6 +290,28 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             <TenseTeacherApp />
         </DialogContent>
     </Dialog>
+
+    <Dialog open={isLessonsOpen} onOpenChange={setIsLessonsOpen}>
+        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
+            <DialogHeader className="p-4 border-b shrink-0">
+                <DialogTitle>Extra Learning Materials</DialogTitle>
+                <DialogDescription>Browse our library of lessons.</DialogDescription>
+                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </DialogClose>
+            </DialogHeader>
+            <LessonList onLessonClick={handleLessonClick} />
+        </DialogContent>
+    </Dialog>
+
+     <Dialog open={!!selectedLesson || loadingLesson} onOpenChange={(isOpen) => !isOpen && setSelectedLesson(null)}>
+        <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0">
+            {loadingLesson && <div className="flex items-center justify-center h-full">Loading...</div>}
+            {selectedLesson && !loadingLesson && <LessonDisplay lesson={selectedLesson} />}
+        </DialogContent>
+    </Dialog>
+
     </>
   );
 }

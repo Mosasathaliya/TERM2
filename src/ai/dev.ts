@@ -21,3 +21,8 @@ import '@/ai/flows/sara-voice-call.ts';
 
 // Adventure game flows
 import '@/ai/flows/text-adventure-flow.ts';
+
+// Lingo Lessons flows
+import '@/ai/flows/exercise-feedback.ts';
+import '@/ai/flows/generate-lesson-content.ts';
+import '@/ai/flows/lesson-tutor-flow.ts';
