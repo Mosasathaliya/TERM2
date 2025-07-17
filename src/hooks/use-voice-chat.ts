@@ -22,20 +22,19 @@ export function useVoiceChat() {
   // Local state for managing chat flow
   const [isConnected, setIsConnected] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [isTalking, setIsTalking] = useState(false); // When AI is processing and speaking
+  const [isTalking, setIsTalking] = useState(false);
   const [history, setHistory] = useState<Message[]>([]);
   
   // Refs for managing audio
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
 
-  // Callback to handle transcribed audio data
   const handleAudioData = useCallback(async (dataUri: string) => {
-    // If muted or AI is already talking, do nothing
     if (isMuted || isTalking) return;
 
     try {
-      // 1. Convert speech to text
-      setIsTalking(true); // AI processing starts now
+      setIsTalking(true);
       const { text: transcribedText } = await speechToText({ audio: dataUri });
       if (!transcribedText.trim()) {
         setIsTalking(false);
@@ -43,31 +42,26 @@ export function useVoiceChat() {
       }
 
       const userMessage: Message = { role: 'user', content: transcribedText };
-      // Use functional update to get the latest history
-      setHistory(prevHistory => [...prevHistory, userMessage]);
-
-      // 2. Get the agent's persona
+      const newHistory = [...history, userMessage];
+      setHistory(newHistory);
+      
       const { contextualizedPersona } = await contextualizeAIPersona({
         personality: currentAgent.personality,
         userName: userSettings.name,
         userInfo: userSettings.info,
       });
 
-      // 3. Get the personalized response from the agent
-      // Use the latest history for the API call
       const { response } = await personalizeAgentResponse({
         contextualizedPersona,
-        history: [...history, userMessage],
+        history: newHistory,
         prompt: transcribedText,
       });
 
       const modelMessage: Message = { role: 'model', content: response };
-      setHistory((prev) => [...prev, modelMessage]);
+      setHistory(prev => [...prev, modelMessage]);
 
-      // 4. Convert the agent's response to speech
       const { audio: audioDataUri } = await textToSpeech({ text: response, voice: currentAgent.voice });
       
-      // 5. Play the audio
       if (audioRef.current) {
         audioRef.current.src = audioDataUri;
         await audioRef.current.play();
@@ -76,24 +70,32 @@ export function useVoiceChat() {
       console.error('Voice chat pipeline error:', error);
       setIsTalking(false);
     }
-  }, [isMuted, isTalking, currentAgent, userSettings, history]); // Added history to dependencies
+  }, [isMuted, isTalking, currentAgent, userSettings, history]);
 
-  // Initialize the audio processor hook
   const { isRecording, start, stop } = useAudioProcessor(handleAudioData);
 
-  // Connect and start the voice chat
   const connect = useCallback(() => {
     if (!audioRef.current) {
-      audioRef.current = new Audio();
-      // When AI finishes talking, set talking state to false
-      audioRef.current.onended = () => {
+      const audio = new Audio();
+      audioRef.current = audio;
+      
+      audio.onended = () => {
         setIsTalking(false);
       };
+
+      if (!audioContextRef.current) {
+        const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioContextRef.current = context;
+        const source = context.createMediaElementSource(audio);
+        const analyser = context.createAnalyser();
+        analyserRef.current = analyser;
+        source.connect(analyser);
+        analyser.connect(context.destination);
+      }
     }
     setIsConnected(true);
   }, []);
 
-  // Disconnect and stop the voice chat
   const disconnect = useCallback(() => {
     if (isRecording) {
       stop();
@@ -104,53 +106,47 @@ export function useVoiceChat() {
     }
     setIsConnected(false);
     setIsTalking(false);
-    setHistory([]); // Reset history on disconnect
+    setHistory([]);
   }, [isRecording, stop]);
 
   const toggleMute = () => setIsMuted((prev) => !prev);
   
-  // Effect to manage audio analysis for lip-syncing
   useEffect(() => {
-    if (!audioRef.current || !isTalking) {
-      setAudioLevel(0);
-      return;
-    }
-    
     let lipSyncFrameId: number;
-    const audioContext = new AudioContext();
-    const analyser = audioContext.createAnalyser();
-    const source = audioContext.createMediaElementSource(audioRef.current);
-    source.connect(analyser);
-    analyser.connect(audioContext.destination);
-    analyser.fftSize = 32;
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
+    
+    if (isTalking && analyserRef.current) {
+      const analyser = analyserRef.current;
+      analyser.fftSize = 32;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
 
-    const animate = () => {
-      analyser.getByteFrequencyData(dataArray);
-      const average = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
-      setAudioLevel(average / 128); // Normalize to a 0-1 range
-      lipSyncFrameId = requestAnimationFrame(animate);
-    };
-    animate();
+      const animate = () => {
+        analyser.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
+        setAudioLevel(average / 128);
+        lipSyncFrameId = requestAnimationFrame(animate);
+      };
+      animate();
+    } else {
+      setAudioLevel(0);
+    }
 
     return () => {
-      cancelAnimationFrame(lipSyncFrameId);
-      source.disconnect();
-      analyser.disconnect();
-      audioContext.close().catch(console.error);
+      if (lipSyncFrameId) {
+        cancelAnimationFrame(lipSyncFrameId);
+      }
     };
   }, [isTalking, setAudioLevel]);
 
   return {
     isConnected,
     isMuted,
-    isRecording, // Expose recording state
+    isRecording,
     isTalking,
     connect,
     disconnect,
     toggleMute,
-    startRecording: start, // Expose start recording function
-    stopRecording: stop,  // Expose stop recording function
+    startRecording: start,
+    stopRecording: stop,
   };
 }
