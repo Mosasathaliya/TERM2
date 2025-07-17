@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -35,6 +36,7 @@ export type ContextualizeAIPersonaOutput = z.infer<typeof ContextualizeAIPersona
 // Define the Genkit prompt for generating the persona
 const personaPrompt = ai.definePrompt({
   name: 'personaPrompt',
+  model: 'googleai/gemini-2.5-flash',
   input: { schema: ContextualizeAIPersonaInputSchema },
   output: { schema: ContextualizeAIPersonaOutputSchema },
 
