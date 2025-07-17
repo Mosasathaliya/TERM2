@@ -9,18 +9,18 @@ import Image from 'next/image';
 
 import { ahmedVoiceCall, type AhmedVoiceCallInput } from '@/ai/flows/ahmed-voice-call';
 import { saraVoiceCall, type SaraVoiceCallInput } from '@/ai/flows/sara-voice-call';
+import { textToSpeech } from '@/ai/flows/tts-flow';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, PhoneOff, User, MessageCircle, Mic, AlertTriangle, Volume2, VolumeX, MicOff, MessageSquareQuote, Send } from 'lucide-react';
+import { Loader2, User, MessageCircle, Mic, AlertTriangle, Volume2, MicOff, MessageSquareQuote, Send, Square } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { textToSpeech } from '@/ai/flows/tts-flow';
 import { ScrollArea } from './ui/scroll-area';
 
 
@@ -53,10 +53,12 @@ const TENSES_LIST = [
 
 export function TenseTeacherApp() {
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher>("Ahmed");
-  const [isCalling, setIsCalling] = useState(false);
   const { toast } = useToast();
+
   const [conversationHistory, setConversationHistory] = useState<ConversationEntry[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const ahmedForm = useForm<AhmedFormData>({
     resolver: zodResolver(ahmedSchema),
@@ -69,7 +71,19 @@ export function TenseTeacherApp() {
   });
 
   const currentForm = selectedTeacher === 'Ahmed' ? ahmedForm : saraForm;
-  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue } = currentForm;
+  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, reset } = currentForm;
+
+   useEffect(() => {
+    // Reset state when teacher changes
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.abort();
+    }
+    setConversationHistory([]);
+    ahmedForm.reset({ englishGrammarConcept: "" });
+    saraForm.reset({ englishGrammarConcept: "", userLanguageProficiency: "" });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTeacher]);
+
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -78,30 +92,81 @@ export function TenseTeacherApp() {
   }, [conversationHistory]);
 
   const handlePlayAudio = async (text: string) => {
+      if (!text) return;
       try {
         const result = await textToSpeech(text);
         if (result && result.media) {
             const audio = new Audio(result.media);
             audio.play();
+        } else {
+             toast({
+                variant: "destructive",
+                title: "فشل تشغيل الصوت",
+            });
         }
       } catch (error) {
           console.error("TTS Error:", error);
+          toast({
+            variant: "destructive",
+            title: "خطأ في تشغيل الصوت",
+          });
       }
   };
   
+  useEffect(() => {
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognitionAPI) {
+      console.warn("Speech Recognition API not supported.");
+      return;
+    }
+
+    const recognition = new SpeechRecognitionAPI();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'ar-SA'; // Default to Arabic
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        toast({ variant: "destructive", title: "خطأ في الإدخال الصوتي", description: "تعذر بدء التعرف." });
+        setIsListening(false);
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setValue("englishGrammarConcept", transcript, { shouldValidate: true });
+    };
+
+    recognitionRef.current = recognition;
+  }, [setValue, toast]);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) return;
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
+    }
+  };
+
+
   const onSubmit = async (data: AhmedFormData | SaraFormData) => {
-    setIsCalling(true);
     const userMessage = data.englishGrammarConcept;
-    const newHistory: ConversationEntry[] = [...conversationHistory, { speaker: 'User', message: userMessage }];
-    setConversationHistory(newHistory);
-    setValue('englishGrammarConcept', '');
+    if (!userMessage) return;
+
+    const newHistoryEntry: ConversationEntry = { speaker: 'User', message: userMessage };
+    const currentHistory = [...conversationHistory, newHistoryEntry];
+    setConversationHistory(currentHistory);
+    reset({ ...data, englishGrammarConcept: '' });
 
     try {
         let result;
         if (selectedTeacher === 'Ahmed') {
             const input: AhmedVoiceCallInput = {
                 englishGrammarConcept: userMessage,
-                conversationHistory: conversationHistory,
+                conversationHistory: conversationHistory, // Send history *before* the new message
             };
             result = await ahmedVoiceCall(input);
         } else {
@@ -109,14 +174,14 @@ export function TenseTeacherApp() {
              const input: SaraVoiceCallInput = {
                 englishGrammarConcept: userMessage,
                 userLanguageProficiency: saraData.userLanguageProficiency || 'Intermediate',
-                conversationHistory: conversationHistory,
+                conversationHistory: conversationHistory, // Send history *before* the new message
             };
             result = await saraVoiceCall(input);
         }
 
         const aiEntry: ConversationEntry = { speaker: selectedTeacher, message: result.explanation };
         setConversationHistory(prev => [...prev, aiEntry].slice(- (MAX_HISTORY_PAIRS * 2)));
-        handlePlayAudio(result.explanation);
+        await handlePlayAudio(result.explanation);
     } catch (error) {
         console.error(`Error calling ${selectedTeacher}:`, error);
         toast({
@@ -124,16 +189,15 @@ export function TenseTeacherApp() {
             title: "فشل الاتصال",
             description: `تعذر الاتصال بـ ${selectedTeacher}. يرجى المحاولة مرة أخرى.`,
         });
-        // Remove the user's message if the call fails
-        setConversationHistory(prev => prev.slice(0, -1));
-    } finally {
-        setIsCalling(false);
+        setConversationHistory(prev => prev.slice(0, -1)); // Remove the user's message if the call fails
     }
   };
   
   const handleTenseSelection = (tense: string) => {
     if(tense) {
-        setValue('englishGrammarConcept', `Explain ${tense}`);
+        const prompt = `اشرح لي زمن ${tense}`;
+        setValue('englishGrammarConcept', prompt);
+        handleSubmit({ englishGrammarConcept: prompt, ...(currentForm.getValues()) })();
     }
   };
 
@@ -156,7 +220,7 @@ export function TenseTeacherApp() {
 
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
-        <header className="mb-4 text-center pt-8 sm:pt-16">
+        <header className="mb-4 text-center pt-8 sm:pt-16 shrink-0">
             <MessageSquareQuote className="mx-auto h-16 w-16 sm:h-20 sm:w-20 text-primary mb-4 animate-pulse" />
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight">خبير الأزمنة</h1>
             <p className="text-lg sm:text-xl text-muted-foreground mt-2">
@@ -182,10 +246,13 @@ export function TenseTeacherApp() {
                         <div ref={chatContainerRef} className="p-2 space-y-4">
                             {conversationHistory.length > 0 ? (
                                 conversationHistory.map((entry, index) => (
-                                    <div key={index} className={`flex items-start gap-2 ${entry.speaker === 'User' ? 'justify-end' : 'justify-start'}`}>
+                                    <div key={index} className={`flex items-end gap-2 ${entry.speaker === 'User' ? 'justify-end' : 'justify-start'}`}>
                                         {entry.speaker !== 'User' && <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{entry.speaker.charAt(0)}</AvatarFallback></Avatar>}
-                                        <div className={`rounded-lg px-3 py-2 max-w-[85%] ${entry.speaker === 'User' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                                        <div className={`rounded-lg px-3 py-2 max-w-[85%] flex items-center gap-2 ${entry.speaker === 'User' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                                             <p className="text-sm whitespace-pre-wrap">{entry.message}</p>
+                                            {entry.speaker !== 'User' && (
+                                                <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0" onClick={() => handlePlayAudio(entry.message)}><Volume2 className="h-4 w-4" /></Button>
+                                            )}
                                         </div>
                                         {entry.speaker === 'User' && <Avatar className="h-6 w-6"><AvatarFallback>U</AvatarFallback></Avatar>}
                                     </div>
@@ -196,7 +263,7 @@ export function TenseTeacherApp() {
                                     <p>ابدأ المحادثة باختيار موضوع أو طرح سؤال أدناه.</p>
                                 </div>
                             )}
-                            {isCalling && (
+                            {isSubmitting && (
                                 <div className="flex items-start gap-2 justify-start">
                                     <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{selectedTeacher.charAt(0)}</AvatarFallback></Avatar>
                                     <div className="rounded-lg px-3 py-2 bg-muted flex items-center">
@@ -231,7 +298,10 @@ export function TenseTeacherApp() {
                         <div>
                             <Label htmlFor="englishGrammarConcept" className="text-sm sm:text-md font-medium">أو اطرح سؤالاً للمتابعة</Label>
                             <div className="flex gap-2 mt-1">
-                                <Textarea id="englishGrammarConcept" placeholder="اكتب سؤال متابعة هنا..." {...register("englishGrammarConcept")}
+                                <Button type="button" size="icon" variant={isListening ? "destructive" : "outline"} onClick={toggleListening} className="h-auto px-3 shrink-0" disabled={isSubmitting}>
+                                     {isListening ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                                </Button>
+                                <Textarea id="englishGrammarConcept" placeholder="اكتب سؤال متابعة هنا أو استخدم الميكروفون..." {...register("englishGrammarConcept")}
                                     className={`text-base bg-background focus:ring-2 focus:ring-primary ${errors.englishGrammarConcept ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
                                     rows={1} disabled={isSubmitting} />
                                 <Button type="submit" size="icon" className="h-auto px-3 shrink-0" disabled={isSubmitting}>
@@ -247,5 +317,3 @@ export function TenseTeacherApp() {
     </div>
   );
 }
-
-    
