@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
@@ -14,7 +15,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2 } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -24,6 +25,7 @@ import { LingoleapApp } from './lingoleap-app';
 
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
+    const [isJumpleGameOpen, setIsJumpleGameOpen] = useState(false);
 
   return (
     <>
@@ -49,6 +51,21 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 </CardHeader>
             </Card>
 
+            <Card 
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                onClick={() => setIsJumpleGameOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <Gamepad2 className="h-8 w-8 text-accent" />
+                        <span>لعبة Jumple</span>
+                    </CardTitle>
+                    <CardDescription>
+                        العب لعبة كلمات ممتعة وتفاعلية لتمارس مهاراتك.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+
         </div>
         
     </section>
@@ -67,6 +84,27 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             </div>
         </DialogContent>
     </Dialog>
+
+    <Dialog open={isJumpleGameOpen} onOpenChange={setIsJumpleGameOpen}>
+        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
+             <DialogHeader className="p-4 border-b">
+                <DialogTitle>Jumple Game</DialogTitle>
+                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </DialogClose>
+            </DialogHeader>
+            <div className="flex-grow min-h-0">
+                 <iframe
+                    src="https://mumble-jumble-108473853069.us-west1.run.app/"
+                    className="w-full h-full border-0"
+                    title="Jumple Game"
+                    allow="microphone"
+                ></iframe>
+            </div>
+        </DialogContent>
+    </Dialog>
+
     </>
   );
 }
