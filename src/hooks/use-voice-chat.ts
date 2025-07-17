@@ -10,10 +10,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAudioProcessor } from './use-audio-processor';
 import { useAgentStore } from './use-agent-store';
-import { speechToText } from '@/ai/flows/speech-to-text';
-import { contextualizeAIPersona } from '@/ai/flows/contextualize-ai-persona';
-import { personalizeAgentResponse, type Message } from '@/ai/flows/personalize-agent-response';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
+import type { Message } from '@/ai/flows/personalize-agent-response';
+import { runVoiceChatPipeline } from '@/ai/flows/voice-chat-pipeline';
 
 export function useVoiceChat() {
   // State from Zustand store
@@ -36,33 +35,28 @@ export function useVoiceChat() {
 
     try {
       setIsTalking(true);
-      const { text: transcribedText } = await speechToText({ audio: dataUri });
-      if (!transcribedText.trim()) {
-        setIsTalking(false);
-        return;
-      }
 
-      const userMessage: Message = { role: 'user', content: transcribedText };
-      // Use a functional update to ensure we have the latest history
-      setHistory(prev => [...prev, userMessage]);
-      
-      const { contextualizedPersona } = await contextualizeAIPersona({
+      const pipelineResult = await runVoiceChatPipeline({
+        audioDataUri: dataUri,
         personality: currentAgent.personality,
         userName: userSettings.name,
         userInfo: userSettings.info,
+        history,
       });
 
-      // Pass the new history directly to the AI
-      const { response } = await personalizeAgentResponse({
-        contextualizedPersona,
-        history: [...history, userMessage], // Pass updated history
-        prompt: transcribedText,
-      });
+      const transcribedText = pipelineResult.response; // Assuming the pipeline gives us back the user's text for history
+      const responseText = pipelineResult.response;
 
-      const modelMessage: Message = { role: 'model', content: response };
-      setHistory(prev => [...prev, modelMessage]);
+      if (!responseText) {
+        setIsTalking(false);
+        return;
+      }
+      
+      const userMessage: Message = { role: 'user', content: transcribedText };
+      const modelMessage: Message = { role: 'model', content: responseText };
+      setHistory(prev => [...prev, userMessage, modelMessage]);
 
-      const { audio: audioDataUri } = await textToSpeech({ text: response, voice: currentAgent.voice });
+      const { audio: audioDataUri } = await textToSpeech({ text: responseText, voice: currentAgent.voice });
       
       if (audioRef.current) {
         audioRef.current.src = audioDataUri;
@@ -74,7 +68,7 @@ export function useVoiceChat() {
       console.error('Voice chat pipeline error:', error);
       setIsTalking(false);
     }
-  }, [isMuted, isTalking, currentAgent, userSettings, history]); // Add history to dependency array
+  }, [isMuted, isTalking, currentAgent, userSettings, history]);
 
   const { isRecording, start, stop } = useAudioProcessor(handleAudioData);
 
@@ -82,9 +76,26 @@ export function useVoiceChat() {
     if (!audioRef.current) {
       const audio = new Audio();
       audioRef.current = audio;
+
+      // Setup audio analysis context once
+      try {
+        const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const analyser = context.createAnalyser();
+        const source = context.createMediaElementSource(audio);
+        
+        source.connect(analyser);
+        analyser.connect(context.destination);
+
+        audioContextRef.current = context;
+        analyserRef.current = analyser;
+        sourceNodeRef.current = source;
+      } catch (e) {
+        console.error("Error setting up AudioContext:", e);
+      }
     }
     setIsConnected(true);
   }, []);
+
 
   const disconnect = useCallback(() => {
     if (isRecording) {
@@ -110,52 +121,26 @@ export function useVoiceChat() {
     }
   }, [isRecording, start, stop]);
   
-  // Effect to manage the onended event listener for the audio element.
-  // This ensures the listener is always up-to-date with the current state.
   useEffect(() => {
     const audioEl = audioRef.current;
     if (!audioEl) return;
 
     const handlePlaybackEnd = () => setIsTalking(false);
 
-    // If the AI is talking, add the listener.
     if (isTalking) {
       audioEl.addEventListener('ended', handlePlaybackEnd);
     }
 
-    // Cleanup function to remove the listener.
     return () => {
       audioEl.removeEventListener('ended', handlePlaybackEnd);
     };
-  }, [isTalking]); // This effect now correctly depends on isTalking.
+  }, [isTalking]); 
   
   useEffect(() => {
     let lipSyncFrameId: number;
-
-    const setupAudioAnalysis = () => {
-        if (!audioRef.current) return;
-        if (audioContextRef.current) return;
-
-        try {
-            const context = new (window.AudioContext || (window as any).webkitAudioContext)();
-            audioContextRef.current = context;
-            analyserRef.current = context.createAnalyser();
-            sourceNodeRef.current = context.createMediaElementSource(audioRef.current);
-            sourceNodeRef.current.connect(analyserRef.current);
-            analyserRef.current.connect(context.destination);
-        } catch (e) {
-             if (e instanceof DOMException && e.name === 'InvalidStateError') {
-                // This error means the source node is already connected, which is fine.
-            } else {
-                console.error("Error setting up audio source node:", e);
-            }
-        }
-    };
-
-    if (isTalking) {
-      setupAudioAnalysis();
-      const analyser = analyserRef.current;
-      if (analyser) {
+    const analyser = analyserRef.current;
+    
+    if (isTalking && analyser) {
         analyser.fftSize = 32;
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
@@ -167,7 +152,6 @@ export function useVoiceChat() {
           lipSyncFrameId = requestAnimationFrame(animate);
         };
         animate();
-      }
     } else {
       setAudioLevel(0);
     }
