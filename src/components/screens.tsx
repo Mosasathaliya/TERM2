@@ -980,6 +980,7 @@ export function AiScreen({ setActiveTab }: { setActiveTab: ActiveTab }) {
   const [isAiLessonsOpen, setIsAiLessonsOpen] = useState(false);
   const [isLessonViewerOpen, setIsLessonViewerOpen] = useState(false);
   const [selectedAiLesson, setSelectedAiLesson] = useState<AiLesson | null>(null);
+  const [isVoiceChatOpen, setIsVoiceChatOpen] = useState(false);
 
   const handleSelectLesson = (lesson: AiLesson) => {
     setSelectedAiLesson(lesson);
@@ -1015,15 +1016,15 @@ export function AiScreen({ setActiveTab }: { setActiveTab: ActiveTab }) {
           
           <Card 
               className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-              onClick={() => setActiveTab('home')}
+              onClick={() => setIsVoiceChatOpen(true)}
           >
               <CardHeader>
                   <CardTitle className="flex items-center gap-3">
-                      <Sparkles className="h-8 w-8 text-accent" />
-                      <span>المزيد من الأدوات قريباً</span>
+                      <Ear className="h-8 w-8 text-destructive" />
+                      <span>المساعد الصوتي</span>
                   </CardTitle>
                   <CardDescription>
-                      نحن نعمل باستمرار على إضافة المزيد من الأدوات المبتكرة لتعزيز تعلمك.
+                      تدرب على المحادثة مع مساعد صوتي يعمل بالذكاء الاصطناعي.
                   </CardDescription>
               </CardHeader>
           </Card>
@@ -1042,6 +1043,20 @@ export function AiScreen({ setActiveTab }: { setActiveTab: ActiveTab }) {
         onOpenChange={setIsLessonViewerOpen}
         onBack={handleBackToList}
       />
+
+       <Dialog open={isVoiceChatOpen} onOpenChange={setIsVoiceChatOpen}>
+          <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
+              <DialogHeader className="sr-only">
+                  <DialogTitle>Voice Assistant</DialogTitle>
+                  <DialogDescription>Practice conversation with a voice-based AI assistant.</DialogDescription>
+              </DialogHeader>
+              <ChatterbotApp />
+               <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20 text-white">
+                  <X className="h-4 w-4" />
+                  <span className="sr-only">Close</span>
+              </DialogClose>
+          </DialogContent>
+      </Dialog>
     </>
   );
 }
