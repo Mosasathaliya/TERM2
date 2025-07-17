@@ -9,7 +9,13 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import type { Message } from './personalize-agent-response';
+
+// Define a schema for a single chat message, which will be used for history
+const MessageSchema = z.object({
+  role: z.enum(['user', 'model']),
+  content: z.string(),
+});
+export type Message = z.infer<typeof MessageSchema>;
 
 // Input schema for the consolidated pipeline
 const VoiceChatInputSchema = z.object({
@@ -17,10 +23,7 @@ const VoiceChatInputSchema = z.object({
   personality: z.string().describe("The agent's base personality."),
   userName: z.string().optional(),
   userInfo: z.string().optional(),
-  history: z.array(z.object({
-    role: z.enum(['user', 'model']),
-    content: z.string(),
-  })),
+  history: z.array(MessageSchema),
 });
 export type VoiceChatInput = z.infer<typeof VoiceChatInputSchema>;
 
@@ -61,10 +64,10 @@ const voiceChatPipelineFlow = ai.defineFlow(
     if (userInfo) {
       systemPrompt += ` Here is some information about the user you are talking to: ${userInfo}.`;
     }
+    systemPrompt += ` Keep your responses concise and conversational.`
 
     // Step 3: Add the new user message to the history for the LLM call
     const llmHistory: Message[] = [...history, { role: 'user', content: transcribedText }];
-
 
     // Step 4: Generate the personalized response using the full context
     const response = await ai.generate({

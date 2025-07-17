@@ -11,21 +11,17 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAudioProcessor } from './use-audio-processor';
 import { useAgentStore } from './use-agent-store';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
-import type { Message } from '@/ai/flows/personalize-agent-response';
+import type { Message } from '@/ai/flows/voice-chat-pipeline';
 import { runVoiceChatPipeline } from '@/ai/flows/voice-chat-pipeline';
 
 export function useVoiceChat() {
-  // State from Zustand store
   const { currentAgent, userSettings, setAudioLevel } = useAgentStore();
-
-  // Local state for managing chat flow
   const [isConnected, setIsConnected] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [isTalking, setIsTalking] = useState(false); // Represents AI talking
+  const [isTalking, setIsTalking] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [history, setHistory] = useState<Message[]>([]);
   
-  // Refs for managing audio
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -34,20 +30,21 @@ export function useVoiceChat() {
   const handleAudioData = useCallback(async (dataUri: string) => {
     if (isMuted) return;
   
-    setIsTalking(true); // AI starts "thinking"
+    setIsTalking(true);
     try {
-      const result = await runVoiceChatPipeline({
+      const pipelineInput = {
         audioDataUri: dataUri,
         personality: currentAgent.personality,
         userName: userSettings.name,
         userInfo: userSettings.info,
         history: history,
-      });
+      };
 
+      const result = await runVoiceChatPipeline(pipelineInput);
       const { transcribedText, response: responseText } = result;
       
       if (!transcribedText.trim()) {
-          setIsTalking(false); // Nothing was said, so AI is done "thinking"
+          setIsTalking(false);
           return;
       }
       
@@ -55,18 +52,21 @@ export function useVoiceChat() {
       
       if (responseText) {
           const modelMessage: Message = { role: 'model', content: responseText };
+          // Update history with both user message and model response for the next turn
           setHistory(prev => [...prev, userMessage, modelMessage]);
+          
           const ttsResult = await textToSpeech({ text: responseText, voice: currentAgent.voice });
           if (audioRef.current && ttsResult?.audio) {
               audioRef.current.src = ttsResult.audio;
               audioRef.current.play().catch(e => {
                 console.error("Audio playback error:", e);
-                setIsTalking(false); // Reset state if playback fails
+                setIsTalking(false);
               });
           } else {
                setIsTalking(false);
           }
       } else {
+           // If there's no response text, just add the user's message to history
            setHistory(prev => [...prev, userMessage]);
            setIsTalking(false);
       }
@@ -84,24 +84,9 @@ export function useVoiceChat() {
         const audio = new Audio();
         audioRef.current = audio;
         
-        audio.onended = () => setIsTalking(false);
-
-        try {
-            const context = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const analyser = context.createAnalyser();
-            // Check if source node already exists before creating a new one
-            if (audioRef.current && !sourceNodeRef.current) {
-                const source = context.createMediaElementSource(audioRef.current);
-                sourceNodeRef.current = source;
-                source.connect(analyser);
-            }
-            analyser.connect(context.destination);
-            
-            audioContextRef.current = context;
-            analyserRef.current = analyser;
-        } catch (e) {
-            console.error("Failed to initialize AudioContext:", e);
-        }
+        audio.onended = () => {
+          setIsTalking(false);
+        };
     }
     setIsConnected(true);
   }, []);
@@ -115,6 +100,12 @@ export function useVoiceChat() {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.src = '';
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+      analyserRef.current = null;
+      sourceNodeRef.current = null;
     }
     setIsConnected(false);
     setIsTalking(false);
@@ -136,20 +127,39 @@ export function useVoiceChat() {
   
   useEffect(() => {
     let lipSyncFrameId: number;
-    const analyser = analyserRef.current;
+
+    const setupAudioContext = () => {
+      if (audioRef.current && !audioContextRef.current) {
+        const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const analyser = context.createAnalyser();
+        const source = context.createMediaElementSource(audioRef.current);
+        
+        source.connect(analyser);
+        analyser.connect(context.destination);
+        
+        audioContextRef.current = context;
+        analyserRef.current = analyser;
+        sourceNodeRef.current = source;
+      }
+    };
     
-    if (isTalking && analyser) {
+    if (isTalking) {
+      setupAudioContext();
+      const analyser = analyserRef.current;
+      if (analyser) {
         analyser.fftSize = 32;
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
 
         const animate = () => {
-          analyser.getByteFrequencyData(dataArray);
+          if (!analyserRef.current) return;
+          analyserRef.current.getByteFrequencyData(dataArray);
           const average = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
-          setAudioLevel(average / 128); // Normalize the audio level
+          setAudioLevel(average / 128);
           lipSyncFrameId = requestAnimationFrame(animate);
         };
         animate();
+      }
     } else {
       setAudioLevel(0);
     }
@@ -160,6 +170,18 @@ export function useVoiceChat() {
       }
     };
   }, [isTalking, setAudioLevel]);
+
+  useEffect(() => {
+    const audioEl = audioRef.current;
+    const onEnded = () => setIsTalking(false);
+
+    if (audioEl) {
+      audioEl.addEventListener('ended', onEnded);
+      return () => {
+        audioEl.removeEventListener('ended', onEnded);
+      };
+    }
+  }, []);
 
   return {
     isConnected,
