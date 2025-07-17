@@ -13,6 +13,8 @@ import { useAgentStore } from './use-agent-store';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import type { Message } from '@/ai/flows/personalize-agent-response';
 import { runVoiceChatPipeline } from '@/ai/flows/voice-chat-pipeline';
+import { speechToText } from '@/ai/flows/speech-to-text';
+
 
 export function useVoiceChat() {
   // State from Zustand store
@@ -32,34 +34,45 @@ export function useVoiceChat() {
 
   const handleAudioData = useCallback(async (dataUri: string) => {
     if (isMuted || isTalking) return;
-
+  
+    setIsTalking(true);
     try {
-      setIsTalking(true);
-
-      const pipelineResult = await runVoiceChatPipeline({
-        audioDataUri: dataUri,
+      // First, get the transcription of the user's audio
+      const { text: transcribedText } = await speechToText({ audio: dataUri });
+  
+      if (!transcribedText || !transcribedText.trim()) {
+        setIsTalking(false);
+        return; // Nothing was said, so don't proceed
+      }
+  
+      // Add the user's transcribed message to the history
+      const userMessage: Message = { role: 'user', content: transcribedText };
+      const updatedHistory = [...history, userMessage];
+      setHistory(updatedHistory);
+  
+      // Now, call the pipeline with the complete history to get the AI's response
+      const responseResult = await runVoiceChatPipeline({
+        audioDataUri: dataUri, // The pipeline still needs this, but we handle history here now.
         personality: currentAgent.personality,
         userName: userSettings.name,
         userInfo: userSettings.info,
-        history,
+        history: updatedHistory, // Send the most up-to-date history
       });
-
-      const transcribedText = pipelineResult.response; // Assuming the pipeline gives us back the user's text for history
-      const responseText = pipelineResult.response;
-
+  
+      const responseText = responseResult.response;
+  
       if (!responseText) {
         setIsTalking(false);
         return;
       }
       
-      const userMessage: Message = { role: 'user', content: transcribedText };
       const modelMessage: Message = { role: 'model', content: responseText };
-      setHistory(prev => [...prev, userMessage, modelMessage]);
-
-      const { audio: audioDataUri } = await textToSpeech({ text: responseText, voice: currentAgent.voice });
+      setHistory(prev => [...prev, modelMessage]);
+  
+      const { audio: audioDataUriResponse } = await textToSpeech({ text: responseText, voice: currentAgent.voice });
       
       if (audioRef.current) {
-        audioRef.current.src = audioDataUri;
+        audioRef.current.src = audioDataUriResponse;
         await audioRef.current.play();
       } else {
         setIsTalking(false);
@@ -69,6 +82,7 @@ export function useVoiceChat() {
       setIsTalking(false);
     }
   }, [isMuted, isTalking, currentAgent, userSettings, history]);
+  
 
   const { isRecording, start, stop } = useAudioProcessor(handleAudioData);
 
@@ -76,22 +90,6 @@ export function useVoiceChat() {
     if (!audioRef.current) {
       const audio = new Audio();
       audioRef.current = audio;
-
-      // Setup audio analysis context once
-      try {
-        const context = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const analyser = context.createAnalyser();
-        const source = context.createMediaElementSource(audio);
-        
-        source.connect(analyser);
-        analyser.connect(context.destination);
-
-        audioContextRef.current = context;
-        analyserRef.current = analyser;
-        sourceNodeRef.current = source;
-      } catch (e) {
-        console.error("Error setting up AudioContext:", e);
-      }
     }
     setIsConnected(true);
   }, []);
@@ -137,6 +135,27 @@ export function useVoiceChat() {
   }, [isTalking]); 
   
   useEffect(() => {
+    const audioEl = audioRef.current;
+    const audioCtx = audioContextRef.current;
+
+    if (isTalking && audioEl && !audioCtx) {
+      try {
+        const newAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioContextRef.current = newAudioContext;
+        
+        if (!sourceNodeRef.current) {
+          const source = newAudioContext.createMediaElementSource(audioEl);
+          sourceNodeRef.current = source;
+          const analyser = newAudioContext.createAnalyser();
+          analyserRef.current = analyser;
+          source.connect(analyser);
+          analyser.connect(newAudioContext.destination);
+        }
+      } catch (e) {
+        console.error("Error setting up AudioContext:", e);
+      }
+    }
+
     let lipSyncFrameId: number;
     const analyser = analyserRef.current;
     
