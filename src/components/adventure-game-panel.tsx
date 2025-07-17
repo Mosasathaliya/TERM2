@@ -8,69 +8,60 @@ import type { TranslationState } from '@/lib/adventure-game-types';
 interface GamePanelProps {
   storyHistory: StoryPart[];
   onSendAction: (action: string) => void;
-  onWordClick: (word: string) => void;
-  onNarrativeWordClick: (word: string) => void; // New prop
+  onWordClick: (word: string) => void; // For special vocabulary words
+  onNarrativeWordClick: (word: string) => void; // For regular words
   loading: boolean;
   error: string | null;
-  translation: TranslationState | null; // New prop
+  translation: TranslationState | null;
 }
 
-const HighlightedText: React.FC<{ text: string; word: string; onClick: (word: string) => void }> = ({ text, word, onClick }) => {
-    if (!word || !text.includes(word)) {
-        return <>{text}</>;
-    }
-    const parts = text.split(new RegExp(`(${word})`, 'gi'));
-    return (
-        <>
-            {parts.map((part, index) =>
-                part.toLowerCase() === word.toLowerCase() ? (
-                    <button
-                        key={index}
-                        onClick={() => onClick(word)}
-                        className="font-bold text-purple-400 hover:text-purple-300 underline decoration-dotted underline-offset-4 cursor-pointer transition-colors"
-                    >
-                        {part}
-                    </button>
-                ) : (
-                    <span key={index}>{part}</span>
-                )
-            )}
-        </>
-    );
-};
+const ClickableNarrative: React.FC<{
+  text: string;
+  specialWord?: string;
+  onSpecialWordClick: (word: string) => void;
+  onRegularWordClick: (word: string) => void;
+  translation: TranslationState | null;
+}> = ({ text, specialWord, onSpecialWordClick, onRegularWordClick, translation }) => {
+  return (
+    <>
+      {text.split(/(\s+)/).map((segment, index) => {
+        const word = segment.trim();
+        const cleanedWord = word.replace(/[^a-zA-Z]/g, '');
 
-const ClickableNarrative: React.FC<{ text: string; onWordClick: (word: string) => void; translation: TranslationState | null }> = ({ text, onWordClick, translation }) => {
-    return (
-        <>
-            {text.split(/(\s+)/).map((segment, index) => {
-                const word = segment.trim().replace(/[^a-zA-Z]/g, '');
-                if (word.length > 0) {
-                    return (
-                        <Popover key={index}>
-                            <PopoverTrigger asChild>
-                                <span
-                                    className="cursor-pointer hover:bg-primary/20 rounded-sm transition-colors"
-                                    onClick={() => onWordClick(segment.trim())}
-                                >
-                                    {segment}
-                                </span>
-                            </PopoverTrigger>
-                            {translation?.word === segment.trim() && (
-                                <PopoverContent className="w-auto p-2" side="top">
-                                    {translation.isLoading ? (
-                                        <div className="text-sm">...</div>
-                                    ) : (
-                                        <div className="text-sm font-semibold">{translation.text}</div>
-                                    )}
-                                </PopoverContent>
-                            )}
-                        </Popover>
-                    );
+        if (!cleanedWord) {
+          return <span key={index}>{segment}</span>; // Render spaces and punctuation
+        }
+
+        const isSpecial = specialWord && cleanedWord.toLowerCase() === specialWord.toLowerCase();
+
+        return (
+          <Popover key={index}>
+            <PopoverTrigger asChild>
+              <span
+                onClick={() => isSpecial ? onSpecialWordClick(cleanedWord) : onRegularWordClick(word)}
+                className={
+                  isSpecial
+                    ? "font-bold text-purple-400 hover:text-purple-300 underline decoration-dotted underline-offset-4 cursor-pointer transition-colors"
+                    : "cursor-pointer hover:bg-primary/20 rounded-sm transition-colors"
                 }
-                return <span key={index}>{segment}</span>; // Render spaces
-            })}
-        </>
-    );
+              >
+                {segment}
+              </span>
+            </PopoverTrigger>
+            {!isSpecial && translation?.word === word && (
+              <PopoverContent className="w-auto p-2" side="top">
+                {translation.isLoading ? (
+                  <div className="text-sm">...</div>
+                ) : (
+                  <div className="text-sm font-semibold">{translation.text}</div>
+                )}
+              </PopoverContent>
+            )}
+          </Popover>
+        );
+      })}
+    </>
+  );
 };
 
 
@@ -112,11 +103,13 @@ export const GamePanel: React.FC<GamePanelProps> = ({ storyHistory, onSendAction
             <div className={`p-4 rounded-xl max-w-xl ${part.sender === 'ai' ? 'bg-gray-800' : 'bg-blue-600/80'}`}>
               <p className="text-white whitespace-pre-wrap">
                 {part.sender === 'ai' ? (
-                  part.vocabularyWord ? (
-                    <HighlightedText text={part.text} word={part.vocabularyWord} onClick={onWordClick} />
-                  ) : (
-                    <ClickableNarrative text={part.text} onWordClick={onNarrativeWordClick} translation={translation} />
-                  )
+                   <ClickableNarrative 
+                      text={part.text}
+                      specialWord={part.vocabularyWord}
+                      onSpecialWordClick={onWordClick}
+                      onRegularWordClick={onNarrativeWordClick}
+                      translation={translation}
+                   />
                 ) : (
                    part.text
                 )}
