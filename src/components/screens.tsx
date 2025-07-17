@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
@@ -15,7 +14,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Clapperboard } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -42,6 +41,7 @@ import Link from 'next/link';
 
 // Import video links from the new data file
 import videoLinks from '@/data/video-links';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
 
 function LessonList() {
   return (
@@ -194,6 +194,83 @@ function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
     );
 }
 
+function AevyTvDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
+    const shorts = ["i0zQ2pL1aJg", "KjA4Z2z2FqU", "p3Lw4sLhGvM"];
+    const videos = ["9l8b6-C0AIw", "Yt_tn9dG09o", "uC23iL0gGqg"];
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-6xl h-[95vh] flex flex-col p-6">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2 text-2xl">
+                        <Clapperboard className="h-8 w-8 text-primary" />
+                        قناة Aevy TV
+                    </DialogTitle>
+                    <DialogDescription>تصفح فيديوهات Shorts والفيديوهات الطويلة من القناة مباشرة هنا.</DialogDescription>
+                </DialogHeader>
+
+                <div className="flex-grow flex flex-col md:flex-row gap-8 overflow-hidden min-h-0">
+                    {/* Shorts Section */}
+                    <div className="flex-1 flex flex-col min-h-0">
+                        <h3 className="text-xl font-semibold mb-4 text-center">Shorts</h3>
+                        <div className="relative flex-grow">
+                             <Carousel className="h-full w-full" opts={{ loop: true, axis: 'y' }} orientation="vertical">
+                                <CarouselContent className="h-full">
+                                    {shorts.map(id => (
+                                        <CarouselItem key={id} className="pt-0">
+                                            <div className="w-full h-full p-1">
+                                                <iframe
+                                                    className="w-full h-full rounded-lg"
+                                                    src={`https://www.youtube.com/embed/shorts/${id}`}
+                                                    title="YouTube video player"
+                                                    frameBorder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                ></iframe>
+                                            </div>
+                                        </CarouselItem>
+                                    ))}
+                                </CarouselContent>
+                                <CarouselPrevious variant="secondary" className="left-1/2 -translate-x-1/2 -top-10" />
+                                <CarouselNext variant="secondary" className="left-1/2 -translate-x-1/2 -bottom-10" />
+                            </Carousel>
+                        </div>
+                    </div>
+
+                    <div className="border-l border-border hidden md:block"></div>
+
+                    {/* Videos Section */}
+                    <div className="flex-1 flex flex-col min-h-0">
+                         <h3 className="text-xl font-semibold mb-4 text-center">Videos</h3>
+                         <div className="relative flex-grow">
+                             <Carousel className="h-full w-full" opts={{ loop: true }}>
+                                <CarouselContent className="h-full">
+                                    {videos.map(id => (
+                                        <CarouselItem key={id} className="pl-0">
+                                            <div className="w-full h-full p-1">
+                                                <iframe
+                                                    className="w-full h-full rounded-lg"
+                                                    src={`https://www.youtube.com/embed/${id}`}
+                                                    title="YouTube video player"
+                                                    frameBorder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                ></iframe>
+                                            </div>
+                                        </CarouselItem>
+                                    ))}
+                                </CarouselContent>
+                                <CarouselPrevious variant="secondary" className="-left-4" />
+                                <CarouselNext variant="secondary" className="-right-4" />
+                            </Carousel>
+                        </div>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
     const [isAdventureOpen, setIsAdventureOpen] = useState(false);
@@ -201,6 +278,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     const [isTenseTeacherOpen, setIsTenseTeacherOpen] = useState(false);
     const [isLessonsOpen, setIsLessonsOpen] = useState(false);
     const [isVideoLearnOpen, setIsVideoLearnOpen] = useState(false);
+    const [isAevyTvOpen, setIsAevyTvOpen] = useState(false);
     
   return (
     <>
@@ -301,6 +379,20 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 </CardHeader>
             </Card>
 
+             <Card 
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                onClick={() => setIsAevyTvOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <Clapperboard className="h-8 w-8 text-blue-500" />
+                        <span>قناة Aevy TV</span>
+                    </CardTitle>
+                    <CardDescription>
+                       استعرض فيديوهات وقصص قصيرة من قناة اليوتيوب التعليمية هذه.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
         </div>
         
     </section>
@@ -382,6 +474,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     </Dialog>
     
     <VideoLearnDialog isOpen={isVideoLearnOpen} onOpenChange={setIsVideoLearnOpen} />
+    <AevyTvDialog isOpen={isAevyTvOpen} onOpenChange={setIsAevyTvOpen} />
     </>
   );
 }
