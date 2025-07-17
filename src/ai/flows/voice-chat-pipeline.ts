@@ -9,8 +9,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import {personalizeAgentResponse, type Message} from './personalize-agent-response';
-import {contextualizeAIPersona} from './contextualize-ai-persona';
+import type { Message } from './personalize-agent-response';
 
 // Input schema for the consolidated pipeline
 const VoiceChatInputSchema = z.object({
@@ -53,21 +52,26 @@ const voiceChatPipelineFlow = ai.defineFlow(
     if (!transcribedText || !transcribedText.trim()) {
       return { response: "", transcribedText: "" }; // Return empty if transcription is empty
     }
-
-    // Step 2: Add the user's new message to the history
-    const userMessage: Message = { role: 'user', content: transcribedText };
-    const updatedHistory = [...history, userMessage];
+    
+    // Step 2: Construct the system prompt for the AI's persona
+    const systemPrompt = `You are an AI with the following personality: ${personality}. Address the user as ${userName || 'friend'} if possible.`;
 
     // Step 3: Generate the personalized response using the full context
-    const responseResult = await personalizeAgentResponse({
-        contextualizedPersona: `You are an AI with the following personality: ${personality}. Address the user as ${userName || 'friend'} if possible.`,
-        history: updatedHistory,
+    const response = await ai.generate({
+        model: 'googleai/gemini-2.5-flash',
+        system: systemPrompt,
         prompt: transcribedText,
+        history,
     });
+    
+    const responseText = response.text;
+    if (!responseText) {
+      return { response: "I'm sorry, I don't have a response for that.", transcribedText: transcribedText };
+    }
 
     return { 
-      response: responseResult.response,
-      transcribedText: transcribedText, // Pass the transcription back to the client
+      response: responseText,
+      transcribedText: transcribedText,
     };
   }
 );
