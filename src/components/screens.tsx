@@ -15,7 +15,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon, Volume2 } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
