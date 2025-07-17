@@ -43,6 +43,7 @@ import Link from 'next/link';
 // Import video links from the data files
 import videoLinks from '@/data/video-links';
 import whatIfLinks from '@/data/whatif-links';
+import motivationLinks from '@/data/motivation-links';
 import { explainVideoTopic, type ExplainVideoOutput } from '@/ai/flows/explain-video-flow';
 import { textToSpeech } from '@/ai/flows/tts-flow';
 
@@ -50,14 +51,16 @@ import { textToSpeech } from '@/ai/flows/tts-flow';
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
     let videoId = null;
-    let title = null; // We can't get the title from the URL alone easily, but can pass it if available.
+    let title = null; 
     try {
         const urlObj = new URL(url);
         if (urlObj.hostname === 'youtu.be') {
-            videoId = urlObj.pathname.slice(1);
+            videoId = urlObj.pathname.slice(1).split('?')[0];
         } else if (urlObj.hostname === 'youtube.com' || urlObj.hostname === 'www.youtube.com') {
              if (urlObj.pathname.startsWith('/live/')) {
                 videoId = urlObj.pathname.split('/live/')[1].split('?')[0];
+            } else if (urlObj.pathname.startsWith('/shorts/')) {
+                videoId = urlObj.pathname.split('/shorts/')[1].split('?')[0];
             } else {
                 videoId = urlObj.searchParams.get('v');
             }
@@ -70,7 +73,7 @@ const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string
     if (videoId) {
         // A real implementation would fetch the title from the YouTube API
         // For now, we can create a placeholder title
-        title = `What If Video: ${videoId}`;
+        title = `Video: ${videoId}`;
         return { embedUrl: `https://www.youtube.com/embed/${videoId}`, videoId, title };
     }
     return { embedUrl: null, videoId: null, title: null };
@@ -145,7 +148,6 @@ function VideoPlayerModal({ videoUrl, onClose }: { videoUrl: string | null; onCl
         <DialogContent className="max-w-4xl h-[70vh] p-0 border-0">
           <DialogHeader className="sr-only">
             <DialogTitle>Video Player</DialogTitle>
-            <DialogDescription>Playing selected educational video.</DialogDescription>
           </DialogHeader>
           <iframe
             width="100%"
@@ -346,6 +348,51 @@ function WhatIfDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
     );
 }
 
+function MotivationDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const videoData = motivationLinks.split('\n').map(getYouTubeInfo).filter(item => item.embedUrl);
+    const currentVideo = videoData[currentIndex];
+
+    const goToNext = () => setCurrentIndex(prev => (prev + 1) % videoData.length);
+    const goToPrevious = () => setCurrentIndex(prev => (prev - 1 + videoData.length) % videoData.length);
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-md h-auto flex flex-col p-4 sm:p-6 gap-4">
+                <DialogHeader>
+                    <DialogTitle>جرعة تحفيز!</DialogTitle>
+                    <DialogDescription>شاهد فيديوهات قصيرة ملهمة. فيديو {currentIndex + 1} من {videoData.length}.</DialogDescription>
+                </DialogHeader>
+                <div className="w-full aspect-[9/16] bg-muted rounded-lg overflow-hidden shadow-inner">
+                    {currentVideo?.embedUrl && (
+                        <iframe
+                            key={currentVideo.embedUrl}
+                            width="100%"
+                            height="100%"
+                            src={`${currentVideo.embedUrl}?autoplay=1`}
+                            title="Motivational Short"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                        ></iframe>
+                    )}
+                </div>
+                <DialogFooter className="flex-row gap-2 justify-between w-full">
+                    <Button onClick={goToPrevious} disabled={videoData.length <= 1}>
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        السابق
+                    </Button>
+                    <Button onClick={goToNext} disabled={videoData.length <= 1}>
+                        التالي
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
     const [isAdventureOpen, setIsAdventureOpen] = useState(false);
@@ -354,6 +401,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     const [isLessonsOpen, setIsLessonsOpen] = useState(false);
     const [isVideoLearnOpen, setIsVideoLearnOpen] = useState(false);
     const [isWhatIfOpen, setIsWhatIfOpen] = useState(false);
+    const [isMotivationOpen, setIsMotivationOpen] = useState(false);
     
   return (
     <>
@@ -468,6 +516,20 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                     </CardDescription>
                 </CardHeader>
             </Card>
+             <Card 
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                onClick={() => setIsMotivationOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <Flame className="h-8 w-8 text-orange-500" />
+                        <span>دعنا نتحفز!</span>
+                    </CardTitle>
+                    <CardDescription>
+                        شاهد فيديوهات قصيرة ملهمة لتعزيز رحلتك التعليمية.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
 
         </div>
         
@@ -551,6 +613,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     
     <VideoLearnDialog isOpen={isVideoLearnOpen} onOpenChange={setIsVideoLearnOpen} />
     <WhatIfDialog isOpen={isWhatIfOpen} onOpenChange={setIsWhatIfOpen} />
+    <MotivationDialog isOpen={isMotivationOpen} onOpenChange={setIsMotivationOpen} />
     </>
   );
 }
