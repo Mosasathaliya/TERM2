@@ -14,3 +14,7 @@ import '@/ai/flows/translate-flow.ts';
 // Voice Chat Agent flows
 import '@/ai/flows/text-to-speech.ts';
 import '@/ai/flows/voice-chat-pipeline.ts';
+
+// Tense Teacher flows
+import '@/ai/flows/ahmed-voice-call.ts';
+import '@/ai/flows/sara-voice-call.ts';

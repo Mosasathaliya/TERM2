@@ -15,7 +15,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -32,12 +32,14 @@ import {
 import { TextAdventureApp } from './text-adventure-app';
 import { MumbleJumbleApp } from './mumble-jumble-app';
 import { ChatterbotApp } from './chatterbot-app';
+import { TenseTeacherApp } from './tense-teacher-app';
 
 
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
     const [isAdventureOpen, setIsAdventureOpen] = useState(false);
     const [isJumbleGameOpen, setIsJumbleGameOpen] = useState(false);
+    const [isTenseTeacherOpen, setIsTenseTeacherOpen] = useState(false);
     
   return (
     <>
@@ -79,7 +81,22 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             </Card>
             
             <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm md:col-span-2 lg:col-span-1"
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                onClick={() => setIsTenseTeacherOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <BookCheck className="h-8 w-8 text-destructive" />
+                        <span>خبير الأزمنة</span>
+                    </CardTitle>
+                    <CardDescription>
+                        تحدث مع خبير الذكاء الاصطناعي لإتقان أزمنة اللغة الإنجليزية.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+            
+            <Card 
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm md:col-span-2 lg:col-span-3"
                 onClick={() => setIsJumbleGameOpen(true)}
             >
                 <CardHeader>
@@ -139,6 +156,16 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             <div className="flex-grow h-full pt-[65px]">
                 <MumbleJumbleApp />
             </div>
+        </DialogContent>
+    </Dialog>
+
+     <Dialog open={isTenseTeacherOpen} onOpenChange={setIsTenseTeacherOpen}>
+        <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
+            <TenseTeacherApp />
+             <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20 text-foreground dark:text-white">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+            </DialogClose>
         </DialogContent>
     </Dialog>
     </>
