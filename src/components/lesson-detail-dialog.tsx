@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Volume2, MessageSquare, BookOpen, BrainCircuit, Send, User, Bot, Sparkles, Image as ImageIcon, Mic, Square, FileText, Languages } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import type { LearningItem, Lesson, Story } from '@/lib/lessons';
@@ -219,9 +220,34 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
     const [imageUrl, setImageUrl] = React.useState<string | null>(null);
     const [isLoadingImage, setIsLoadingImage] = React.useState(false);
     const [isLoadingAudio, setIsLoadingAudio] = React.useState(false);
+    const [translation, setTranslation] = React.useState<{ word: string, text: string, isLoading: boolean } | null>(null);
+
     const { toast } = useToast();
     const storyContent = 'summary' in story ? story.summary : story.content;
     const storyTitle = 'title' in story ? story.title : '';
+
+    const handleWordClick = async (word: string) => {
+      const cleanedWord = word.replace(/[^a-zA-Z]/g, ''); // Clean punctuation
+      if (!cleanedWord) return;
+
+      // Immediately play audio
+      playAudio(cleanedWord, `word-${cleanedWord}`);
+
+      // Set loading state for translation
+      setTranslation({ word: cleanedWord, text: 'جاري الترجمة...', isLoading: true });
+
+      try {
+        const result = await translateText({ text: cleanedWord, targetLanguage: 'Arabic' });
+        setTranslation({ word: cleanedWord, text: result.translation, isLoading: false });
+      } catch (error) {
+        console.error('Translation error:', error);
+        setTranslation({ word: cleanedWord, text: 'فشل الترجمة', isLoading: false });
+        toast({
+          variant: 'destructive',
+          title: 'خطأ في الترجمة',
+        });
+      }
+    };
 
     const handleGenerateImage = async () => {
         setIsLoadingImage(true);
@@ -240,7 +266,7 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
         }
     };
     
-    const playAudio = async (text: string) => {
+    const playAudio = async (text: string, id?: string) => {
         setIsLoadingAudio(true);
         try {
           const result = await textToSpeech(text);
@@ -251,7 +277,7 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
              toast({
                 variant: 'destructive',
                 title: 'فشل تشغيل الصوت',
-                description: 'لم نتمكن من إنشاء الصوت لهذه القصة.',
+                description: 'لم نتمكن من إنشاء الصوت.',
             });
           }
         } catch (error) {
@@ -282,7 +308,37 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
                     </Button>
                 </div>
 
-                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap mb-6">{storyContent}</p>
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap mb-6" dir="ltr">
+                  {storyContent.split(/(\s+)/).map((segment, index) => {
+                    const isWord = segment.trim().length > 0;
+                    if (isWord) {
+                      const word = segment;
+                      const cleanedWord = word.replace(/[^a-zA-Z]/g, '');
+                      return (
+                        <Popover key={index}>
+                          <PopoverTrigger asChild>
+                            <span 
+                              className="cursor-pointer hover:bg-accent/30 rounded-md transition-colors"
+                              onClick={() => handleWordClick(word)}
+                            >
+                              {word}
+                            </span>
+                          </PopoverTrigger>
+                          {translation?.word === cleanedWord && (
+                            <PopoverContent className="w-auto p-2" side="top">
+                                {translation.isLoading ? (
+                                    <div className="text-sm">...</div>
+                                ) : (
+                                    <div className="text-sm font-semibold">{translation.text}</div>
+                                )}
+                            </PopoverContent>
+                          )}
+                        </Popover>
+                      );
+                    }
+                    return <span key={index}>{segment}</span>; // Render spaces
+                  })}
+                </p>
                 
                 {!isLessonStory && !imageUrl && !isLoadingImage && (
                     <Button onClick={handleGenerateImage}>
