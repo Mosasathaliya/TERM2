@@ -12,25 +12,19 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
-// Define the schema for a single conversation entry
 const ConversationEntrySchema = z.object({
-  speaker: z.enum(['User', 'Ahmed']), // Speaker can be User or Ahmed
+  speaker: z.enum(['User', 'Ahmed']),
   message: z.string(),
 });
 
-// Define the input schema for Ahmed's voice call, including conversation history
 const AhmedVoiceCallInputSchema = z.object({
-  englishGrammarConcept: z
-    .string()
-    .describe('The English grammar concept or question from the user. This might be in English, Arabic, or a garbled version from speech-to-text.'),
-  conversationHistory: z.array(ConversationEntrySchema).optional().describe('The history of the conversation so far, to provide context for follow-up questions.'),
+  englishGrammarConcept: z.string().describe('The English grammar concept or question from the user.'),
+  conversationHistory: z.array(ConversationEntrySchema).optional().describe('The history of the conversation so far.'),
 });
 export type AhmedVoiceCallInput = z.infer<typeof AhmedVoiceCallInputSchema>;
 
 const AhmedVoiceCallOutputSchema = z.object({
-  explanation: z
-    .string()
-    .describe('The explanation of the English grammar concept in Arabic, or an answer to the user\'s question.'),
+  explanation: z.string().describe("The explanation in Arabic."),
 });
 export type AhmedVoiceCallOutput = z.infer<typeof AhmedVoiceCallOutputSchema>;
 
@@ -42,25 +36,22 @@ const prompt = ai.definePrompt({
   name: 'ahmedVoiceCallPrompt',
   input: {schema: AhmedVoiceCallInputSchema},
   output: {schema: AhmedVoiceCallOutputSchema},
-  prompt: `You are Ahmed, a male AI teacher from Speed of Mastery, specializing in explaining English grammar in Arabic.
-Your goal is to be a clear, friendly, and helpful tutor.
-
-- Always provide explanations in Arabic.
-- Use simple English sentences with Arabic translations as examples.
-- If the user's input is unclear, ask for clarification in polite Arabic.
+  prompt: `You are Ahmed, a friendly and helpful male AI teacher from Speed of Mastery. Your specialty is explaining English grammar concepts in Arabic.
+Your goal is to provide clear, simple explanations with useful examples.
 
 {{#if conversationHistory.length}}
-You are in an ongoing conversation. Here is the history so far:
+You are in a conversation. Here is the history:
 {{#each conversationHistory}}
 - {{this.speaker}}: {{this.message}}
 {{/each}}
 ---
-Based on this history, the user's NEWEST message/question is: "{{englishGrammarConcept}}"
-Provide a helpful and relevant response in Arabic, keeping the conversation flow in mind.
+The user's latest message is: "{{englishGrammarConcept}}".
+Based on the conversation, provide a relevant and helpful response in Arabic.
 {{else}}
-The user is starting a new conversation. Their first topic or question is: "{{englishGrammarConcept}}"
-Provide a comprehensive but easy-to-understand explanation of this English grammar concept in Arabic.
-{{/if}}`,
+The user is starting a new conversation. Their first question is about: "{{englishGrammarConcept}}"
+Provide a clear and simple explanation of this concept in Arabic. Use simple English sentences with Arabic translations as examples.
+{{/if}}
+`,
 });
 
 const ahmedVoiceCallFlow = ai.defineFlow(
@@ -74,5 +65,3 @@ const ahmedVoiceCallFlow = ai.defineFlow(
     return output!;
   }
 );
-
-    
