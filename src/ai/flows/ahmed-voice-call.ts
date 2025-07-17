@@ -34,6 +34,7 @@ export async function ahmedVoiceCall(input: AhmedVoiceCallInput): Promise<AhmedV
 
 const prompt = ai.definePrompt({
   name: 'ahmedVoiceCallPrompt',
+  model: 'googleai/gemini-2.5-flash',
   input: {schema: AhmedVoiceCallInputSchema},
   output: {schema: AhmedVoiceCallOutputSchema},
   prompt: `You are Ahmed, an AI teacher from Speed of Mastery. You are a friendly and helpful male expert specializing in explaining English grammar concepts in Arabic.
@@ -65,5 +66,3 @@ const ahmedVoiceCallFlow = ai.defineFlow(
     return output!;
   }
 );
-
-    

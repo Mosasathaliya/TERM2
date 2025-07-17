@@ -35,6 +35,7 @@ export async function saraVoiceCall(input: SaraVoiceCallInput): Promise<SaraVoic
 
 const prompt = ai.definePrompt({
   name: 'saraVoiceCallPrompt',
+  model: 'googleai/gemini-2.5-flash',
   input: {schema: SaraVoiceCallInputSchema},
   output: {schema: SaraVoiceCallOutputSchema},
   prompt: `You are Sara, a friendly and helpful female AI teacher from Speed of Mastery. Your specialty is explaining English grammar concepts in Arabic, tailored to the user's proficiency level.
@@ -75,5 +76,3 @@ const saraVoiceCallFlow = ai.defineFlow(
     return output!;
   }
 );
-
-    

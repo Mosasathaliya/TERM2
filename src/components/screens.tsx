@@ -19,7 +19,7 @@ import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIco
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { LingoleapApp } from './lingoleap-app';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
@@ -118,6 +118,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
         <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
              <DialogHeader className="p-4 border-b">
                 <DialogTitle>LinguaLeap Vocabulary Builder</DialogTitle>
+                <DialogDescription className="sr-only">An AI-powered tool to expand your vocabulary.</DialogDescription>
                  <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
                     <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
@@ -133,6 +134,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
         <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
              <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
                 <DialogTitle>Gemini Text Adventure</DialogTitle>
+                 <DialogDescription className="sr-only">An interactive text adventure game to learn vocabulary.</DialogDescription>
                  <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
                     <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
@@ -148,6 +150,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
         <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
              <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
                 <DialogTitle>Jumble Game</DialogTitle>
+                <DialogDescription className="sr-only">A game to unscramble letters and improve spelling.</DialogDescription>
                  <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
                     <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
@@ -161,6 +164,10 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
 
      <Dialog open={isTenseTeacherOpen} onOpenChange={setIsTenseTeacherOpen}>
         <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
+             <DialogHeader className="sr-only">
+                <DialogTitle>Tense Teacher</DialogTitle>
+                <DialogDescription>A voice-based AI expert to help you master English tenses.</DialogDescription>
+            </DialogHeader>
             <TenseTeacherApp />
              <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20 text-foreground dark:text-white">
                 <X className="h-4 w-4" />
@@ -348,6 +355,7 @@ function AiStoryMaker() {
         <div className="flex flex-col h-full">
             <DialogHeader className="p-4 border-b shrink-0">
                 <DialogTitle>مولد قصص الذكاء الاصطناعي</DialogTitle>
+                <DialogDescription className="sr-only">Turn your ideas into illustrated stories.</DialogDescription>
                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
                     <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
@@ -467,8 +475,9 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
              {/* Voice Chat Dialog */}
             <Dialog open={isVoiceChatOpen} onOpenChange={setIsVoiceChatOpen}>
                 <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
-                    <DialogHeader>
-                        <DialogTitle className="sr-only">Voice Assistant</DialogTitle>
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>Voice Assistant</DialogTitle>
+                        <DialogDescription>Practice conversation with a voice-based AI assistant.</DialogDescription>
                     </DialogHeader>
                     <ChatterbotApp />
                      <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20 text-white">
