@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
@@ -112,11 +111,11 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     const [isLessonsOpen, setIsLessonsOpen] = useState(false);
     const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
     const [loadingLesson, setLoadingLesson] = useState(false);
+    const { toast } = useToast();
 
     const handleLessonClick = async (lesson: Lesson) => {
         setIsLessonsOpen(false); // Close the list dialog
         setLoadingLesson(true);
-        setSelectedLesson(null); // Clear previous lesson
         try {
             if (lesson.meta?.englishGrammarTopic) {
                 const aiContent = await generateLessonContent({
@@ -138,9 +137,17 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             }
         } catch (e) {
             console.error("Failed to generate lesson content", e);
-            // Handle error, maybe show a toast
+            toast({
+                variant: 'destructive',
+                title: 'Lesson Generation Failed',
+                description: 'Could not generate AI content for the lesson. Please try again.',
+            });
+            setLoadingLesson(false); // Turn off loading on error
         } finally {
-            setLoadingLesson(false); // Ensure loading is set to false after operation
+             // We want to turn off loading AFTER the lesson is set,
+             // so we can move this to a useEffect or handle it in the success case.
+             // For now, let's turn it off here to prevent getting stuck.
+             setLoadingLesson(false);
         }
     };
 
@@ -735,4 +742,3 @@ export function ProgressScreen() {
     </section>
   );
 }
-
