@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
@@ -15,7 +14,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon, Volume2, Award, FileQuestion, CheckCircle } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon, Volume2, Award, FileQuestion, CheckCircle, NotebookText } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -56,7 +55,7 @@ import { Label } from './ui/label';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { cn } from '@/lib/utils';
 import { translateText } from '@/ai/flows/translate-flow';
-import { useStoryStore, type SavedStory } from '@/hooks/use-story-store';
+import { useStoryStore, type SavedStory, useQuizStore, type StoryQuizResult } from '@/hooks/use-story-store';
 import { generateStoryQuiz } from '@/ai/flows/story-quiz-flow';
 import type { StoryQuizOutput } from '@/ai/flows/story-quiz-flow';
 
@@ -672,106 +671,6 @@ function AiChat() {
   );
 }
 
-function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory | null, isOpen: boolean, onOpenChange: (open: boolean) => void }) {
-  const [activeTab, setActiveTab] = useState<'story' | 'quiz'>('story');
-  const [quiz, setQuiz] = useState<StoryQuizOutput['questions'] | null>(null);
-  const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
-  const { toast } = useToast();
-  
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  
-  useEffect(() => {
-    setActiveTab('story');
-    setQuiz(null);
-    setAnswers({});
-    setIsSubmitted(false);
-  }, [isOpen, story]);
-
-  const handleStartQuiz = async () => {
-    if (!story) return;
-    setIsLoadingQuiz(true);
-    try {
-      const result = await generateStoryQuiz({ storyContent: story.content });
-      setQuiz(result.questions);
-      setActiveTab('quiz');
-    } catch (err) {
-      console.error("Quiz generation error:", err);
-      toast({ variant: 'destructive', title: 'فشل إنشاء الاختبار' });
-    } finally {
-      setIsLoadingQuiz(false);
-    }
-  };
-  
-  const handleAnswerChange = (qIndex: number, option: string) => {
-    if (isSubmitted) return;
-    setAnswers(prev => ({ ...prev, [qIndex]: option }));
-  };
-
-  const handleSubmitQuiz = () => {
-    setIsSubmitted(true);
-    const score = quiz?.reduce((acc, q, i) => (answers[i] === q.correct_answer ? acc + 1 : acc), 0) || 0;
-    toast({ title: `Quiz Finished!`, description: `Your score: ${score} / ${quiz?.length}` });
-  };
-  
-  if (!story) return null;
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
-        <DialogHeader className="p-4 border-b shrink-0">
-          <DialogTitle>{story.prompt}</DialogTitle>
-        </DialogHeader>
-        {activeTab === 'story' && (
-          <ScrollArea className="flex-grow">
-            <div className="p-6">
-              {story.imageUrl && <Image src={story.imageUrl} alt={story.prompt} width={600} height={400} className="w-full h-auto object-cover rounded-md mb-4" />}
-              <p className="whitespace-pre-wrap leading-relaxed">{story.content}</p>
-            </div>
-          </ScrollArea>
-        )}
-        {activeTab === 'quiz' && quiz && (
-           <ScrollArea className="flex-grow">
-             <div className="p-6">
-              {isSubmitted && (
-                <Alert className="mb-4">
-                  <AlertTitle>Quiz Complete! Score: {quiz.reduce((acc, q, i) => (answers[i] === q.correct_answer ? acc + 1 : acc), 0)} / {quiz.length}</AlertTitle>
-                </Alert>
-              )}
-              <div className="space-y-6">
-                {quiz.map((q, i) => (
-                   <div key={i} className={cn("p-4 border rounded-lg", isSubmitted && (answers[i] === q.correct_answer ? 'border-green-500' : 'border-destructive'))}>
-                    <p className="font-semibold mb-3">{i+1}. {q.question}</p>
-                    <RadioGroup value={answers[i]} onValueChange={(val) => handleAnswerChange(i, val)} disabled={isSubmitted}>
-                      {q.options.map(opt => {
-                         const isCorrect = opt === q.correct_answer;
-                         const isSelected = answers[i] === opt;
-                        return (
-                          <div key={opt} className={cn("flex items-center space-x-2 rounded-md p-2", isSubmitted && isCorrect && "bg-green-500/10 text-green-800 dark:text-green-300", isSubmitted && isSelected && !isCorrect && "bg-destructive/10 text-destructive")}>
-                          <RadioGroupItem value={opt} id={`sq${i}-opt-${opt}`} />
-                          <Label htmlFor={`sq${i}-opt-${opt}`} className="flex-1 cursor-pointer">{opt}</Label>
-                           {isSubmitted && isCorrect && <Check className="h-5 w-5 text-green-500" />}
-                            {isSubmitted && isSelected && !isCorrect && <X className="h-5 w-5 text-destructive" />}
-                        </div>
-                      )})}
-                    </RadioGroup>
-                  </div>
-                ))}
-              </div>
-             </div>
-           </ScrollArea>
-        )}
-        <DialogFooter className="p-4 border-t">
-          {activeTab === 'story' && <Button onClick={handleStartQuiz} disabled={isLoadingQuiz}>{isLoadingQuiz ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null} Take Quiz</Button>}
-          {activeTab === 'quiz' && !isSubmitted && <Button onClick={handleSubmitQuiz}>Submit Answers</Button>}
-          {activeTab === 'quiz' && isSubmitted && <Button variant="outline" onClick={() => setActiveTab('story')}>Back to Story</Button>}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-
 function AiStoryMaker() {
     const { stories, addStory } = useStoryStore();
     const [prompt, setPrompt] = useState("");
@@ -875,6 +774,198 @@ function AiStoryMaker() {
     );
 }
 
+function MyStoriesDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) {
+  const { stories } = useStoryStore();
+  const { quizResults } = useQuizStore();
+  const [viewingStory, setViewingStory] = useState<SavedStory | null>(null);
+
+  const passedCount = Object.values(quizResults).filter(r => r.passed).length;
+
+  return (
+    <>
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+          <DialogHeader className="p-4 border-b shrink-0">
+            <DialogTitle>قصصي واختباراتي</DialogTitle>
+            <DialogDescription>
+              اقرأ قصصك واختبر فهمك. يجب أن تنجح في اختبارين على الأقل لإكمال هذا القسم.
+              <br/>
+              <span className={cn("font-bold", passedCount >= 2 ? 'text-green-500' : 'text-amber-500')}>
+                الاختبارات التي تم اجتيازها: {passedCount} / {stories.length}
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="flex-grow">
+            <div className="p-6">
+              {stories.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground">
+                  <p>لم تقم بإنشاء أي قصص بعد.</p>
+                  <p>اذهب إلى "أدوات الذكاء الاصطناعي" {'>'} "صانع القصص" لتبدأ.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {stories.map(story => {
+                    const result = quizResults[story.id];
+                    return (
+                      <Card key={story.id} className="cursor-pointer hover:shadow-xl transition-shadow flex flex-col" onClick={() => setViewingStory(story)}>
+                        <CardHeader>
+                          {story.imageUrl && <Image src={story.imageUrl} alt={story.prompt} width={400} height={200} className="rounded-t-lg object-cover w-full aspect-video mb-4" />}
+                          <CardTitle className="line-clamp-2">{story.prompt}</CardTitle>
+                        </CardHeader>
+                        <CardFooter className="mt-auto pt-4">
+                          {result ? (
+                            result.passed ? (
+                              <div className="text-green-500 font-bold flex items-center"><CheckCircle className="mr-2 h-4 w-4"/> نجحت</div>
+                            ) : (
+                              <div className="text-destructive font-bold flex items-center"><XCircle className="mr-2 h-4 w-4"/> لم تنجح</div>
+                            )
+                          ) : (
+                            <div className="text-primary font-bold">اقرأ وخذ الاختبار</div>
+                          )}
+                        </CardFooter>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+      <StoryViewerDialog 
+        story={viewingStory} 
+        isOpen={!!viewingStory} 
+        onOpenChange={(open) => !open && setViewingStory(null)} 
+      />
+    </>
+  );
+}
+
+function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory | null, isOpen: boolean, onOpenChange: (open: boolean) => void }) {
+  const [activeTab, setActiveTab] = useState<'story' | 'quiz'>('story');
+  const { quizResults, setQuizResult } = useQuizStore();
+  const [quiz, setQuiz] = useState<StoryQuizOutput['questions'] | null>(null);
+  const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
+  const { toast } = useToast();
+  
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && story) {
+        const existingResult = quizResults[story.id];
+        if (existingResult) {
+            setQuiz(existingResult.questions);
+            setAnswers(existingResult.answers);
+            setIsSubmitted(true);
+        } else {
+            setActiveTab('story');
+            setQuiz(null);
+            setAnswers({});
+            setIsSubmitted(false);
+        }
+    }
+  }, [isOpen, story, quizResults]);
+
+  const handleStartQuiz = async () => {
+    if (!story) return;
+    setIsLoadingQuiz(true);
+    try {
+      const result = await generateStoryQuiz({ storyContent: story.content });
+      setQuiz(result.questions);
+      setActiveTab('quiz');
+    } catch (err) {
+      console.error("Quiz generation error:", err);
+      toast({ variant: 'destructive', title: 'فشل إنشاء الاختبار' });
+    } finally {
+      setIsLoadingQuiz(false);
+    }
+  };
+  
+  const handleAnswerChange = (qIndex: number, option: string) => {
+    if (isSubmitted) return;
+    setAnswers(prev => ({ ...prev, [qIndex]: option }));
+  };
+
+  const handleSubmitQuiz = () => {
+    if (!story || !quiz) return;
+    setIsSubmitted(true);
+    const score = quiz.reduce((acc, q, i) => (answers[i] === q.correct_answer ? acc + 1 : acc), 0);
+    const passed = score >= 4;
+
+    const result: StoryQuizResult = {
+      storyId: story.id,
+      questions: quiz,
+      answers,
+      score,
+      passed,
+    };
+    setQuizResult(result);
+
+    toast({ title: `Quiz Finished!`, description: `Your score: ${score} / ${quiz.length}. ${passed ? 'You passed!' : 'Try again!'}` });
+  };
+  
+  if (!story) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+        <DialogHeader className="p-4 border-b shrink-0">
+          <DialogTitle>{story.prompt}</DialogTitle>
+        </DialogHeader>
+        {activeTab === 'story' && (
+          <ScrollArea className="flex-grow">
+            <div className="p-6">
+              {story.imageUrl && <Image src={story.imageUrl} alt={story.prompt} width={600} height={400} className="w-full h-auto object-cover rounded-md mb-4" />}
+              <p className="whitespace-pre-wrap leading-relaxed">{story.content}</p>
+            </div>
+          </ScrollArea>
+        )}
+        {activeTab === 'quiz' && quiz && (
+           <ScrollArea className="flex-grow">
+             <div className="p-6">
+              {isSubmitted && (
+                <Alert className={cn("mb-4", quizResults[story.id]?.passed ? 'bg-green-100 dark:bg-green-900 border-green-500' : 'bg-destructive/10 border-destructive')}>
+                  <AlertTitle className={cn(quizResults[story.id]?.passed ? 'text-green-700' : 'text-destructive')}>
+                    {quizResults[story.id]?.passed ? "Passed!" : "Needs Improvement"}
+                  </AlertTitle>
+                  <AlertDescription>Your score: {quizResults[story.id]?.score} / {quiz.length}</AlertDescription>
+                </Alert>
+              )}
+              <div className="space-y-6">
+                {quiz.map((q, i) => (
+                   <div key={i} className={cn("p-4 border rounded-lg", isSubmitted && (answers[i] === q.correct_answer ? 'border-green-500' : 'border-destructive'))}>
+                    <p className="font-semibold mb-3">{i+1}. {q.question}</p>
+                    <RadioGroup value={answers[i]} onValueChange={(val) => handleAnswerChange(i, val)} disabled={isSubmitted}>
+                      {q.options.map(opt => {
+                         const isCorrect = opt === q.correct_answer;
+                         const isSelected = answers[i] === opt;
+                        return (
+                          <div key={opt} className={cn("flex items-center space-x-2 rounded-md p-2", isSubmitted && isCorrect && "bg-green-500/10 text-green-800 dark:text-green-300", isSubmitted && isSelected && !isCorrect && "bg-destructive/10 text-destructive")}>
+                          <RadioGroupItem value={opt} id={`sq${i}-opt-${opt}`} />
+                          <Label htmlFor={`sq${i}-opt-${opt}`} className="flex-1 cursor-pointer">{opt}</Label>
+                           {isSubmitted && isCorrect && <Check className="h-5 w-5 text-green-500" />}
+                            {isSubmitted && isSelected && !isCorrect && <X className="h-5 w-5 text-destructive" />}
+                        </div>
+                      )})}
+                    </RadioGroup>
+                  </div>
+                ))}
+              </div>
+             </div>
+           </ScrollArea>
+        )}
+        <DialogFooter className="p-4 border-t">
+          {activeTab === 'story' && <Button onClick={handleStartQuiz} disabled={isLoadingQuiz}>{isLoadingQuiz ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null} خذ الاختبار</Button>}
+          {activeTab === 'quiz' && !isSubmitted && <Button onClick={handleSubmitQuiz} disabled={Object.keys(answers).length !== quiz.length}>إرسال الإجابات</Button>}
+          {activeTab === 'quiz' && isSubmitted && <Button variant="outline" onClick={() => setActiveTab('story')}>العودة للقصة</Button>}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
     const [isAdventureOpen, setIsAdventureOpen] = useState(false);
@@ -884,8 +975,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     const [isVideoLearnOpen, setIsVideoLearnOpen] = useState(false);
     const [isWhatIfOpen, setIsWhatIfOpen] = useState(false);
     const [isMotivationOpen, setIsMotivationOpen] = useState(false);
-    const { stories } = useStoryStore();
-    const [viewingStory, setViewingStory] = useState<SavedStory | null>(null);
+    const [isMyStoriesOpen, setIsMyStoriesOpen] = useState(false);
     
   return (
     <>
@@ -894,22 +984,6 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
          <p className="text-muted-foreground mb-8 text-center max-w-2xl mx-auto">
             مرحباً بك! ابدأ رحلتك التعليمية من هنا.
         </p>
-
-        {stories.length > 0 && (
-            <div className="mb-10">
-                <h3 className="text-2xl font-bold mb-4">قصصي المحفوظة</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {stories.map(story => (
-                        <Card key={story.id} className="cursor-pointer hover:shadow-xl transition-shadow" onClick={() => setViewingStory(story)}>
-                            {story.imageUrl && <Image src={story.imageUrl} alt={story.prompt} width={400} height={200} className="rounded-t-lg object-cover w-full aspect-video" />}
-                            <CardHeader>
-                                <CardTitle className="line-clamp-2">{story.prompt}</CardTitle>
-                            </CardHeader>
-                        </Card>
-                    ))}
-                </div>
-            </div>
-        )}
         
         <div className="mb-10">
              <h3 className="text-2xl font-bold mb-4">الأدوات التفاعلية</h3>
@@ -973,6 +1047,22 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                         </CardDescription>
                     </CardHeader>
                 </Card>
+
+                <Card
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsMyStoriesOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <NotebookText className="h-8 w-8 text-pink-500" />
+                            <span>قصصي واختباراتي</span>
+                        </CardTitle>
+                        <CardDescription>
+                           اقرأ القصص التي أنشأتها واختبر فهمك.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+
             </div>
         </div>
 
@@ -1117,10 +1207,11 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
         </DialogContent>
     </Dialog>
     
+    <MyStoriesDialog isOpen={isMyStoriesOpen} onOpenChange={setIsMyStoriesOpen} />
     <VideoLearnDialog isOpen={isVideoLearnOpen} onOpenChange={setIsVideoLearnOpen} />
     <WhatIfDialog isOpen={isWhatIfOpen} onOpenChange={setIsWhatIfOpen} />
     <MotivationDialog isOpen={isMotivationOpen} onOpenChange={setIsMotivationOpen} />
-    <StoryViewerDialog story={viewingStory} isOpen={!!viewingStory} onOpenChange={(open) => !open && setViewingStory(null)} />
+    
     </>
   );
 }
