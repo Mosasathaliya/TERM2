@@ -1030,7 +1030,9 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
         videoLearn: false,
         whatIf: false,
         motivation: false,
-        myStories: false
+        myStories: false,
+        chat: false,
+        storyMaker: false,
     });
 
     const openDialog = (name: keyof typeof dialogs) => {
@@ -1059,6 +1061,10 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
 
                 <DashboardCard title="مغامرة جيمني" description="العب لعبة مغامرة نصية لتعلم المفردات في سياقها."
                   icon={<Gamepad2 className="h-8 w-8 text-accent" />} onClick={() => openDialog('adventure')}
+                  unlockThreshold={10} completedCount={completedItemsCount} />
+                  
+                <DashboardCard title="صانع القصص" description="حوّل أفكارك إلى قصص قصيرة مصورة باللغة الإنجليزية."
+                  icon={<Sparkles className="h-8 w-8 text-yellow-500" />} onClick={() => openDialog('storyMaker')}
                   unlockThreshold={10} completedCount={completedItemsCount} />
 
                 <DashboardCard title="خبير الأزمنة" description="تحدث مع خبير الذكاء الاصطناعي لإتقان أزمنة اللغة الإنجليزية."
@@ -1186,6 +1192,12 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             </DialogHeader>
             <LessonList />
         </DialogContent>
+    </Dialog>
+    
+    <Dialog open={dialogs.storyMaker} onOpenChange={(open) => !open && closeDialog('storyMaker')}>
+      <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
+          <AiStoryMaker />
+      </DialogContent>
     </Dialog>
     
     <MyStoriesDialog isOpen={dialogs.myStories} onOpenChange={(open) => !open && closeDialog('myStories')} />
