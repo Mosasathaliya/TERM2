@@ -5,7 +5,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -15,7 +15,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -33,15 +33,41 @@ import { TextAdventureApp } from './text-adventure-app';
 import { MumbleJumbleApp } from './mumble-jumble-app';
 import { TenseTeacherApp } from './tense-teacher-app';
 import { ChatterbotApp } from './chatterbot-app';
-import { DialogDescription } from './ui/dialog';
+import { DialogDescription, DialogFooter } from './ui/dialog';
 import { lessons } from '@/data/lingo-lessons-data';
 import type { Lesson } from '@/types/lesson';
 import LessonDisplay from './lesson/LessonDisplay';
 import { generateLessonContent } from '@/ai/flows/generate-lesson-content';
 import Link from 'next/link';
 
-// Import video links from the new data file
+// Import video links from the data files
 import videoLinks from '@/data/video-links';
+import whatIfLinks from '@/data/whatif-links';
+
+// Helper function to extract YouTube embed URL and video ID
+const getYouTubeEmbedUrl = (url: string): { embedUrl: string | null; videoId: string | null } => {
+    let videoId = null;
+    try {
+        const urlObj = new URL(url);
+        if (urlObj.hostname === 'youtu.be') {
+            videoId = urlObj.pathname.slice(1);
+        } else if (urlObj.hostname === 'youtube.com' || urlObj.hostname === 'www.youtube.com') {
+             if (urlObj.pathname.startsWith('/live/')) {
+                videoId = urlObj.pathname.split('/live/')[1].split('?')[0];
+            } else {
+                videoId = urlObj.searchParams.get('v');
+            }
+        }
+    } catch (e) {
+        console.error("Invalid URL format:", url, e);
+        return { embedUrl: null, videoId: null };
+    }
+
+    if (videoId) {
+        return { embedUrl: `https://www.youtube.com/embed/${videoId}`, videoId };
+    }
+    return { embedUrl: null, videoId: null };
+};
 
 function LessonList() {
   return (
@@ -132,25 +158,6 @@ function VideoPlayerModal({ videoUrl, onClose }: { videoUrl: string | null; onCl
 function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
     const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
 
-    const getYouTubeEmbedUrl = (url: string): { embedUrl: string | null; videoId: string | null } => {
-        let videoId = null;
-        try {
-            const urlObj = new URL(url);
-            if (urlObj.hostname === 'youtu.be') {
-                videoId = urlObj.pathname.slice(1);
-            } else if (urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') {
-                videoId = urlObj.searchParams.get('v');
-            }
-        } catch (e) {
-            return { embedUrl: null, videoId: null };
-        }
-
-        if (videoId) {
-            return { embedUrl: `https://www.youtube.com/embed/${videoId}`, videoId };
-        }
-        return { embedUrl: null, videoId: null };
-    };
-
     const videoData = videoLinks.split('\n').map(getYouTubeEmbedUrl).filter(item => item.embedUrl);
 
     return (
@@ -194,6 +201,55 @@ function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
     );
 }
 
+function WhatIfDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const videoUrls = whatIfLinks.split('\n').map(getYouTubeEmbedUrl).filter(item => item.embedUrl);
+    const currentVideoUrl = videoUrls[currentIndex]?.embedUrl;
+
+    const goToNext = () => {
+        setCurrentIndex(prev => (prev + 1) % videoUrls.length);
+    };
+
+    const goToPrevious = () => {
+        setCurrentIndex(prev => (prev - 1 + videoUrls.length) % videoUrls.length);
+    };
+    
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-4 sm:p-6">
+                <DialogHeader>
+                    <DialogTitle>What If...?</DialogTitle>
+                    <DialogDescription>Explore fascinating hypothetical scenarios. Video {currentIndex + 1} of {videoUrls.length}.</DialogDescription>
+                </DialogHeader>
+                <div className="flex-grow aspect-video bg-muted rounded-lg overflow-hidden">
+                    {currentVideoUrl && (
+                        <iframe
+                            width="100%"
+                            height="100%"
+                            src={`${currentVideoUrl}?autoplay=1`}
+                            title="What If YouTube Video Player"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                        ></iframe>
+                    )}
+                </div>
+                <DialogFooter className="flex-row justify-between w-full">
+                    <Button onClick={goToPrevious} disabled={videoUrls.length <= 1}>
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        السابق
+                    </Button>
+                    <Button onClick={goToNext} disabled={videoUrls.length <= 1}>
+                        التالي
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
     const [isAdventureOpen, setIsAdventureOpen] = useState(false);
@@ -201,6 +257,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     const [isTenseTeacherOpen, setIsTenseTeacherOpen] = useState(false);
     const [isLessonsOpen, setIsLessonsOpen] = useState(false);
     const [isVideoLearnOpen, setIsVideoLearnOpen] = useState(false);
+    const [isWhatIfOpen, setIsWhatIfOpen] = useState(false);
     
   return (
     <>
@@ -301,6 +358,21 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 </CardHeader>
             </Card>
 
+            <Card 
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                onClick={() => setIsWhatIfOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <Brain className="h-8 w-8 text-cyan-500" />
+                        <span>ماذا لو؟</span>
+                    </CardTitle>
+                    <CardDescription>
+                        استكشف سيناريوهات افتراضية رائعة مع سلسلة الفيديوهات هذه.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+
         </div>
         
     </section>
@@ -382,6 +454,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     </Dialog>
     
     <VideoLearnDialog isOpen={isVideoLearnOpen} onOpenChange={setIsVideoLearnOpen} />
+    <WhatIfDialog isOpen={isWhatIfOpen} onOpenChange={setIsWhatIfOpen} />
     </>
   );
 }
