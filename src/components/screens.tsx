@@ -15,12 +15,20 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { LingoleapApp } from './lingoleap-app';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart"
 
 
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
@@ -173,11 +181,10 @@ function AiChat() {
   
   return (
       <div className="flex flex-col h-full">
-          <CardHeader>
-              <CardTitle>اسأل الذكاء الاصطناعي</CardTitle>
-               <CardDescription>اطرح أي سؤال عام حول اللغة الإنجليزية.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-grow flex flex-col gap-4">
+          <DialogHeader className="p-4 border-b">
+              <DialogTitle>اسأل الذكاء الاصطناعي</DialogTitle>
+          </DialogHeader>
+          <CardContent className="flex-grow flex flex-col gap-4 pt-4">
               <div className="flex-grow rounded-lg border bg-muted/50 p-4 space-y-2 overflow-y-auto">
                  {response ? (
                     <p className="whitespace-pre-wrap">{response}</p>
@@ -262,14 +269,14 @@ function AiStoryMaker() {
 
     return (
         <div className="flex flex-col h-full">
-            <DialogHeader className="p-4 border-b">
+            <DialogHeader className="p-4 border-b shrink-0">
                 <DialogTitle>مولد قصص الذكاء الاصطناعي</DialogTitle>
                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
                     <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
                 </DialogClose>
             </DialogHeader>
-            <div className="p-4 flex flex-col gap-4">
+            <div className="p-4 flex flex-col gap-4 shrink-0">
                  <Textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
@@ -353,7 +360,7 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
             {/* AI Chat Dialog */}
             <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
                 <DialogContent className="max-w-2xl h-[70vh] flex flex-col p-0">
-                    <DialogHeader className="sr-only">
+                     <DialogHeader className="sr-only">
                         <DialogTitle>AI Chat</DialogTitle>
                     </DialogHeader>
                     <AiChat />
@@ -363,6 +370,9 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
             {/* Story Maker Dialog */}
             <Dialog open={isStoryMakerOpen} onOpenChange={setIsStoryMakerOpen}>
                 <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
+                   <DialogHeader className="sr-only">
+                        <DialogTitle>AI Story Maker</DialogTitle>
+                    </DialogHeader>
                    <AiStoryMaker />
                 </DialogContent>
             </Dialog>
@@ -370,46 +380,94 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
     );
 }
 
+const chartData = [
+  { day: "الأحد", lessons: 2 },
+  { day: "الاثنين", lessons: 3 },
+  { day: "الثلاثاء", lessons: 1 },
+  { day: "الأربعاء", lessons: 4 },
+  { day: "الخميس", lessons: 3 },
+  { day: "الجمعة", lessons: 1 },
+  { day: "السبت", lessons: 5 },
+];
+
+const chartConfig: ChartConfig = {
+  lessons: {
+    label: "الدروس",
+    color: "hsl(var(--primary))",
+  },
+};
+
 export function ProgressScreen() {
-  const [progress, setProgress] = useState(13);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress(prevProgress => (prevProgress >= 85 ? 13 : prevProgress + Math.random() * 15));
-    }, 2000);
-    return () => clearInterval(timer);
-  }, []);
-
   return (
-    <section className="animate-fadeIn">
-      <h2 className="text-xl font-semibold mb-4">تقدم التعلّم</h2>
+    <section className="animate-fadeIn space-y-6">
       <Card className="bg-card/70 backdrop-blur-sm">
-        <CardContent className="pt-6">
-          <div className="mb-4">
-            <div className="flex justify-between mb-2">
-              <span>التقدم العام</span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <Progress value={progress} className="h-3" />
+        <CardContent className="pt-6 flex items-center gap-4">
+          <Avatar className="h-16 w-16">
+            <AvatarImage data-ai-hint="profile person" src="https://placehold.co/128x128.png" alt="User Avatar" />
+            <AvatarFallback>ط</AvatarFallback>
+          </Avatar>
+          <div className="flex-grow">
+            <h2 className="text-xl font-bold">طالب مجتهد</h2>
+            <p className="text-muted-foreground">متعلم متحمس</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-            <Card className="bg-muted/50">
-                <CardHeader>
-                    <CardTitle className="uppercase text-xs text-muted-foreground">الدروس المكتملة</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-2xl font-bold">14/80</p>
-                </CardContent>
-            </Card>
-            <Card className="bg-muted/50">
-                <CardHeader>
-                    <CardTitle className="uppercase text-xs text-muted-foreground">القصص المقروءة</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-2xl font-bold">2/26</p>
-                </CardContent>
-            </Card>
+          <div className="text-center">
+            <p className="text-3xl font-bold text-accent flex items-center gap-1">
+              <Flame /> 12
+            </p>
+            <p className="text-xs text-muted-foreground">أيام متتالية</p>
           </div>
+        </CardContent>
+      </Card>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <Card className="bg-card/70 backdrop-blur-sm">
+            <CardHeader>
+                <CardTitle className="uppercase text-xs text-muted-foreground">الدروس المكتملة</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-3xl font-bold">14 / 80</p>
+                <Progress value={(14/80) * 100} className="h-2 mt-2" />
+            </CardContent>
+        </Card>
+        <Card className="bg-card/70 backdrop-blur-sm">
+            <CardHeader>
+                <CardTitle className="uppercase text-xs text-muted-foreground">القصص المقروءة</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-3xl font-bold">5 / 26</p>
+                <Progress value={(5/26) * 100} className="h-2 mt-2" />
+            </CardContent>
+        </Card>
+      </div>
+
+      <Card className="bg-card/70 backdrop-blur-sm">
+        <CardHeader>
+            <CardTitle>نشاط التعلم الأسبوعي</CardTitle>
+            <CardDescription>الدروس المكتملة في الأيام السبعة الماضية</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+            <BarChart accessibilityLayer data={chartData}>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="day"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                allowDecimals={false}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent />}
+              />
+              <Bar dataKey="lessons" fill="var(--color-lessons)" radius={4} />
+            </BarChart>
+          </ChartContainer>
         </CardContent>
       </Card>
     </section>
