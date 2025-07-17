@@ -53,7 +53,7 @@ import { generateCertificateImage } from '@/ai/flows/generate-certificate-image'
 import { QuizScreen } from './quiz-screen';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
-import { Alert, AlertTitle } from './ui/alert';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { cn } from '@/lib/utils';
 import { translateText } from '@/ai/flows/translate-flow';
 import { useStoryStore, type SavedStory } from '@/hooks/use-story-store';
@@ -461,13 +461,14 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
         if (!audioRef.current) {
           audioRef.current = new Audio();
         }
-        audioRef.current.src = result.media;
-        audioRef.current.play().catch(e => {
+        const audio = audioRef.current;
+        audio.src = result.media;
+        audio.play().catch(e => {
           console.error("Audio playback error:", e);
           setActiveAudioId(null);
         });
-        audioRef.current.onended = () => setActiveAudioId(null);
-        audioRef.current.onerror = () => {
+        audio.onended = () => setActiveAudioId(null);
+        audio.onerror = () => {
              toast({ variant: 'destructive', title: 'خطأ في تشغيل الصوت.' });
              setActiveAudioId(null);
         }
@@ -881,110 +882,165 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     const [isTenseTeacherOpen, setIsTenseTeacherOpen] = useState(false);
     const [isLessonsOpen, setIsLessonsOpen] = useState(false);
     const [isVideoLearnOpen, setIsVideoLearnOpen] = useState(false);
+    const [isWhatIfOpen, setIsWhatIfOpen] = useState(false);
+    const [isMotivationOpen, setIsMotivationOpen] = useState(false);
+    const { stories } = useStoryStore();
+    const [viewingStory, setViewingStory] = useState<SavedStory | null>(null);
     
   return (
     <>
     <section className="animate-fadeIn">
-        <h2 className="text-4xl font-bold mb-4 text-center">أهلاً بك في رحلتك لتعلم الإنجليزية</h2>
+        <h2 className="text-4xl font-bold mb-4 text-center">لوحة التحكم الخاصة بك</h2>
          <p className="text-muted-foreground mb-8 text-center max-w-2xl mx-auto">
-            استكشف الدروس التفاعلية، وتحدث مع مدرس الذكاء الاصطناعي، وتتبع تقدمك وأنت تتقن اللغة الإنجليزية.
+            مرحباً بك! ابدأ رحلتك التعليمية من هنا.
         </p>
+
+        {stories.length > 0 && (
+            <div className="mb-10">
+                <h3 className="text-2xl font-bold mb-4">قصصي المحفوظة</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {stories.map(story => (
+                        <Card key={story.id} className="cursor-pointer hover:shadow-xl transition-shadow" onClick={() => setViewingStory(story)}>
+                            {story.imageUrl && <Image src={story.imageUrl} alt={story.prompt} width={400} height={200} className="rounded-t-lg object-cover w-full aspect-video" />}
+                            <CardHeader>
+                                <CardTitle className="line-clamp-2">{story.prompt}</CardTitle>
+                            </CardHeader>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        )}
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                onClick={() => setIsLingoleapOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <GraduationCap className="h-8 w-8 text-primary" />
-                        <span>مُنشئ المفردات</span>
-                    </CardTitle>
-                    <CardDescription>
-                        قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
+        <div className="mb-10">
+             <h3 className="text-2xl font-bold mb-4">الأدوات التفاعلية</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsLingoleapOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <GraduationCap className="h-8 w-8 text-primary" />
+                            <span>مُنشئ المفردات</span>
+                        </CardTitle>
+                        <CardDescription>
+                            قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
 
-            <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                 onClick={() => setIsAdventureOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <Gamepad2 className="h-8 w-8 text-accent" />
-                        <span>مغامرة جيمني</span>
-                    </CardTitle>
-                    <CardDescription>
-                        العب لعبة مغامرة نصية لتعلم المفردات في سياقها.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-            
-            <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                onClick={() => setIsTenseTeacherOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <BookCheck className="h-8 w-8 text-destructive" />
-                        <span>خبير الأزمنة</span>
-                    </CardTitle>
-                    <CardDescription>
-                        تحدث مع خبير الذكاء الاصطناعي لإتقان أزمنة اللغة الإنجليزية.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-
-            <Card
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                onClick={() => setIsLessonsOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <Library className="h-8 w-8 text-green-500" />
-                        <span>مواد تعليمية إضافية</span>
-                    </CardTitle>
-                    <CardDescription>
-                        تصفح مكتبة الدروس المنظمة حسب المستوى والموضوع.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-            
-            <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                onClick={() => setIsJumbleGameOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <Puzzle className="h-8 w-8 text-secondary" />
-                        <span>لعبة الكلمات المبعثرة</span>
-                    </CardTitle>
-                    <CardDescription>
-                        أعد ترتيب الحروف لتكوين كلمات وحسّن مهاراتك الإملائية.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-            
-            <Card 
-                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                onClick={() => setIsVideoLearnOpen(true)}
-            >
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <Youtube className="h-8 w-8 text-red-600" />
-                        <span>تعلم بالفيديو</span>
-                    </CardTitle>
-                    <CardDescription>
-                        شاهد فيديوهات يوتيوب تعليمية مباشرة داخل التطبيق.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-
+                <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsAdventureOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <Gamepad2 className="h-8 w-8 text-accent" />
+                            <span>مغامرة جيمني</span>
+                        </CardTitle>
+                        <CardDescription>
+                            العب لعبة مغامرة نصية لتعلم المفردات في سياقها.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+                
+                <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsTenseTeacherOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <BookCheck className="h-8 w-8 text-destructive" />
+                            <span>خبير الأزمنة</span>
+                        </CardTitle>
+                        <CardDescription>
+                            تحدث مع خبير الذكاء الاصطناعي لإتقان أزمنة اللغة الإنجليزية.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+                
+                <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsJumbleGameOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <Puzzle className="h-8 w-8 text-secondary" />
+                            <span>لعبة الكلمات المبعثرة</span>
+                        </CardTitle>
+                        <CardDescription>
+                            أعد ترتيب الحروف لتكوين كلمات وحسّن مهاراتك الإملائية.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+            </div>
         </div>
-        
+
+         <div className="mb-10">
+             <h3 className="text-2xl font-bold mb-4">الموارد التعليمية</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 <Card
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsLessonsOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <Library className="h-8 w-8 text-green-500" />
+                            <span>مواد تعليمية</span>
+                        </CardTitle>
+                        <CardDescription>
+                            تصفح مكتبة الدروس المنظمة حسب المستوى والموضوع.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+                <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsVideoLearnOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <Youtube className="h-8 w-8 text-red-600" />
+                            <span>تعلم بالفيديو</span>
+                        </CardTitle>
+                        <CardDescription>
+                            شاهد فيديوهات يوتيوب تعليمية مباشرة داخل التطبيق.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+                 <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsWhatIfOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <Brain className="h-8 w-8 text-purple-500" />
+                            <span>ماذا لو...؟</span>
+                        </CardTitle>
+                        <CardDescription>
+                            استكشف سيناريوهات علمية رائعة مع شرح الذكاء الاصطناعي.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+                 <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsMotivationOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <Flame className="h-8 w-8 text-orange-500" />
+                            <span>جرعة تحفيز</span>
+                        </CardTitle>
+                        <CardDescription>
+                            فيديوهات قصيرة لإلهامك ومواصلة رحلتك التعليمية.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+            </div>
+        </div>
+
     </section>
 
+    {/* Dialogs for interactive tools */}
     <Dialog open={isLingoleapOpen} onOpenChange={setIsLingoleapOpen}>
         <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
              <DialogHeader className="p-4 border-b">
@@ -1062,6 +1118,9 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     </Dialog>
     
     <VideoLearnDialog isOpen={isVideoLearnOpen} onOpenChange={setIsVideoLearnOpen} />
+    <WhatIfDialog isOpen={isWhatIfOpen} onOpenChange={setIsWhatIfOpen} />
+    <MotivationDialog isOpen={isMotivationOpen} onOpenChange={setIsMotivationOpen} />
+    <StoryViewerDialog story={viewingStory} isOpen={!!viewingStory} onOpenChange={(open) => !open && setViewingStory(null)} />
     </>
   );
 }
