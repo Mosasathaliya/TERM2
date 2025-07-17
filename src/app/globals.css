@@ -62,7 +62,7 @@
     --muted-foreground: 215 20% 65%;
  
     --accent: 45 88% 50%; /* Gold */
-    --accent-foreground: 224 71% 4%;
+    --accent-foreground: 210 20% 98%; /* CHANGED: Was dark, now light for readability */
  
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 20% 98%;
