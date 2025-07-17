@@ -461,10 +461,13 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
         if (!audioRef.current) {
           audioRef.current = new Audio();
         }
-        const a = new Audio(result.media);
-        a.play();
-        a.onended = () => setActiveAudioId(null);
-        a.onerror = () => {
+        audioRef.current.src = result.media;
+        audioRef.current.play().catch(e => {
+          console.error("Audio playback error:", e);
+          setActiveAudioId(null);
+        });
+        audioRef.current.onended = () => setActiveAudioId(null);
+        audioRef.current.onerror = () => {
              toast({ variant: 'destructive', title: 'خطأ في تشغيل الصوت.' });
              setActiveAudioId(null);
         }
