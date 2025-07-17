@@ -14,7 +14,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -103,8 +103,31 @@ function LessonList() {
   );
 }
 
+function VideoPlayerModal({ videoUrl, onClose }: { videoUrl: string, onClose: () => void }) {
+  if (!videoUrl) return null;
+
+  return (
+    <Dialog open={!!videoUrl} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="max-w-4xl h-[70vh] p-0 border-0">
+        <iframe
+          width="100%"
+          height="100%"
+          src={`${videoUrl}?autoplay=1`}
+          title="YouTube video player"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="rounded-lg"
+        ></iframe>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
-    const getYouTubeEmbedUrl = (url: string): string | null => {
+    const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
+
+    const getYouTubeEmbedUrl = (url: string): { embedUrl: string | null; videoId: string | null } => {
         let videoId = null;
         try {
             const urlObj = new URL(url);
@@ -114,19 +137,19 @@ function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
                 videoId = urlObj.searchParams.get('v');
             }
         } catch (e) {
-            // Invalid URL format
-            return null;
+            return { embedUrl: null, videoId: null };
         }
 
         if (videoId) {
-            return `https://www.youtube.com/embed/${videoId}`;
+            return { embedUrl: `https://www.youtube.com/embed/${videoId}`, videoId };
         }
-        return null;
+        return { embedUrl: null, videoId: null };
     };
 
-    const videoUrls = videoLinks.split('\n').map(getYouTubeEmbedUrl).filter(Boolean);
+    const videoData = videoLinks.split('\n').map(getYouTubeEmbedUrl).filter(item => item.embedUrl);
 
     return (
+      <>
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
                 <DialogHeader className="p-4 border-b shrink-0">
@@ -139,23 +162,30 @@ function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
                 </DialogHeader>
                 <ScrollArea className="flex-grow min-h-0">
                     <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {videoUrls.map((url, index) => (
-                            <div key={index} className="aspect-video bg-muted rounded-lg overflow-hidden shadow-lg">
-                                <iframe
-                                    width="100%"
-                                    height="100%"
-                                    src={url!}
-                                    title={`YouTube video player ${index + 1}`}
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                ></iframe>
+                        {videoData.map((video, index) => (
+                            <div 
+                                key={index} 
+                                className="aspect-video bg-muted rounded-lg overflow-hidden shadow-lg group cursor-pointer relative"
+                                onClick={() => setSelectedVideoUrl(video.embedUrl)}
+                            >
+                                <Image
+                                    src={`https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`}
+                                    alt={`Video thumbnail ${index + 1}`}
+                                    fill
+                                    className="object-cover transition-transform group-hover:scale-110"
+                                />
+                                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                                    <PlayCircle className="h-16 w-16 text-white/70 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all" />
+                                </div>
                             </div>
                         ))}
                     </div>
                 </ScrollArea>
             </DialogContent>
         </Dialog>
+
+        {selectedVideoUrl && <VideoPlayerModal videoUrl={selectedVideoUrl} onClose={() => setSelectedVideoUrl(null)} />}
+      </>
     );
 }
 
