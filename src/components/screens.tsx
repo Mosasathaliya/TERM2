@@ -59,6 +59,12 @@ import { useStoryStore, type SavedStory, useQuizStore, type StoryQuizResult } fr
 import { generateStoryQuiz } from '@/ai/flows/story-quiz-flow';
 import type { StoryQuizOutput } from '@/ai/flows/story-quiz-flow';
 import { useProgressStore } from '@/hooks/use-progress-store';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -967,16 +973,73 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
 }
 
 
+function DashboardCard({ title, description, icon, onClick, unlockThreshold, completedCount, isDialog, dialog, onOpenChange }: { title: string, description: string, icon: React.ReactNode, onClick?: () => void, unlockThreshold: number, completedCount: number, isDialog?: boolean, dialog?: React.ReactNode, onOpenChange?: (open: boolean) => void }) {
+  const isLocked = completedCount < unlockThreshold;
+
+  const content = (
+      <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+              {icon}
+              <span>{title}</span>
+          </CardTitle>
+          <CardDescription>
+              {isLocked ? `أكمل ${unlockThreshold} درسًا لفتح هذه الميزة.` : description}
+          </CardDescription>
+      </CardHeader>
+  );
+  
+  if (isLocked) {
+      return (
+           <TooltipProvider>
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                      <Card className="bg-muted/30 border-dashed cursor-not-allowed relative overflow-hidden">
+                          <div className="absolute inset-0 bg-black/20 z-10"></div>
+                          <Lock className="absolute top-4 right-4 h-5 w-5 text-white/50 z-20" />
+                          {content}
+                      </Card>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                      <p>أكمل {unlockThreshold} درسًا للفتح</p>
+                  </TooltipContent>
+              </Tooltip>
+          </TooltipProvider>
+      );
+  }
+
+  return (
+    <Card 
+      className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+      onClick={onClick}
+    >
+      {content}
+    </Card>
+  );
+}
+
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
-    const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
-    const [isAdventureOpen, setIsAdventureOpen] = useState(false);
-    const [isJumbleGameOpen, setIsJumbleGameOpen] = useState(false);
-    const [isTenseTeacherOpen, setIsTenseTeacherOpen] = useState(false);
-    const [isLessonsOpen, setIsLessonsOpen] = useState(false);
-    const [isVideoLearnOpen, setIsVideoLearnOpen] = useState(false);
-    const [isWhatIfOpen, setIsWhatIfOpen] = useState(false);
-    const [isMotivationOpen, setIsMotivationOpen] = useState(false);
-    const [isMyStoriesOpen, setIsMyStoriesOpen] = useState(false);
+    const { completedItemsCount } = useProgressStore();
+
+    // State for managing dialogs
+    const [dialogs, setDialogs] = useState({
+        lingoleap: false,
+        adventure: false,
+        jumble: false,
+        tenseTeacher: false,
+        lessons: false,
+        videoLearn: false,
+        whatIf: false,
+        motivation: false,
+        myStories: false
+    });
+
+    const openDialog = (name: keyof typeof dialogs) => {
+        setDialogs(prev => ({...prev, [name]: true}));
+    };
+
+    const closeDialog = (name: keyof typeof dialogs) => {
+        setDialogs(prev => ({...prev, [name]: false}));
+    };
     
   return (
     <>
@@ -987,152 +1050,73 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
         </p>
         
         <div className="mb-10">
-             <h3 className="text-2xl font-bold mb-4">الأدوات التفاعلية</h3>
+            <h3 className="text-2xl font-bold mb-4">الأدوات التفاعلية</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Card 
-                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                    onClick={() => setIsLingoleapOpen(true)}
-                >
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                            <GraduationCap className="h-8 w-8 text-primary" />
-                            <span>مُنشئ المفردات</span>
-                        </CardTitle>
-                        <CardDescription>
-                            قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
-
-                <Card 
-                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                    onClick={() => setIsAdventureOpen(true)}
-                >
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                            <Gamepad2 className="h-8 w-8 text-accent" />
-                            <span>مغامرة جيمني</span>
-                        </CardTitle>
-                        <CardDescription>
-                            العب لعبة مغامرة نصية لتعلم المفردات في سياقها.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
                 
-                <Card 
-                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                    onClick={() => setIsTenseTeacherOpen(true)}
-                >
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                            <BookCheck className="h-8 w-8 text-destructive" />
-                            <span>خبير الأزمنة</span>
-                        </CardTitle>
-                        <CardDescription>
-                            تحدث مع خبير الذكاء الاصطناعي لإتقان أزمنة اللغة الإنجليزية.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
+                <DashboardCard title="مُنشئ المفردات" description="قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي."
+                  icon={<GraduationCap className="h-8 w-8 text-primary" />} onClick={() => openDialog('lingoleap')}
+                  unlockThreshold={5} completedCount={completedItemsCount} />
+
+                <DashboardCard title="مغامرة جيمني" description="العب لعبة مغامرة نصية لتعلم المفردات في سياقها."
+                  icon={<Gamepad2 className="h-8 w-8 text-accent" />} onClick={() => openDialog('adventure')}
+                  unlockThreshold={10} completedCount={completedItemsCount} />
+
+                <DashboardCard title="خبير الأزمنة" description="تحدث مع خبير الذكاء الاصطناعي لإتقان أزمنة اللغة الإنجليزية."
+                  icon={<BookCheck className="h-8 w-8 text-destructive" />} onClick={() => openDialog('tenseTeacher')}
+                  unlockThreshold={10} completedCount={completedItemsCount} />
+
+                <DashboardCard title="لعبة الكلمات المبعثرة" description="أعد ترتيب الحروف لتكوين كلمات وحسّن مهاراتك الإملائية."
+                  icon={<Puzzle className="h-8 w-8 text-secondary" />} onClick={() => openDialog('jumble')}
+                  unlockThreshold={10} completedCount={completedItemsCount} />
                 
-                <Card 
-                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                    onClick={() => setIsJumbleGameOpen(true)}
-                >
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                            <Puzzle className="h-8 w-8 text-secondary" />
-                            <span>لعبة الكلمات المبعثرة</span>
-                        </CardTitle>
-                        <CardDescription>
-                            أعد ترتيب الحروف لتكوين كلمات وحسّن مهاراتك الإملائية.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
-
-                <Card
-                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                    onClick={() => setIsMyStoriesOpen(true)}
-                >
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                            <NotebookText className="h-8 w-8 text-pink-500" />
-                            <span>قصصي واختباراتي</span>
-                        </CardTitle>
-                        <CardDescription>
-                           اقرأ القصص التي أنشأتها واختبر فهمك.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
-
+                <DashboardCard title="قصصي واختباراتي" description="اقرأ القصص التي أنشأتها واختبر فهمك."
+                  icon={<NotebookText className="h-8 w-8 text-pink-500" />} onClick={() => openDialog('myStories')}
+                  unlockThreshold={10} completedCount={completedItemsCount} />
             </div>
         </div>
 
-         <div className="mb-10">
-             <h3 className="text-2xl font-bold mb-4">الموارد التعليمية</h3>
+        <div className="mb-10">
+            <h3 className="text-2xl font-bold mb-4">الموارد التعليمية</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 <Card
-                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                    onClick={() => setIsLessonsOpen(true)}
-                >
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                            <Library className="h-8 w-8 text-green-500" />
-                            <span>مواد تعليمية</span>
-                        </CardTitle>
-                        <CardDescription>
-                            تصفح مكتبة الدروس المنظمة حسب المستوى والموضوع.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
-                <Card 
-                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                    onClick={() => setIsVideoLearnOpen(true)}
-                >
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                            <Youtube className="h-8 w-8 text-red-600" />
-                            <span>تعلم بالفيديو</span>
-                        </CardTitle>
-                        <CardDescription>
-                            شاهد فيديوهات يوتيوب تعليمية مباشرة داخل التطبيق.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
-                 <Card 
-                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                    onClick={() => setIsWhatIfOpen(true)}
-                >
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                            <Brain className="h-8 w-8 text-purple-500" />
-                            <span>ماذا لو...؟</span>
-                        </CardTitle>
-                        <CardDescription>
-                            استكشف سيناريوهات علمية رائعة مع شرح الذكاء الاصطناعي.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
-                 <Card 
-                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                    onClick={() => setIsMotivationOpen(true)}
-                >
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                            <Flame className="h-8 w-8 text-orange-500" />
-                            <span>جرعة تحفيز</span>
-                        </CardTitle>
-                        <CardDescription>
-                            فيديوهات قصيرة لإلهامك ومواصلة رحلتك التعليمية.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
+                <DashboardCard title="مواد تعليمية" description="تصفح مكتبة الدروس المنظمة حسب المستوى والموضوع."
+                  icon={<Library className="h-8 w-8 text-green-500" />} onClick={() => openDialog('lessons')}
+                  unlockThreshold={25} completedCount={completedItemsCount} />
+                
+                <DashboardCard title="تعلم بالفيديو" description="شاهد فيديوهات يوتيوب تعليمية مباشرة داخل التطبيق."
+                  icon={<Youtube className="h-8 w-8 text-red-600" />} onClick={() => openDialog('videoLearn')}
+                  unlockThreshold={25} completedCount={completedItemsCount} />
+
+                <DashboardCard title="ماذا لو...؟" description="استكشف سيناريوهات علمية رائعة مع شرح الذكاء الاصطناعي."
+                  icon={<Brain className="h-8 w-8 text-purple-500" />} onClick={() => openDialog('whatIf')}
+                  unlockThreshold={25} completedCount={completedItemsCount} />
+
+                <DashboardCard title="جرعة تحفيز" description="فيديوهات قصيرة لإلهامك ومواصلة رحلتك التعليمية."
+                  icon={<Flame className="h-8 w-8 text-orange-500" />} onClick={() => openDialog('motivation')}
+                  unlockThreshold={25} completedCount={completedItemsCount} />
             </div>
         </div>
+
+        {/* AI Chat is always available */}
+        <h3 className="text-2xl font-bold mb-4">هل لديك سؤال؟</h3>
+        <Card 
+            className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+            onClick={() => openDialog('chat')}
+        >
+            <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                    <MessageCircle className="h-8 w-8 text-primary" />
+                    <span>دردشة الذكاء الاصطناعي</span>
+                </CardTitle>
+                <CardDescription>
+                    اطرح أسئلة عامة عن اللغة الإنجليزية واحصل على إجابات فورية.
+                </CardDescription>
+            </CardHeader>
+        </Card>
 
     </section>
 
     {/* Dialogs for interactive tools */}
-    <Dialog open={isLingoleapOpen} onOpenChange={setIsLingoleapOpen}>
+    <Dialog open={dialogs.lingoleap} onOpenChange={(open) => !open && closeDialog('lingoleap')}>
         <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
              <DialogHeader className="p-4 border-b">
                 <DialogTitle>LinguaLeap Vocabulary Builder</DialogTitle>
@@ -1147,8 +1131,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             </div>
         </DialogContent>
     </Dialog>
-
-     <Dialog open={isAdventureOpen} onOpenChange={setIsAdventureOpen}>
+     <Dialog open={dialogs.adventure} onOpenChange={(open) => !open && closeDialog('adventure')}>
         <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
              <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
                 <DialogTitle>Gemini Text Adventure</DialogTitle>
@@ -1163,8 +1146,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             </div>
         </DialogContent>
     </Dialog>
-
-     <Dialog open={isJumbleGameOpen} onOpenChange={setIsJumbleGameOpen}>
+     <Dialog open={dialogs.jumble} onOpenChange={(open) => !open && closeDialog('jumble')}>
         <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
              <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
                 <DialogTitle>Jumble Game</DialogTitle>
@@ -1179,8 +1161,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             </div>
         </DialogContent>
     </Dialog>
-
-     <Dialog open={isTenseTeacherOpen} onOpenChange={setIsTenseTeacherOpen}>
+     <Dialog open={dialogs.tenseTeacher} onOpenChange={(open) => !open && closeDialog('tenseTeacher')}>
         <DialogContent className="w-full max-w-4xl h-[90vh] flex flex-col p-0">
              <DialogHeader className="p-4 border-b shrink-0">
                 <DialogTitle>Tense Teacher</DialogTitle>
@@ -1193,8 +1174,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             <TenseTeacherApp />
         </DialogContent>
     </Dialog>
-
-    <Dialog open={isLessonsOpen} onOpenChange={setIsLessonsOpen}>
+    <Dialog open={dialogs.lessons} onOpenChange={(open) => !open && closeDialog('lessons')}>
         <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
             <DialogHeader className="p-4 border-b shrink-0">
                 <DialogTitle>Extra Learning Materials</DialogTitle>
@@ -1208,11 +1188,16 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
         </DialogContent>
     </Dialog>
     
-    <MyStoriesDialog isOpen={isMyStoriesOpen} onOpenChange={setIsMyStoriesOpen} />
-    <VideoLearnDialog isOpen={isVideoLearnOpen} onOpenChange={setIsVideoLearnOpen} />
-    <WhatIfDialog isOpen={isWhatIfOpen} onOpenChange={setIsWhatIfOpen} />
-    <MotivationDialog isOpen={isMotivationOpen} onOpenChange={setIsMotivationOpen} />
-    
+    <MyStoriesDialog isOpen={dialogs.myStories} onOpenChange={(open) => !open && closeDialog('myStories')} />
+    <VideoLearnDialog isOpen={dialogs.videoLearn} onOpenChange={(open) => !open && closeDialog('videoLearn')} />
+    <WhatIfDialog isOpen={dialogs.whatIf} onOpenChange={(open) => !open && closeDialog('whatIf')} />
+    <MotivationDialog isOpen={dialogs.motivation} onOpenChange={(open) => !open && closeDialog('motivation')} />
+
+    <Dialog open={dialogs.chat} onOpenChange={(open) => !open && closeDialog('chat')}>
+        <DialogContent className="max-w-2xl h-[70vh] flex flex-col p-0">
+            <AiChat />
+        </DialogContent>
+    </Dialog>
     </>
   );
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { create } from 'zustand';
@@ -6,6 +7,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 interface ProgressState {
   // The title of the highest learning item (lesson or story) the user has successfully completed.
   highestItemCompleted: string | null;
+  // A derived value for the number of completed items.
+  completedItemsCount: number;
   // Function to mark an item as completed.
   completeItem: (itemId: string) => void;
   // Function to reset all progress.
@@ -20,23 +23,35 @@ export const useProgressStore = create<ProgressState>()(
   persist(
     (set, get) => ({
       highestItemCompleted: null,
+      completedItemsCount: 0,
       completeItem: (itemId: string) => {
-        const currentHighestId = get().highestItemCompleted;
         const allItemTitles = learningItems.map(item => item.title);
+        const currentHighestId = get().highestItemCompleted;
         
         const currentIndex = currentHighestId ? allItemTitles.indexOf(currentHighestId) : -1;
         const newIndex = allItemTitles.indexOf(itemId);
 
-        // Only update if the new item is "higher" (or the next one) than the current one.
+        // Only update if the new item is "higher" than the current one.
         if (newIndex > currentIndex) {
-          set({ highestItemCompleted: itemId });
+          set({ 
+            highestItemCompleted: itemId,
+            completedItemsCount: newIndex + 1 
+          });
         }
       },
-      resetProgress: () => set({ highestItemCompleted: null }),
+      resetProgress: () => set({ highestItemCompleted: null, completedItemsCount: 0 }),
     }),
     {
       name: 'learning-progress-storage', // name of the item in the storage (must be unique)
       storage: createJSONStorage(() => localStorage), // (optional) by default, 'localStorage' is used
+      onRehydrateStorage: () => (state) => {
+        // When rehydrating, ensure completedItemsCount is accurate.
+        if (state) {
+            const allItemTitles = learningItems.map(item => item.title);
+            const index = state.highestItemCompleted ? allItemTitles.indexOf(state.highestItemCompleted) : -1;
+            state.completedItemsCount = index + 1;
+        }
+      }
     }
   )
 );
