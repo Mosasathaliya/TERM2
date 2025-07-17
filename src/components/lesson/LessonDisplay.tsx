@@ -20,13 +20,25 @@ interface LessonDisplayProps {
 
 const LessonDisplay = ({ lesson }: LessonDisplayProps) => {
   const [isTutorModalOpen, setIsTutorModalOpen] = useState(false);
+  const [hasPassedExercises, setHasPassedExercises] = useState(false);
+
+  const handleCorrectAnswer = () => {
+    if (!hasPassedExercises) {
+        setHasPassedExercises(true);
+    }
+  };
 
   return (
     <div className="space-y-8 relative pb-20">
       <LessonHeader title={lesson.title} topic={lesson.topic} level={lesson.level} />
       <ArabicExplanation explanation={lesson.arabic_explanation} />
       <LessonExamples examples={lesson.examples} />
-      <InteractiveExercisesSection exercises={lesson.interactive_exercises} lesson={lesson} />
+      <InteractiveExercisesSection 
+        exercises={lesson.interactive_exercises} 
+        lesson={lesson} 
+        onCorrectAnswer={handleCorrectAnswer}
+        hasPassed={hasPassedExercises}
+      />
       <AdditionalNotes notes={lesson.additional_notes} notesArabic={lesson.additional_notes_arabic} />
       <CommonMistakes mistakes={lesson.common_mistakes} mistakesArabic={lesson.common_mistakes_arabic} />
 

@@ -15,9 +15,10 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/card
 interface MultipleChoiceExerciseProps {
   exercise: InteractiveExercise;
   lesson: Lesson; // Pass the full lesson context for AI
+  onCorrect: () => void;
 }
 
-const MultipleChoiceExercise: FC<MultipleChoiceExerciseProps> = ({ exercise, lesson }) => {
+const MultipleChoiceExercise: FC<MultipleChoiceExerciseProps> = ({ exercise, lesson, onCorrect }) => {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -31,6 +32,10 @@ const MultipleChoiceExercise: FC<MultipleChoiceExerciseProps> = ({ exercise, les
     const correct = selectedAnswer === exercise.correct_answer;
     setIsCorrect(correct);
 
+    if (correct) {
+      onCorrect();
+    }
+
     startTransition(async () => {
       try {
         const feedbackInput: ExerciseFeedbackInput = {
@@ -40,7 +45,7 @@ const MultipleChoiceExercise: FC<MultipleChoiceExerciseProps> = ({ exercise, les
           lessonArabicExplanation: lesson.arabic_explanation,
           lessonExamples: lesson.examples,
           lessonInteractiveExercises: [{ 
-            type: exercise.type, // This was the missing field causing the error
+            type: exercise.type,
             question: exercise.question,
             choices: exercise.choices,
             correct_answer: exercise.correct_answer,
