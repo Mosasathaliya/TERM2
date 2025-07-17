@@ -1,3 +1,4 @@
+
 'use client';
 
 /**
@@ -24,9 +25,8 @@ import { useAgentStore, type Agent } from '@/hooks/use-agent-store';
 import { Pencil } from 'lucide-react';
 
 const PREBUILT_VOICES = [
-  'Alloy', 'Echo', 'Fable', 'Onyx', 'Nova', 'Shimmer',
-  'en-US-Standard-A', 'en-US-Standard-B', 'en-US-Standard-C', 'en-US-Standard-D',
-  'Algenib', 'Antares', 'Sirius',
+  'algenib', 'antares', 'sirius', 'alnilam', 'gacrux',
+  'achernar', 'achird', 'algieba', 'rasalgethi', 'schedar', 'vindemiatrix'
 ] as const;
 
 export function AgentEditDialog() {

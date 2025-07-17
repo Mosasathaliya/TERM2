@@ -1,3 +1,4 @@
+
 'use client';
 
 /**
@@ -9,15 +10,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+// Define the valid, high-quality voices for gemini-2.5-flash-preview-tts
+const VALID_VOICES = [
+  'algenib', 'antares', 'sirius', 'alnilam', 'gacrux',
+  'achernar', 'achird', 'algieba', 'rasalgethi', 'schedar', 'vindemiatrix'
+] as const;
+
 // Define the structure for a single AI agent
 export interface Agent {
   name: string;
   personality: string;
   bodyColor: string;
-  voice:
-    | 'Alloy' | 'Echo' | 'Fable' | 'Onyx' | 'Nova' | 'Shimmer'
-    | 'en-US-Standard-A' | 'en-US-Standard-B' | 'en-US-Standard-C' | 'en-US-Standard-D'
-    | 'Algenib' | 'Antares' | 'Sirius';
+  voice: (typeof VALID_VOICES)[number];
 }
 
 // Define the structure for user settings
@@ -37,25 +41,25 @@ interface AgentState {
   setAudioLevel: (level: number) => void;
 }
 
-// Define the default list of agents
+// Define the default list of agents with valid voices
 const defaultAgents: Agent[] = [
   {
     name: 'Botty',
     personality: 'A friendly and helpful AI assistant.',
     bodyColor: '#9333ea', // purple-600
-    voice: 'Nova',
+    voice: 'algenib',
   },
   {
     name: 'Captain Jack',
     personality: 'A witty and adventurous pirate captain with a love for treasure and a good joke.',
     bodyColor: '#ca8a04', // yellow-600
-    voice: 'Onyx',
+    voice: 'antares',
   },
   {
     name: 'Professor Axiom',
     personality: 'A brilliant, slightly eccentric professor of theoretical physics who explains things with elaborate analogies.',
     bodyColor: '#1d4ed8', // blue-700
-    voice: 'Fable',
+    voice: 'sirius',
   },
 ];
 

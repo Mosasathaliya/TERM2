@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -16,9 +17,8 @@ import wav from 'wav';
 
 // Define the list of available prebuilt voices from Google AI.
 const PREBUILT_VOICES = [
-  'Alloy', 'Echo', 'Fable', 'Onyx', 'Nova', 'Shimmer', // OpenAI voices
-  'en-US-Standard-A', 'en-US-Standard-B', 'en-US-Standard-C', 'en-US-Standard-D', // Google voices
-  'Algenib', 'Antares', 'Sirius', // Additional Google voices
+  'algenib', 'antares', 'sirius', 'alnilam', 'gacrux',
+  'achernar', 'achird', 'algieba', 'rasalgethi', 'schedar', 'vindemiatrix'
 ] as const;
 
 // Input schema for the text-to-speech flow
