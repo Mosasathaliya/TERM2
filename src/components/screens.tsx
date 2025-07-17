@@ -442,7 +442,6 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
   const [activeAudioId, setActiveAudioId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Reset state when a new lesson is opened
     setExplanation(null);
     setAnswers({});
     setIsSubmitted(false);
@@ -454,7 +453,7 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
   }, [lesson]);
 
   const handlePlayAudio = async (text: string, id: string) => {
-    if (!text || activeAudioId === id) return;
+    if (!text || activeAudioId) return;
     setActiveAudioId(id);
     try {
       const result = await textToSpeech({ text, voice: 'achernar' });
@@ -462,10 +461,10 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
         if (!audioRef.current) {
           audioRef.current = new Audio();
         }
-        audioRef.current.src = result.media;
-        audioRef.current.play();
-        audioRef.current.onended = () => setActiveAudioId(null);
-        audioRef.current.onerror = () => {
+        const a = new Audio(result.media);
+        a.play();
+        a.onended = () => setActiveAudioId(null);
+        a.onerror = () => {
              toast({ variant: 'destructive', title: 'خطأ في تشغيل الصوت.' });
              setActiveAudioId(null);
         }
@@ -529,7 +528,7 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
           <div className="p-6">
             <Image src={lesson.image} alt={lesson.title} width={600} height={400} className="w-full h-auto object-cover rounded-md mb-4" data-ai-hint={lesson.image_hint}/>
             <p className="text-foreground/90 leading-relaxed mb-4">{lesson.content}</p>
-            <Button onClick={handleExplain} disabled={isExplaining}>
+            <Button onClick={handleExplain} disabled={isExplaining || !!activeAudioId}>
               {isExplaining ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Volume2 className="mr-2 h-4 w-4"/>}
               اشرح بالعربية
             </Button>
@@ -679,7 +678,6 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
   const [isSubmitted, setIsSubmitted] = useState(false);
   
   useEffect(() => {
-    // Reset state when a new story is opened
     setActiveTab('story');
     setQuiz(null);
     setAnswers({});
@@ -805,7 +803,6 @@ function AiStoryMaker() {
             const imageResult = await generateStoryImage({ story: fullStory });
             setImageUrl(imageResult.imageUrl);
             
-            // Save the story
             addStory({ id: Date.now().toString(), prompt, content: fullStory, imageUrl: imageResult.imageUrl });
             
             toast({ title: "Story Generated!", description: "Your new story has been saved to your dashboard." });
@@ -875,154 +872,195 @@ function AiStoryMaker() {
 }
 
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
-    const { stories } = useStoryStore();
-    const [selectedStory, setSelectedStory] = useState<SavedStory | null>(null);
-
     const [isLingoleapOpen, setIsLingoleapOpen] = useState(false);
     const [isAdventureOpen, setIsAdventureOpen] = useState(false);
     const [isJumbleGameOpen, setIsJumbleGameOpen] = useState(false);
     const [isTenseTeacherOpen, setIsTenseTeacherOpen] = useState(false);
     const [isLessonsOpen, setIsLessonsOpen] = useState(false);
     const [isVideoLearnOpen, setIsVideoLearnOpen] = useState(false);
+    
+  return (
+    <>
+    <section className="animate-fadeIn">
+        <h2 className="text-4xl font-bold mb-4 text-center">أهلاً بك في رحلتك لتعلم الإنجليزية</h2>
+         <p className="text-muted-foreground mb-8 text-center max-w-2xl mx-auto">
+            استكشف الدروس التفاعلية، وتحدث مع مدرس الذكاء الاصطناعي، وتتبع تقدمك وأنت تتقن اللغة الإنجليزية.
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card 
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                onClick={() => setIsLingoleapOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <GraduationCap className="h-8 w-8 text-primary" />
+                        <span>مُنشئ المفردات</span>
+                    </CardTitle>
+                    <CardDescription>
+                        قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
 
-    return (
-        <>
-            <section className="animate-fadeIn space-y-8">
-                <div>
-                    <h2 className="text-3xl font-bold mb-4 text-center">مرحباً بعودتك!</h2>
-                    <p className="text-muted-foreground mb-6 text-center max-w-2xl mx-auto">
-                        هذه هي لوحة التحكم الخاصة بك. تابع من حيث توقفت أو استكشف أداة جديدة.
-                    </p>
-                </div>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>قصصي المحفوظة</CardTitle>
-                        <CardDescription>لديك {stories.length} من أصل 3 قصص تم إنشاؤها. انقر على قصة لقراءتها وإجراء الاختبار.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {stories.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {stories.map(story => (
-                                    <Card key={story.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setSelectedStory(story)}>
-                                        <CardHeader>
-                                            {story.imageUrl && <Image src={story.imageUrl} alt={story.prompt} width={300} height={150} className="w-full h-auto object-cover rounded-md mb-2" />}
-                                            <CardTitle className="text-lg line-clamp-2">{story.prompt}</CardTitle>
-                                        </CardHeader>
-                                    </Card>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-10 border-2 border-dashed rounded-lg">
-                                <p className="text-muted-foreground">لم تقم بإنشاء أي قصص بعد.</p>
-                                <p className="text-sm text-muted-foreground">اذهب إلى قسم الذكاء الاصطناعي لتبدأ!</p>
-                                <Button variant="link" onClick={() => setActiveTab('ai')}>اذهب إلى أدوات الذكاء الاصطناعي</Button>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-
-                <div>
-                     <h3 className="text-2xl font-bold mb-4 text-center">استكشف الأدوات الأخرى</h3>
-                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <Card 
-                            className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                            onClick={() => setIsLingoleapOpen(true)}
-                        >
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-3">
-                                    <GraduationCap className="h-8 w-8 text-primary" />
-                                    <span>مُنشئ المفردات</span>
-                                </CardTitle>
-                                <CardDescription>
-                                    قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي.
-                                </CardDescription>
-                            </CardHeader>
-                        </Card>
-
-                        <Card 
-                            className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                             onClick={() => setIsAdventureOpen(true)}
-                        >
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-3">
-                                    <Gamepad2 className="h-8 w-8 text-accent" />
-                                    <span>مغامرة جيمني</span>
-                                </CardTitle>
-                                <CardDescription>
-                                    العب لعبة مغامرة نصية لتعلم المفردات في سياقها.
-                                </CardDescription>
-                            </CardHeader>
-                        </Card>
-                        
-                        <Card 
-                            className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-                            onClick={() => setIsTenseTeacherOpen(true)}
-                        >
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-3">
-                                    <BookCheck className="h-8 w-8 text-destructive" />
-                                    <span>خبير الأزمنة</span>
-                                </CardTitle>
-                                <CardDescription>
-                                    تحدث مع خبير الذكاء الاصطناعي لإتقان أزمنة اللغة الإنجليزية.
-                                </CardDescription>
-                            </CardHeader>
-                        </Card>
-                    </div>
-                </div>
-
-            </section>
+            <Card 
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                 onClick={() => setIsAdventureOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <Gamepad2 className="h-8 w-8 text-accent" />
+                        <span>مغامرة جيمني</span>
+                    </CardTitle>
+                    <CardDescription>
+                        العب لعبة مغامرة نصية لتعلم المفردات في سياقها.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
             
-            <StoryViewerDialog story={selectedStory} isOpen={!!selectedStory} onOpenChange={(isOpen) => !isOpen && setSelectedStory(null)} />
+            <Card 
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                onClick={() => setIsTenseTeacherOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <BookCheck className="h-8 w-8 text-destructive" />
+                        <span>خبير الأزمنة</span>
+                    </CardTitle>
+                    <CardDescription>
+                        تحدث مع خبير الذكاء الاصطناعي لإتقان أزمنة اللغة الإنجليزية.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
 
-            <Dialog open={isLingoleapOpen} onOpenChange={setIsLingoleapOpen}>
-                <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
-                     <DialogHeader className="p-4 border-b">
-                        <DialogTitle>LinguaLeap Vocabulary Builder</DialogTitle>
-                        <DialogDescription className="sr-only">An AI-powered tool to expand your vocabulary.</DialogDescription>
-                         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">Close</span>
-                        </DialogClose>
-                    </DialogHeader>
-                    <div className="flex-grow min-h-0">
-                        <LingoleapApp />
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <Card
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                onClick={() => setIsLessonsOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <Library className="h-8 w-8 text-green-500" />
+                        <span>مواد تعليمية إضافية</span>
+                    </CardTitle>
+                    <CardDescription>
+                        تصفح مكتبة الدروس المنظمة حسب المستوى والموضوع.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+            
+            <Card 
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                onClick={() => setIsJumbleGameOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <Puzzle className="h-8 w-8 text-secondary" />
+                        <span>لعبة الكلمات المبعثرة</span>
+                    </CardTitle>
+                    <CardDescription>
+                        أعد ترتيب الحروف لتكوين كلمات وحسّن مهاراتك الإملائية.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+            
+            <Card 
+                className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                onClick={() => setIsVideoLearnOpen(true)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <Youtube className="h-8 w-8 text-red-600" />
+                        <span>تعلم بالفيديو</span>
+                    </CardTitle>
+                    <CardDescription>
+                        شاهد فيديوهات يوتيوب تعليمية مباشرة داخل التطبيق.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
 
-             <Dialog open={isAdventureOpen} onOpenChange={setIsAdventureOpen}>
-                <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
-                     <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
-                        <DialogTitle>Gemini Text Adventure</DialogTitle>
-                         <DialogDescription className="sr-only">An interactive text adventure game to learn vocabulary.</DialogDescription>
-                         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">Close</span>
-                        </DialogClose>
-                    </DialogHeader>
-                    <div className="flex-grow h-full pt-[65px]">
-                        <TextAdventureApp />
-                    </div>
-                </DialogContent>
-            </Dialog>
+        </div>
+        
+    </section>
 
-             <Dialog open={isTenseTeacherOpen} onOpenChange={setIsTenseTeacherOpen}>
-                <DialogContent className="w-full max-w-4xl h-[90vh] flex flex-col p-0">
-                     <DialogHeader className="p-4 border-b shrink-0">
-                        <DialogTitle>Tense Teacher</DialogTitle>
-                        <DialogDescription>A voice-based AI expert to help you master English tenses.</DialogDescription>
-                         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">Close</span>
-                        </DialogClose>
-                    </DialogHeader>
-                    <TenseTeacherApp />
-                </DialogContent>
-            </Dialog>
-        </>
-    );
+    <Dialog open={isLingoleapOpen} onOpenChange={setIsLingoleapOpen}>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+             <DialogHeader className="p-4 border-b">
+                <DialogTitle>LinguaLeap Vocabulary Builder</DialogTitle>
+                <DialogDescription className="sr-only">An AI-powered tool to expand your vocabulary.</DialogDescription>
+                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </DialogClose>
+            </DialogHeader>
+            <div className="flex-grow min-h-0">
+                <LingoleapApp />
+            </div>
+        </DialogContent>
+    </Dialog>
+
+     <Dialog open={isAdventureOpen} onOpenChange={setIsAdventureOpen}>
+        <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
+             <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
+                <DialogTitle>Gemini Text Adventure</DialogTitle>
+                 <DialogDescription className="sr-only">An interactive text adventure game to learn vocabulary.</DialogDescription>
+                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </DialogClose>
+            </DialogHeader>
+            <div className="flex-grow h-full pt-[65px]">
+                <TextAdventureApp />
+            </div>
+        </DialogContent>
+    </Dialog>
+
+     <Dialog open={isJumbleGameOpen} onOpenChange={setIsJumbleGameOpen}>
+        <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
+             <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
+                <DialogTitle>Jumble Game</DialogTitle>
+                <DialogDescription className="sr-only">A game to unscramble letters and improve spelling.</DialogDescription>
+                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </DialogClose>
+            </DialogHeader>
+            <div className="flex-grow h-full pt-[65px]">
+                <MumbleJumbleApp />
+            </div>
+        </DialogContent>
+    </Dialog>
+
+     <Dialog open={isTenseTeacherOpen} onOpenChange={setIsTenseTeacherOpen}>
+        <DialogContent className="w-full max-w-4xl h-[90vh] flex flex-col p-0">
+             <DialogHeader className="p-4 border-b shrink-0">
+                <DialogTitle>Tense Teacher</DialogTitle>
+                <DialogDescription>A voice-based AI expert to help you master English tenses.</DialogDescription>
+                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </DialogClose>
+            </DialogHeader>
+            <TenseTeacherApp />
+        </DialogContent>
+    </Dialog>
+
+    <Dialog open={isLessonsOpen} onOpenChange={setIsLessonsOpen}>
+        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
+            <DialogHeader className="p-4 border-b shrink-0">
+                <DialogTitle>Extra Learning Materials</DialogTitle>
+                <DialogDescription>Browse our library of lessons.</DialogDescription>
+                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </DialogClose>
+            </DialogHeader>
+            <LessonList />
+        </DialogContent>
+    </Dialog>
+    
+    <VideoLearnDialog isOpen={isVideoLearnOpen} onOpenChange={setIsVideoLearnOpen} />
+    </>
+  );
 }
 
 export function BookScreen() {
