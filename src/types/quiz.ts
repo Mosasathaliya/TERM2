@@ -8,6 +8,6 @@ export const QuizQuestionSchema = z.object({
 export type QuizQuestion = z.infer<typeof QuizQuestionSchema>;
 
 export const GenerateQuizOutputSchema = z.object({
-  questions: z.array(QuizQuestionSchema).length(50),
+  questions: z.array(QuizQuestionSchema).length(20),
 });
 export type GenerateQuizOutput = z.infer<typeof GenerateQuizOutputSchema>;

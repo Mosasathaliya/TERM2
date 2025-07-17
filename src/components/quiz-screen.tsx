@@ -13,6 +13,8 @@ import { Progress } from './ui/progress';
 
 type QuizState = 'loading' | 'active' | 'finished';
 
+const QUIZ_LENGTH = 20;
+
 export function QuizScreen() {
   const [quizState, setQuizState] = useState<QuizState>('loading');
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -65,10 +67,10 @@ export function QuizScreen() {
   }, [quizState, userAnswers, questions]);
 
   const getResultMessage = () => {
-      const percentage = (score / 50) * 100;
-      if (score === 50) return { message: "Extraordinary! Perfect Score!", icon: <Award className="h-16 w-16 text-amber-500" />, color: 'text-amber-500' };
-      if (score > 45) return { message: "Excellent Work!", icon: <Award className="h-16 w-16 text-green-500" />, color: 'text-green-500' };
-      if (score >= 35) return { message: "Great Job! You've Passed.", icon: <CheckCircle className="h-16 w-16 text-primary" />, color: 'text-primary' };
+      const percentage = (score / QUIZ_LENGTH) * 100;
+      if (percentage === 100) return { message: "Extraordinary! Perfect Score!", icon: <Award className="h-16 w-16 text-amber-500" />, color: 'text-amber-500' };
+      if (percentage > 90) return { message: "Excellent Work!", icon: <Award className="h-16 w-16 text-green-500" />, color: 'text-green-500' };
+      if (percentage >= 70) return { message: "Great Job! You've Passed.", icon: <CheckCircle className="h-16 w-16 text-primary" />, color: 'text-primary' };
       return { message: "Good effort! Keep practicing.", icon: <XCircle className="h-16 w-16 text-destructive" />, color: 'text-destructive' };
   };
 
@@ -89,9 +91,9 @@ export function QuizScreen() {
             <div className={result.color}>{result.icon}</div>
             <h2 className={`text-3xl font-bold mt-4 ${result.color}`}>{result.message}</h2>
             <p className="text-2xl font-semibold mt-2">
-                Your Score: {score} / 50
+                Your Score: {score} / {QUIZ_LENGTH}
             </p>
-            <p className="text-muted-foreground">({((score / 50) * 100).toFixed(0)}%)</p>
+            <p className="text-muted-foreground">({((score / QUIZ_LENGTH) * 100).toFixed(0)}%)</p>
             <Button onClick={fetchQuiz} className="mt-8">
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Take Another Quiz

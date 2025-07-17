@@ -9,7 +9,8 @@
 import {ai} from '@/ai/genkit';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { GenerateQuizOutputSchema, type GenerateQuizOutput } from '@/types/quiz';
+import { GenerateQuizOutputSchema } from '@/types/quiz';
+import type { GenerateQuizOutput } from '@/types/quiz';
 
 const generateQuizFlow = ai.defineFlow(
   {
@@ -21,14 +22,14 @@ const generateQuizFlow = ai.defineFlow(
     const filePath = path.join(process.cwd(), 'explanation.txt');
     const fileContent = await fs.readFile(filePath, 'utf-8');
 
-    const prompt = `Based on the following English learning material, generate a quiz with exactly 50 unique multiple-choice questions. Each question must have 4 options, and you must clearly indicate the correct answer. The questions should cover the various grammar points, vocabulary, and concepts presented in the text. Ensure the questions are varied and test different aspects of the material.
+    const prompt = `Based on the following English learning material, generate a quiz with exactly 20 unique multiple-choice questions. Each question must have 4 options, and you must clearly indicate the correct answer. The questions should cover the various grammar points, vocabulary, and concepts presented in the text. Ensure the questions are varied and test different aspects of the material.
 
 Here is the material:
 ---
 ${fileContent}
 ---
 
-Your response MUST be a JSON object containing a 'questions' array with exactly 50 question objects.
+Your response MUST be a JSON object containing a 'questions' array with exactly 20 question objects.
 `;
 
     const {output} = await ai.generate({
@@ -40,7 +41,7 @@ Your response MUST be a JSON object containing a 'questions' array with exactly 
       },
     });
 
-    if (!output || !output.questions || output.questions.length !== 50) {
+    if (!output || !output.questions || output.questions.length !== 20) {
       throw new Error('AI failed to generate the required number of quiz questions.');
     }
 
