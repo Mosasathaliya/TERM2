@@ -15,7 +15,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon, Volume2, ArrowLeft, Award, FileQuestion } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon, Volume2, Award, FileQuestion } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -467,7 +467,7 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={onBack}><ArrowLeft/></Button>
+            <Button variant="ghost" size="icon" onClick={onBack}><ChevronLeft/></Button>
             {lesson.title}
           </DialogTitle>
         </DialogHeader>
@@ -781,11 +781,15 @@ export function BookScreen() {
             )}
             <Dialog open={isQuizOpen} onOpenChange={setIsQuizOpen}>
                 <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+                    <DialogHeader className="p-4 border-b shrink-0">
+                        <DialogTitle>AI Generated Quiz</DialogTitle>
+                        <DialogDescription>Test your knowledge with 50 questions from the library.</DialogDescription>
+                         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Close</span>
+                        </DialogClose>
+                    </DialogHeader>
                     <QuizScreen />
-                    <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                        <X className="h-4 w-4" />
-                        <span className="sr-only">Close</span>
-                    </DialogClose>
                 </DialogContent>
             </Dialog>
         </section>
@@ -967,6 +971,77 @@ export function ProgressScreen() {
         onOpenChange={setIsCertificateOpen}
         userName="طالب مجتهد"
     />
+    </>
+  );
+}
+
+// AI Screen (as a container for AI tools)
+export function AiScreen({ setActiveTab }: { setActiveTab: ActiveTab }) {
+  const [isAiLessonsOpen, setIsAiLessonsOpen] = useState(false);
+  const [isLessonViewerOpen, setIsLessonViewerOpen] = useState(false);
+  const [selectedAiLesson, setSelectedAiLesson] = useState<AiLesson | null>(null);
+
+  const handleSelectLesson = (lesson: AiLesson) => {
+    setSelectedAiLesson(lesson);
+    setIsAiLessonsOpen(false);
+    setIsLessonViewerOpen(true);
+  };
+
+  const handleBackToList = () => {
+    setIsLessonViewerOpen(false);
+    setIsAiLessonsOpen(true);
+  };
+
+  return (
+    <>
+      <section className="animate-fadeIn">
+        <h2 className="text-3xl font-bold mb-2 text-center">أدوات الذكاء الاصطناعي</h2>
+        <p className="text-muted-foreground mb-6 text-center">اختر أداة لمساعدتك في رحلة تعلم اللغة.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card 
+            className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+            onClick={() => setIsAiLessonsOpen(true)}
+          >
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <Brain className="h-8 w-8 text-primary" />
+                <span>تعلم عن الذكاء الاصطناعي</span>
+              </CardTitle>
+              <CardDescription>
+                دروس مبسطة حول الذكاء الاصطناعي، مع شروحات صوتية باللغة العربية.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          
+          <Card 
+              className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+              onClick={() => setActiveTab('home')}
+          >
+              <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                      <Sparkles className="h-8 w-8 text-accent" />
+                      <span>المزيد من الأدوات قريباً</span>
+                  </CardTitle>
+                  <CardDescription>
+                      نحن نعمل باستمرار على إضافة المزيد من الأدوات المبتكرة لتعزيز تعلمك.
+                  </CardDescription>
+              </CardHeader>
+          </Card>
+        </div>
+      </section>
+
+      <AiLessonsDialog 
+        isOpen={isAiLessonsOpen} 
+        onOpenChange={setIsAiLessonsOpen} 
+        onSelectLesson={handleSelectLesson} 
+      />
+
+      <AiLessonViewerDialog 
+        lesson={selectedAiLesson}
+        isOpen={isLessonViewerOpen}
+        onOpenChange={setIsLessonViewerOpen}
+        onBack={handleBackToList}
+      />
     </>
   );
 }
