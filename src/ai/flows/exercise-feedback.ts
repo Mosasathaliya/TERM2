@@ -56,6 +56,7 @@ export async function getExerciseFeedback(input: ExerciseFeedbackInput): Promise
 
 const prompt = ai.definePrompt({
   name: 'exerciseFeedbackPrompt',
+  model: 'googleai/gemini-2.5-flash',
   input: {schema: ExerciseFeedbackInputSchema},
   output: {schema: ExerciseFeedbackOutputSchema},
   prompt: `You are an AI-powered tutor providing feedback to students on their answers to language learning exercises.
