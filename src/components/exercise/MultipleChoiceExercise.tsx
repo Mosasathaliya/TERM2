@@ -39,7 +39,13 @@ const MultipleChoiceExercise: FC<MultipleChoiceExerciseProps> = ({ exercise, les
           lessonLevel: lesson.level,
           lessonArabicExplanation: lesson.arabic_explanation,
           lessonExamples: lesson.examples,
-          lessonInteractiveExercises: [{ ...exercise, user_answer: selectedAnswer }],
+          lessonInteractiveExercises: [{ 
+            type: exercise.type, // This was the missing field causing the error
+            question: exercise.question,
+            choices: exercise.choices,
+            correct_answer: exercise.correct_answer,
+            user_answer: selectedAnswer 
+          }],
           lessonAdditionalNotes: lesson.additional_notes,
           lessonCommonMistakes: lesson.common_mistakes,
           lessonAdditionalNotesArabic: lesson.additional_notes_arabic,
