@@ -30,10 +30,16 @@ export function useVoiceChat() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isTalking, setIsTalking] = useState(false); // When AI is processing and speaking
   const [history, setHistory] = useState<Message[]>([]);
+  const historyRef = useRef<Message[]>([]);
 
   // Refs for managing audio and timeouts
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Update ref whenever history state changes
+  useEffect(() => {
+    historyRef.current = history;
+  }, [history]);
 
   // Callback to handle transcribed audio data
   const handleAudioData = useCallback(async (dataUri: string) => {
@@ -51,7 +57,9 @@ export function useVoiceChat() {
 
       setIsSpeaking(false);
       setIsTalking(true);
-      setHistory((prev) => [...prev, { role: 'user', content: transcribedText }]);
+      const userMessage: Message = { role: 'user', content: transcribedText };
+      const newHistory = [...historyRef.current, userMessage];
+      setHistory(newHistory);
 
       // 2. Get the agent's persona
       const { contextualizedPersona } = await contextualizeAIPersona({
@@ -63,10 +71,12 @@ export function useVoiceChat() {
       // 3. Get the personalized response from the agent
       const { response } = await personalizeAgentResponse({
         contextualizedPersona,
-        history,
+        history: newHistory,
         prompt: transcribedText,
       });
-      setHistory((prev) => [...prev, { role: 'model', content: response }]);
+
+      const modelMessage: Message = { role: 'model', content: response };
+      setHistory((prev) => [...prev, modelMessage]);
 
       // 4. Convert the agent's response to speech
       const { audio: audioDataUri } = await textToSpeech({ text: response, voice: currentAgent.voice });
@@ -81,7 +91,7 @@ export function useVoiceChat() {
       setIsTalking(false);
       if (isConnected) startRecording(); // Restart recording on error
     }
-  }, [isMuted, isTalking, currentAgent, userSettings, history, isConnected]);
+  }, [isMuted, isTalking, currentAgent, userSettings, isConnected]);
 
   // Initialize the audio processor hook
   const { isRecording, start: startRecording, stop: stopRecording } = useAudioProcessor(handleAudioData);
@@ -101,7 +111,7 @@ export function useVoiceChat() {
       // User is not speaking, but we are recording. Start a silence timer.
       silenceTimerRef.current = setTimeout(() => {
         // If silence persists, stop recording to process audio
-        stopRecording();
+        if (isRecording) stopRecording();
       }, VAD_SILENCE_TIMEOUT);
     }
 
@@ -120,7 +130,10 @@ export function useVoiceChat() {
       // When AI finishes talking, allow user to speak again by restarting recording
       audioRef.current.onended = () => {
         setIsTalking(false);
-        if (isConnected) startRecording();
+        // Use a timeout to prevent immediate re-triggering
+        setTimeout(() => {
+           if (isConnected) startRecording();
+        }, 100);
       };
     }
     startRecording();
@@ -188,7 +201,7 @@ export function useVoiceChat() {
         stream?.getTracks().forEach(track => track.stop());
         microphone?.disconnect();
         analyser?.disconnect();
-        audioContext.close();
+        audioContext.close().catch(console.error);
       }
     }
 
@@ -217,7 +230,7 @@ export function useVoiceChat() {
         cancelAnimationFrame(lipSyncFrameId);
         source.disconnect();
         analyser.disconnect();
-        audioContext.close();
+        audioContext.close().catch(console.error);
       };
     }
   }, [isRecording, isTalking, setAudioLevel]);
