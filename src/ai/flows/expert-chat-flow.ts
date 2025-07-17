@@ -9,7 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 // Define a schema for a single chat message
 const MessageSchema = z.object({
@@ -44,6 +44,7 @@ const expertChatFlow = ai.defineFlow(
     Keep your answers in Arabic unless the user asks for something in English.`;
 
     const response = await ai.generate({
+        model: 'googleai/gemini-2.5-flash',
         system: systemPrompt,
         prompt: question,
         history,
