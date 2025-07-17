@@ -1,8 +1,0 @@
-{
-  "name": "Mumble Jumble",
-  "description": "A playground to discover the range of creative voices that the Gemini native audio out has to offer.",
-  "requestFramePermissions": [
-    "microphone"
-  ],
-  "prompt": ""
-}
