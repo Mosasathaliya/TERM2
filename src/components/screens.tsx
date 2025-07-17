@@ -15,7 +15,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, ArrowLeft, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -116,6 +116,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     const handleLessonClick = async (lesson: Lesson) => {
         setIsLessonsOpen(false); // Close the list dialog
         setLoadingLesson(true);
+        setSelectedLesson(null); // Clear previous lesson
         try {
             if (lesson.meta?.englishGrammarTopic) {
                 const aiContent = await generateLessonContent({
@@ -138,9 +139,8 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
         } catch (e) {
             console.error("Failed to generate lesson content", e);
             // Handle error, maybe show a toast
-            setLoadingLesson(false); // Make sure loading stops on error
         } finally {
-            // Loading will be set to false inside the LessonDisplay component after it receives the lesson
+            setLoadingLesson(false); // Ensure loading is set to false after operation
         }
     };
 
@@ -313,10 +313,16 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
         </DialogContent>
     </Dialog>
 
-     <Dialog open={!!selectedLesson || loadingLesson} onOpenChange={(isOpen) => !isOpen && handleLessonDetailClose()}>
+     <Dialog open={!!selectedLesson || loadingLesson} onOpenChange={(isOpen) => { if (!isOpen) handleLessonDetailClose(); }}>
         <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0">
-            {loadingLesson && <div className="flex items-center justify-center h-full">Loading Lesson...</div>}
-            {selectedLesson && <LessonDisplay lesson={selectedLesson} />}
+            {loadingLesson && (
+                <div className="flex flex-col items-center justify-center h-full text-foreground">
+                    <Loader2 className="h-12 w-12 animate-spin mb-4 text-primary" />
+                    <p className="text-lg font-semibold">Generating your lesson...</p>
+                    <p className="text-sm text-muted-foreground">The AI is preparing the content.</p>
+                </div>
+            )}
+            {!loadingLesson && selectedLesson && <LessonDisplay lesson={selectedLesson} />}
         </DialogContent>
     </Dialog>
 
@@ -729,3 +735,4 @@ export function ProgressScreen() {
     </section>
   );
 }
+
