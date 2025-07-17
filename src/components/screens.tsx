@@ -15,7 +15,7 @@ import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
-import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon, Volume2, Award, FileQuestion } from 'lucide-react';
+import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, GraduationCap, Mic, X, Gamepad2, MessageCircle, Flame, Puzzle, Ear, BookCheck, Library, Loader2, Youtube, PlayCircle, Brain, ChevronLeft, ChevronRight, LightbulbIcon, Volume2, Award, FileQuestion, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
@@ -51,6 +51,10 @@ import type { AiLesson } from '@/lib/ai-lessons';
 import { aiLessons } from '@/lib/ai-lessons';
 import { generateCertificateImage } from '@/ai/flows/generate-certificate-image';
 import { QuizScreen } from './quiz-screen';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { Label } from './ui/label';
+import { Alert, AlertTitle } from './ui/alert';
+import { cn } from '@/lib/utils';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -396,7 +400,6 @@ function MotivationDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
     );
 }
 
-// Dialog for listing AI lessons
 function AiLessonsDialog({ isOpen, onOpenChange, onSelectLesson }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void, onSelectLesson: (lesson: AiLesson) => void }) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -424,12 +427,20 @@ function AiLessonsDialog({ isOpen, onOpenChange, onSelectLesson }: { isOpen: boo
   );
 }
 
-// Dialog for viewing a single AI lesson
 function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson: AiLesson | null, isOpen: boolean, onOpenChange: (isOpen: boolean) => void, onBack: () => void }) {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Reset state when a new lesson is opened
+    setExplanation(null);
+    setAnswers({});
+    setIsSubmitted(false);
+  }, [lesson]);
 
   const handleExplain = async () => {
     if (!lesson || isExplaining) return;
@@ -460,7 +471,25 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
     }
   };
 
+  const handleAnswerChange = (qIndex: number, option: string) => {
+    if (isSubmitted) return;
+    setAnswers(prev => ({ ...prev, [qIndex]: option }));
+  };
+
+  const handleSubmit = () => {
+    setIsSubmitted(true);
+    const correctAnswers = lesson?.questions.reduce((acc, q, i) => {
+        return answers[i] === q.answer ? acc + 1 : acc;
+    }, 0) || 0;
+    if (correctAnswers >= 2) {
+        toast({ title: 'تهانينا!', description: 'لقد نجحت في الاختبار!', className: 'bg-green-100 dark:bg-green-900' });
+    } else {
+        toast({ variant: 'destructive', title: 'حاول مرة أخرى', description: `تحتاج إلى إجابتين صحيحتين على الأقل للنجاح. نتيجتك: ${correctAnswers}` });
+    }
+  };
+
   if (!lesson) return null;
+  const score = lesson.questions.reduce((acc, q, i) => answers[i] === q.answer ? acc + 1 : acc, 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -483,15 +512,42 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
 
             <div className="mt-8">
               <h3 className="text-xl font-bold mb-4">اختبر معلوماتك</h3>
+              {isSubmitted && (
+                 <Alert className="mb-4 bg-primary/10 border-primary/20">
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    <AlertTitle>النتيجة: {score} من {lesson.questions.length}</AlertTitle>
+                    <AlertDescription>
+                        {score >= 2 ? "رائع! لقد نجحت." : "تحتاج إلى إجابتين صحيحتين على الأقل للنجاح."}
+                    </AlertDescription>
+                </Alert>
+              )}
               <div className="space-y-6">
                 {lesson.questions.map((q, i) => (
-                  <div key={i} className="p-4 border rounded-lg">
+                  <div key={i} className={cn("p-4 border rounded-lg", isSubmitted && (answers[i] === q.answer ? 'border-green-500' : 'border-destructive'))}>
                     <p className="font-semibold mb-3">{i+1}. {q.question}</p>
-                    <div className="space-y-2">
-                      {q.options.map(opt => <Button key={opt} variant="outline" className="w-full justify-start">{opt}</Button>)}
-                    </div>
+                    <RadioGroup value={answers[i]} onValueChange={(val) => handleAnswerChange(i, val)} disabled={isSubmitted}>
+                      {q.options.map(opt => {
+                        const isCorrect = opt === q.answer;
+                        const isSelected = answers[i] === opt;
+                        return (
+                          <div key={opt} className={cn("flex items-center space-x-2 rounded-md p-2", isSubmitted && isCorrect && "bg-green-500/10 text-green-800 dark:text-green-300", isSubmitted && isSelected && !isCorrect && "bg-destructive/10 text-destructive")}>
+                            <RadioGroupItem value={opt} id={`q${i}-opt-${opt}`} />
+                            <Label htmlFor={`q${i}-opt-${opt}`} className="flex-1 cursor-pointer">{opt}</Label>
+                            {isSubmitted && isCorrect && <Check className="h-5 w-5 text-green-500" />}
+                            {isSubmitted && isSelected && !isCorrect && <X className="h-5 w-5 text-destructive" />}
+                          </div>
+                        )
+                      })}
+                    </RadioGroup>
                   </div>
                 ))}
+              </div>
+               <div className="mt-6 flex justify-end">
+                  {isSubmitted ? (
+                    <Button variant="outline" onClick={() => setIsSubmitted(false)}>أعد المحاولة</Button>
+                  ) : (
+                    <Button onClick={handleSubmit}>تحقق من الإجابات</Button>
+                  )}
               </div>
             </div>
           </div>
