@@ -565,9 +565,9 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
                         const isSelected = answers[i] === opt;
                         return (
                           <div key={opt} className={cn("flex items-center space-x-2 rounded-md p-2", isSubmitted && isCorrect && "bg-green-500/10 text-green-800 dark:text-green-300", isSubmitted && isSelected && !isCorrect && "bg-destructive/10 text-destructive")}>
-                            <RadioGroupItem value={opt} id={`q${i}-opt-${opt}`} />
-                            <Label htmlFor={`q${i}-opt-${opt}`} className="flex-1 cursor-pointer">{opt}</Label>
-                            {isSubmitted && isCorrect && <Check className="h-5 w-5 text-green-500" />}
+                          <RadioGroupItem value={opt} id={`q${i}-opt-${opt}`} />
+                          <Label htmlFor={`q${i}-opt-${opt}`} className="flex-1 cursor-pointer">{opt}</Label>
+                           {isSubmitted && isCorrect && <Check className="h-5 w-5 text-green-500" />}
                             {isSubmitted && isSelected && !isCorrect && <X className="h-5 w-5 text-destructive" />}
                           </div>
                         )
@@ -953,8 +953,9 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
                           <Label htmlFor={`sq${i}-opt-${opt}`} className="flex-1 cursor-pointer">{opt}</Label>
                            {isSubmitted && isCorrect && <Check className="h-5 w-5 text-green-500" />}
                             {isSubmitted && isSelected && !isCorrect && <X className="h-5 w-5 text-destructive" />}
-                        </div>
-                      )})}
+                          </div>
+                        )
+                      })}
                     </RadioGroup>
                   </div>
                 ))}
@@ -1020,7 +1021,6 @@ function DashboardCard({ title, description, icon, onClick, unlockThreshold, com
 export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const { completedItemsCount } = useProgressStore();
 
-    // State for managing dialogs
     const [dialogs, setDialogs] = useState({
         lingoleap: false,
         adventure: false,
@@ -1033,7 +1033,12 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
         myStories: false,
         chat: false,
         storyMaker: false,
+        aiLessons: false, // Added for AI lessons dialog
+        voiceAssistant: false // Added for Voice Assistant dialog
     });
+
+    const [selectedAiLesson, setSelectedAiLesson] = useState<AiLesson | null>(null);
+    const [isLessonViewerOpen, setIsLessonViewerOpen] = useState(false);
 
     const openDialog = (name: keyof typeof dialogs) => {
         setDialogs(prev => ({...prev, [name]: true}));
@@ -1041,6 +1046,17 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
 
     const closeDialog = (name: keyof typeof dialogs) => {
         setDialogs(prev => ({...prev, [name]: false}));
+    };
+    
+    const handleSelectLesson = (lesson: AiLesson) => {
+        setSelectedAiLesson(lesson);
+        closeDialog('aiLessons');
+        setIsLessonViewerOpen(true);
+    };
+
+    const handleBackToList = () => {
+        setIsLessonViewerOpen(false);
+        openDialog('aiLessons');
     };
     
   return (
@@ -1078,6 +1094,10 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 <DashboardCard title="قصصي واختباراتي" description="اقرأ القصص التي أنشأتها واختبر فهمك."
                   icon={<NotebookText className="h-8 w-8 text-pink-500" />} onClick={() => openDialog('myStories')}
                   unlockThreshold={10} completedCount={completedItemsCount} />
+                
+                <DashboardCard title="المساعد الصوتي" description="تدرب على المحادثة مع مساعد صوتي يعمل بالذكاء الاصطناعي."
+                  icon={<Ear className="h-8 w-8 text-cyan-500" />} onClick={() => openDialog('voiceAssistant')}
+                  unlockThreshold={42} completedCount={completedItemsCount} />
             </div>
         </div>
 
@@ -1099,6 +1119,10 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 <DashboardCard title="جرعة تحفيز" description="فيديوهات قصيرة لإلهامك ومواصلة رحلتك التعليمية."
                   icon={<Flame className="h-8 w-8 text-orange-500" />} onClick={() => openDialog('motivation')}
                   unlockThreshold={25} completedCount={completedItemsCount} />
+                
+                <DashboardCard title="تعلم عن الذكاء الاصطناعي" description="دروس مبسطة حول الذكاء الاصطناعي، مع شروحات صوتية باللغة العربية."
+                  icon={<BrainCircuit className="h-8 w-8 text-teal-500" />} onClick={() => openDialog('aiLessons')}
+                  unlockThreshold={42} completedCount={completedItemsCount} />
             </div>
         </div>
 
@@ -1210,6 +1234,33 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             <AiChat />
         </DialogContent>
     </Dialog>
+    
+    <Dialog open={dialogs.voiceAssistant} onOpenChange={(open) => !open && closeDialog('voiceAssistant')}>
+      <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
+          <DialogHeader className="sr-only">
+              <DialogTitle>Voice Assistant</DialogTitle>
+              <DialogDescription>Practice conversation with a voice-based AI assistant.</DialogDescription>
+          </DialogHeader>
+          <ChatterbotApp />
+           <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20 text-white">
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+          </DialogClose>
+      </DialogContent>
+    </Dialog>
+
+    <AiLessonsDialog 
+        isOpen={dialogs.aiLessons} 
+        onOpenChange={(open) => !open && closeDialog('aiLessons')} 
+        onSelectLesson={handleSelectLesson} 
+    />
+
+    <AiLessonViewerDialog 
+        lesson={selectedAiLesson}
+        isOpen={isLessonViewerOpen}
+        onOpenChange={setIsLessonViewerOpen}
+        onBack={handleBackToList}
+    />
     </>
   );
 }
@@ -1317,71 +1368,6 @@ const chartConfig: ChartConfig = {
   },
 };
 
-function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean; onOpenChange: (open: boolean) => void; userName: string }) {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    if (isOpen && !imageUrl && !isLoading) {
-      setIsLoading(true);
-      generateCertificateImage({ userName: userName || "Student" })
-        .then(result => setImageUrl(result.imageUrl))
-        .catch(err => {
-          console.error("Certificate image generation error:", err);
-          toast({ variant: 'destructive', title: 'خطأ', description: 'فشل إنشاء خلفية الشهادة.' });
-        })
-        .finally(() => setIsLoading(false));
-    }
-  }, [isOpen, imageUrl, isLoading, userName, toast]);
-
-  const certificateDate = new Date().toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0 border-0">
-        <DialogHeader className="sr-only">
-            <DialogTitle>Certificate of Completion for {userName}</DialogTitle>
-        </DialogHeader>
-        <div className="aspect-[1.414] w-full relative bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100">
-          {isLoading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80">
-              <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-              <p>...جاري إنشاء شهادتك</p>
-            </div>
-          )}
-          {imageUrl && (
-            <Image src={imageUrl} layout="fill" alt="Certificate background" objectFit="cover" className="rounded-lg" />
-          )}
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-8 md:p-12" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <h2 className="text-2xl md:text-3xl font-bold tracking-widest uppercase text-center">Certificate of Completion</h2>
-            <p className="mt-4 text-lg md:text-xl">This certificate is proudly presented to</p>
-            <p className="mt-4 text-3xl md:text-5xl font-extrabold text-primary tracking-tight">{userName || "Valued Student"}</p>
-            <div className="mt-6 w-1/2 border-t border-gray-400"></div>
-            <p className="mt-6 text-center max-w-lg text-sm md:text-base">for successfully completing the English Language Foundations course with Speed of Mastery.</p>
-            <div className="mt-12 flex justify-between w-full max-w-md">
-              <div className="text-center">
-                <p className="font-semibold">{certificateDate}</p>
-                <p className="text-xs border-t border-gray-500 mt-1 pt-1">DATE</p>
-              </div>
-              <Award className="h-16 w-16 text-accent" />
-              <div className="text-center">
-                <p className="font-semibold italic">Speed of Mastery</p>
-                <p className="text-xs border-t border-gray-500 mt-1 pt-1">SIGNATURE</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-
 export function ProgressScreen() {
     const [isCertificateOpen, setIsCertificateOpen] = useState(false);
   return (
@@ -1479,135 +1465,68 @@ export function ProgressScreen() {
   );
 }
 
-// AI Screen (as a container for AI tools)
-export function AiScreen({ setActiveTab }: { setActiveTab: ActiveTab }) {
-  const [isAiLessonsOpen, setIsAiLessonsOpen] = useState(false);
-  const [isLessonViewerOpen, setIsLessonViewerOpen] = useState(false);
-  const [selectedAiLesson, setSelectedAiLesson] = useState<AiLesson | null>(null);
-  const [isVoiceChatOpen, setIsVoiceChatOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isStoryMakerOpen, setIsStoryMakerOpen] = useState(false);
+export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [isVoiceChatOpen, setIsVoiceChatOpen] = useState(false);
 
-  const handleSelectLesson = (lesson: AiLesson) => {
-    setSelectedAiLesson(lesson);
-    setIsAiLessonsOpen(false);
-    setIsLessonViewerOpen(true);
-  };
+    return (
+        <section className="animate-fadeIn">
+            <h2 className="text-3xl font-bold mb-2 text-center">أدوات الذكاء الاصطناعي</h2>
+            <p className="text-muted-foreground mb-6 text-center">اختر أداة لمساعدتك في رحلة تعلم اللغة.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsChatOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <MessageCircle className="h-8 w-8 text-primary" />
+                            <span>دردشة الذكاء الاصطناعي</span>
+                        </CardTitle>
+                        <CardDescription>
+                            اطرح أسئلة عامة عن اللغة الإنجليزية واحصل على إجابات فورية.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
 
-  const handleBackToList = () => {
-    setIsLessonViewerOpen(false);
-    setIsAiLessonsOpen(true);
-  };
+                <Card 
+                    className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
+                    onClick={() => setIsVoiceChatOpen(true)}
+                >
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <Ear className="h-8 w-8 text-destructive" />
+                            <span>المساعد الصوتي</span>
+                        </CardTitle>
+                        <CardDescription>
+                            تدرب على المحادثة مع مساعد صوتي يعمل بالذكاء الاصطناعي.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+            </div>
 
-  return (
-    <>
-      <section className="animate-fadeIn">
-        <h2 className="text-3xl font-bold mb-2 text-center">أدوات الذكاء الاصطناعي</h2>
-        <p className="text-muted-foreground mb-6 text-center">اختر أداة لمساعدتك في رحلة تعلم اللغة.</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card 
-            className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-            onClick={() => setIsChatOpen(true)}
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <MessageCircle className="h-8 w-8 text-primary" />
-                <span>دردشة الذكاء الاصطناعي</span>
-              </CardTitle>
-              <CardDescription>
-                اطرح أسئلة عامة عن اللغة الإنجليزية واحصل على إجابات فورية.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+            {/* AI Chat Dialog */}
+            <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
+                <DialogContent className="max-w-2xl h-[70vh] flex flex-col p-0">
+                    <AiChat />
+                </DialogContent>
+            </Dialog>
 
-          <Card 
-            className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-            onClick={() => setIsStoryMakerOpen(true)}
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <Sparkles className="h-8 w-8 text-accent" />
-                <span>صانع القصص</span>
-              </CardTitle>
-              <CardDescription>
-                حوّل أفكارك إلى قصص قصيرة مصورة باللغة الإنجليزية.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card 
-            className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm"
-            onClick={() => setIsVoiceChatOpen(true)}
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <Ear className="h-8 w-8 text-destructive" />
-                <span>المساعد الصوتي</span>
-              </CardTitle>
-              <CardDescription>
-                تدرب على المحادثة مع مساعد صوتي يعمل بالذكاء الاصطناعي.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          
-          <Card 
-            className="cursor-pointer transform transition-all hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm md:col-span-2 lg:col-span-3"
-            onClick={() => setIsAiLessonsOpen(true)}
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <Brain className="h-8 w-8 text-green-500" />
-                <span>تعلم عن الذكاء الاصطناعي</span>
-              </CardTitle>
-              <CardDescription>
-                دروس مبسطة حول الذكاء الاصطناعي، مع شروحات صوتية باللغة العربية.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-      </section>
-
-      {/* AI Chat Dialog */}
-      <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
-        <DialogContent className="max-w-2xl h-[70vh] flex flex-col p-0">
-          <AiChat />
-        </DialogContent>
-      </Dialog>
-
-      {/* Story Maker Dialog */}
-      <Dialog open={isStoryMakerOpen} onOpenChange={setIsStoryMakerOpen}>
-        <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
-          <AiStoryMaker />
-        </DialogContent>
-      </Dialog>
-      
-      {/* Voice Chat Dialog */}
-      <Dialog open={isVoiceChatOpen} onOpenChange={setIsVoiceChatOpen}>
-          <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
-              <DialogHeader className="sr-only">
-                  <DialogTitle>Voice Assistant</DialogTitle>
-                  <DialogDescription>Practice conversation with a voice-based AI assistant.</DialogDescription>
-              </DialogHeader>
-              <ChatterbotApp />
-               <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20 text-white">
-                  <X className="h-4 w-4" />
-                  <span className="sr-only">Close</span>
-              </DialogClose>
-          </DialogContent>
-      </Dialog>
-
-      <AiLessonsDialog 
-        isOpen={isAiLessonsOpen} 
-        onOpenChange={setIsAiLessonsOpen} 
-        onSelectLesson={handleSelectLesson} 
-      />
-
-      <AiLessonViewerDialog 
-        lesson={selectedAiLesson}
-        isOpen={isLessonViewerOpen}
-        onOpenChange={setIsLessonViewerOpen}
-        onBack={handleBackToList}
-      />
-    </>
-  );
+             {/* Voice Chat Dialog */}
+            <Dialog open={isVoiceChatOpen} onOpenChange={setIsVoiceChatOpen}>
+                <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>Voice Assistant</DialogTitle>
+                        <DialogDescription>Practice conversation with a voice-based AI assistant.</DialogDescription>
+                    </DialogHeader>
+                    <ChatterbotApp />
+                     <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20 text-white">
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Close</span>
+                    </DialogClose>
+                </DialogContent>
+            </Dialog>
+        </section>
+    );
 }
+

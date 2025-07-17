@@ -1,7 +1,9 @@
 المكتبة التعليمية in hear the flow goes like one by bone until finalexam at last the user have to pass in each lesson to go to next lesson
 The stories in المكتبة التعليمية are also part of the workflow.
+
 Unlocking rules:
 - After 5 lessons, unlock "Vocabulary Builder".
 - After 10 lessons, unlock "Story Maker", "Tense Expert", "Jumble Game", and "My Stories".
 - After 25 lessons, unlock all "Educational Resources" (Learning Materials, Video Learn, What If, Motivation).
 - "AI Chat" is always unlocked.
+- After 42 lessons, unlock "Voice Assistant" and "Learn about AI".
