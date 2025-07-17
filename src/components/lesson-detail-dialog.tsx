@@ -13,15 +13,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, MessageSquare, BookOpen, BrainCircuit, Send, User, Bot, Sparkles, Image as ImageIcon, Mic, Square, FileText, Languages } from 'lucide-react';
+import { Volume2, MessageSquare, BookOpen, BrainCircuit, Send, User, Bot, Sparkles, Image as ImageIcon, Mic, Square, FileText, Languages, Check, X, CheckCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import type { LearningItem, Lesson, Story } from '@/lib/lessons';
+import type { LearningItem, Lesson, Story, MCQ } from '@/lib/lessons';
 import { textToSpeech } from '@/ai/flows/tts-flow';
 import { expertChat, type ExpertChatInput } from '@/ai/flows/expert-chat-flow';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
 import { translateText } from '@/ai/flows/translate-flow';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 interface LessonDetailDialogProps {
   item: LearningItem;
@@ -32,6 +36,96 @@ interface LessonDetailDialogProps {
 interface Message {
   role: 'user' | 'model';
   content: string;
+}
+
+function LessonQuiz({ mcqs }: { mcqs: MCQ[] }) {
+    const [answers, setAnswers] = React.useState<Record<number, string>>({});
+    const [isSubmitted, setIsSubmitted] = React.useState(false);
+
+    const handleAnswerChange = (questionIndex: number, selectedOption: string) => {
+        if (isSubmitted) return;
+        setAnswers(prev => ({ ...prev, [questionIndex]: selectedOption }));
+    };
+
+    const handleSubmit = () => {
+        setIsSubmitted(true);
+    };
+
+    const handleRetry = () => {
+        setAnswers({});
+        setIsSubmitted(false);
+    };
+
+    const score = React.useMemo(() => {
+        if (!isSubmitted) return 0;
+        return mcqs.reduce((correctCount, mcq, index) => {
+            if (answers[index] === mcq.answer) {
+                return correctCount + 1;
+            }
+            return correctCount;
+        }, 0);
+    }, [isSubmitted, answers, mcqs]);
+
+    return (
+        <ScrollArea className="h-full">
+            <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold">اختبر معلوماتك</h3>
+                    {isSubmitted && (
+                         <Button onClick={handleRetry} variant="outline">أعد المحاولة</Button>
+                    )}
+                </div>
+
+                {isSubmitted && (
+                     <Alert className="mb-6 bg-primary/10 border-primary/20">
+                        <CheckCircle className="h-4 w-4 text-primary" />
+                        <AlertTitle>نتيجتك</AlertTitle>
+                        <AlertDescription>
+                            لقد حصلت على {score} من {mcqs.length} إجابات صحيحة.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                <div className="space-y-6">
+                    {mcqs.map((mcq, index) => (
+                        <Card key={index} className={cn(
+                            "bg-muted/50 p-4 transition-colors",
+                            isSubmitted && (answers[index] === mcq.answer ? 'border-green-500' : 'border-destructive')
+                        )}>
+                            <p className="font-semibold mb-3">{index + 1}. {mcq.question}</p>
+                            <RadioGroup
+                                value={answers[index] || ""}
+                                onValueChange={(value) => handleAnswerChange(index, value)}
+                                disabled={isSubmitted}
+                            >
+                                {mcq.options.map((option, i) => {
+                                    const isCorrect = option === mcq.answer;
+                                    const isSelected = answers[index] === option;
+                                    return (
+                                        <div key={i} className={cn(
+                                            "flex items-center space-x-2 rounded-md p-2",
+                                             isSubmitted && isCorrect && "bg-green-500/10 text-green-800 dark:text-green-300",
+                                             isSubmitted && isSelected && !isCorrect && "bg-destructive/10 text-destructive"
+                                        )}>
+                                            <RadioGroupItem value={option} id={`q${index}-o${i}`} />
+                                            <Label htmlFor={`q${index}-o${i}`} className="flex-1 cursor-pointer">{option}</Label>
+                                            {isSubmitted && isCorrect && <Check className="h-5 w-5 text-green-500" />}
+                                            {isSubmitted && isSelected && !isCorrect && <X className="h-5 w-5 text-destructive" />}
+                                        </div>
+                                    );
+                                })}
+                            </RadioGroup>
+                        </Card>
+                    ))}
+                </div>
+                 {!isSubmitted && (
+                    <div className="mt-6 flex justify-end">
+                        <Button onClick={handleSubmit}>تحقق من الإجابات</Button>
+                    </div>
+                )}
+            </div>
+        </ScrollArea>
+    );
 }
 
 function Chatbot({ lesson }: { lesson: Lesson }) {
@@ -512,23 +606,7 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
                         </ScrollArea>
                     )}
                     {activeTab === 'mcq' && (
-                        <ScrollArea className="h-full">
-                            <div className="p-6">
-                                <h3 className="text-xl font-semibold mb-4">اختبر معلوماتك</h3>
-                                <div className="space-y-6">
-                                    {item.mcqs.map((mcq, index) => (
-                                        <Card key={index} className="bg-muted/50 p-4">
-                                            <p className="font-semibold mb-3">{index + 1}. {mcq.question}</p>
-                                            <div className="flex flex-col space-y-2">
-                                                {mcq.options.map((option, i) => (
-                                                    <Button key={i} variant="outline" className="justify-start">{option}</Button>
-                                                ))}
-                                            </div>
-                                        </Card>
-                                    ))}
-                                </div>
-                            </div>
-                        </ScrollArea>
+                        <LessonQuiz mcqs={item.mcqs} />
                     )}
                     {activeTab === 'chatbot' && (
                         <Chatbot lesson={item} />
