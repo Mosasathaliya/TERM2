@@ -46,27 +46,26 @@ export function useVoiceChat() {
 
       const { transcribedText, response: responseText } = result;
 
-      if (transcribedText) {
-        const userMessage: Message = { role: 'user', content: transcribedText };
-        
-        if (responseText) {
-            const modelMessage: Message = { role: 'model', content: responseText };
-            setHistory(prev => [...prev, userMessage, modelMessage]);
-            const { audio: audioDataUriResponse } = await textToSpeech({ text: responseText, voice: currentAgent.voice });
-            if (audioRef.current) {
-                audioRef.current.src = audioDataUriResponse;
-                audioRef.current.play();
-            } else {
-                 setIsTalking(false);
-            }
-        } else {
-            // Handle case where there's transcription but no AI response
-             setHistory(prev => [...prev, userMessage]);
-             setIsTalking(false);
-        }
+      if (!transcribedText) {
+          setIsTalking(false);
+          return;
+      }
+      
+      const userMessage: Message = { role: 'user', content: transcribedText };
+      
+      if (responseText) {
+          const modelMessage: Message = { role: 'model', content: responseText };
+          setHistory(prev => [...prev, userMessage, modelMessage]);
+          const { audio: audioDataUriResponse } = await textToSpeech({ text: responseText, voice: currentAgent.voice });
+          if (audioRef.current) {
+              audioRef.current.src = audioDataUriResponse;
+              audioRef.current.play();
+          } else {
+               setIsTalking(false);
+          }
       } else {
-        // No transcription, so stop the "thinking" state
-        setIsTalking(false);
+           setHistory(prev => [...prev, userMessage]);
+           setIsTalking(false);
       }
     } catch (error) {
       console.error('Voice chat pipeline error:', error);
@@ -127,14 +126,14 @@ export function useVoiceChat() {
   useEffect(() => {
     if (isTalking && audioRef.current && !sourceNodeRef.current) {
       try {
-        const newAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        audioContextRef.current = newAudioContext;
-        const source = newAudioContext.createMediaElementSource(audioRef.current);
-        sourceNodeRef.current = source;
-        const analyser = newAudioContext.createAnalyser();
-        analyserRef.current = analyser;
-        source.connect(analyser);
-        analyser.connect(newAudioContext.destination);
+        if (!audioContextRef.current) {
+          audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        const audioContext = audioContextRef.current;
+        sourceNodeRef.current = audioContext.createMediaElementSource(audioRef.current);
+        analyserRef.current = audioContext.createAnalyser();
+        sourceNodeRef.current.connect(analyserRef.current);
+        analyserRef.current.connect(audioContext.destination);
       } catch (e) {
         console.error("Error setting up AudioContext:", e);
       }
