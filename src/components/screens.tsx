@@ -440,6 +440,9 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
              {/* Voice Chat Dialog */}
             <Dialog open={isVoiceChatOpen} onOpenChange={setIsVoiceChatOpen}>
                 <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 rounded-none border-0">
+                    <DialogHeader>
+                        <DialogTitle className="sr-only">Voice Assistant</DialogTitle>
+                    </DialogHeader>
                     <ChatterbotApp />
                      <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20 text-white">
                         <X className="h-4 w-4" />
