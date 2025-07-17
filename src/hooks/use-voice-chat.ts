@@ -14,6 +14,8 @@ import { textToSpeech } from '@/ai/flows/tts-flow';
 import type { Message } from '@/ai/flows/voice-chat-pipeline';
 import { runVoiceChatPipeline } from '@/ai/flows/voice-chat-pipeline';
 
+const MAX_HISTORY_MESSAGES = 30; // 15 pairs of user/model messages
+
 export function useVoiceChat() {
   const { currentAgent, userSettings, setAudioLevel } = useAgentStore();
   const [isConnected, setIsConnected] = useState(false);
@@ -52,8 +54,8 @@ export function useVoiceChat() {
       
       if (responseText) {
           const modelMessage: Message = { role: 'model', content: responseText };
-          // Update history with both user message and model response for the next turn
-          setHistory(prev => [...prev, userMessage, modelMessage]);
+          // Update history with both user message and model response, and trim it.
+          setHistory(prev => [...prev, userMessage, modelMessage].slice(-MAX_HISTORY_MESSAGES));
           
           const ttsResult = await textToSpeech({ text: responseText, voice: currentAgent.voice });
           if (audioRef.current && ttsResult?.media) {
@@ -66,8 +68,8 @@ export function useVoiceChat() {
                setIsTalking(false);
           }
       } else {
-           // If there's no response text, just add the user's message to history
-           setHistory(prev => [...prev, userMessage]);
+           // If there's no response text, just add the user's message to history and trim.
+           setHistory(prev => [...prev, userMessage].slice(-MAX_HISTORY_MESSAGES));
            setIsTalking(false);
       }
     } catch (error) {

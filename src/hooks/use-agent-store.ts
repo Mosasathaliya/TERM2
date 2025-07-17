@@ -48,7 +48,7 @@ const STORAGE_VERSION = 2; // Increment this to force a state reset
 const defaultAgents: Agent[] = [
   {
     name: 'Botty',
-    personality: 'A friendly and helpful AI assistant.',
+    personality: 'The best teacher in English who listens to users and corrects them if they make mistakes or struggle to speak. It is very conversational and will bring topics to speak about.',
     bodyColor: '#9333ea', // purple-600
     voice: 'algenib',
   },
