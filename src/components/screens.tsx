@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
@@ -105,29 +106,29 @@ function LessonList() {
 }
 
 function VideoPlayerModal({ videoUrl, onClose }: { videoUrl: string | null; onClose: () => void }) {
-  if (!videoUrl) return null;
-
-  return (
-    <Dialog open={!!videoUrl} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="max-w-4xl h-[70vh] p-0 border-0">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Video Player</DialogTitle>
-          <DialogDescription>Playing selected educational video.</DialogDescription>
-        </DialogHeader>
-        <iframe
-          width="100%"
-          height="100%"
-          src={`${videoUrl}?autoplay=1`}
-          title="YouTube video player"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="rounded-lg"
-        ></iframe>
-      </DialogContent>
-    </Dialog>
-  );
-}
+    if (!videoUrl) return null;
+  
+    return (
+      <Dialog open={!!videoUrl} onOpenChange={(isOpen) => !isOpen && onClose()}>
+        <DialogContent className="max-w-4xl h-[70vh] p-0 border-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Video Player</DialogTitle>
+            <DialogDescription>Playing selected educational video.</DialogDescription>
+          </DialogHeader>
+          <iframe
+            width="100%"
+            height="100%"
+            src={`${videoUrl}?autoplay=1`}
+            title="YouTube video player"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="rounded-lg"
+          ></iframe>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
 function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
     const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
@@ -200,8 +201,8 @@ function AevyTvDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-6xl h-[95vh] flex flex-col p-6">
-                <DialogHeader>
+            <DialogContent className="max-w-6xl w-full h-[95vh] flex flex-col p-6">
+                <DialogHeader className="shrink-0">
                     <DialogTitle className="flex items-center gap-2 text-2xl">
                         <Clapperboard className="h-8 w-8 text-primary" />
                         قناة Aevy TV
@@ -209,11 +210,11 @@ function AevyTvDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
                     <DialogDescription>تصفح فيديوهات Shorts والفيديوهات الطويلة من القناة مباشرة هنا.</DialogDescription>
                 </DialogHeader>
 
-                <div className="flex-grow flex flex-col md:flex-row gap-8 overflow-hidden min-h-0">
+                <div className="flex-grow grid md:grid-cols-2 gap-8 overflow-hidden min-h-0 py-4">
                     {/* Shorts Section */}
-                    <div className="flex-1 flex flex-col min-h-0">
-                        <h3 className="text-xl font-semibold mb-4 text-center">Shorts</h3>
-                        <div className="relative flex-grow">
+                    <div className="flex flex-col min-h-0">
+                        <h3 className="text-xl font-semibold mb-4 text-center shrink-0">Shorts</h3>
+                        <div className="relative flex-grow h-full">
                              <Carousel className="h-full w-full" opts={{ loop: true, axis: 'y' }} orientation="vertical">
                                 <CarouselContent className="h-full">
                                     {shorts.map(id => (
@@ -240,9 +241,9 @@ function AevyTvDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
                     <div className="border-l border-border hidden md:block"></div>
 
                     {/* Videos Section */}
-                    <div className="flex-1 flex flex-col min-h-0">
-                         <h3 className="text-xl font-semibold mb-4 text-center">Videos</h3>
-                         <div className="relative flex-grow">
+                    <div className="flex flex-col min-h-0">
+                         <h3 className="text-xl font-semibold mb-4 text-center shrink-0">Videos</h3>
+                         <div className="relative flex-grow h-full">
                              <Carousel className="h-full w-full" opts={{ loop: true }}>
                                 <CarouselContent className="h-full">
                                     {videos.map(id => (
