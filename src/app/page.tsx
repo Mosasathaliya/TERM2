@@ -2,16 +2,15 @@
 "use client";
 
 import { MainApp } from "@/components/main-app";
-import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import LessonPage from './lessons/[lesson_id]/page';
+import { useAuthStore } from '@/hooks/use-auth-store';
+import { LoginScreen } from '@/components/auth/login-screen';
 
 function PageContent() {
-  const searchParams = useSearchParams();
-  const lessonId = searchParams.get('lesson_id');
+  const { user } = useAuthStore();
 
-  if (lessonId) {
-    return <LessonPage params={{ lesson_id: lessonId }} />;
+  if (!user) {
+    return <LoginScreen />;
   }
   
   return <MainApp />;
