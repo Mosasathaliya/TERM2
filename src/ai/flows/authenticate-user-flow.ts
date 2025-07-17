@@ -7,7 +7,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { supabase } from '@/lib/supabase-client';
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { db } from '@/lib/firebase-config';
 
 // Define the input schema for the authentication flow
@@ -31,8 +31,9 @@ const AuthenticateUserOutputSchema = z.object({
 });
 export type AuthenticateUserOutput = z.infer<typeof AuthenticateUserOutputSchema>;
 
-// Define the main Genkit flow
-export const authenticateUserFlow = ai.defineFlow(
+
+// This is the exported server action that the client will call.
+export const authenticateUser = ai.defineFlow(
   {
     name: 'authenticateUserFlow',
     inputSchema: AuthenticateUserInputSchema,
@@ -67,10 +68,16 @@ export const authenticateUserFlow = ai.defineFlow(
         return { success: false, message: 'Could not save dev user data.', user: null };
       }
     }
-    // --- End of Development Backdoor ---
+    
+    // --- Live Supabase Logic ---
+    // This part will only run for non-developer codes.
+    
+    // Check if Supabase is configured before trying to use it.
+    if (!supabase) {
+        return { success: false, message: 'Supabase client is not configured.', user: null };
+    }
 
     // Step 1: Query Supabase for the access code
-    // This part will only run for non-developer codes.
     const { data: accessData, error: supabaseError } = await supabase
       .from('user_access') // The table name in Supabase
       .select('user_id, is_active, users(id, name, email)')
@@ -86,7 +93,6 @@ export const authenticateUserFlow = ai.defineFlow(
       return { success: false, message: 'This access code has expired.', user: null };
     }
     
-    // The `users` data is nested because of the foreign key relationship
     const userData = accessData.users;
     if (!userData) {
       return { success: false, message: 'Could not find user associated with this code.', user: null };
@@ -98,18 +104,14 @@ export const authenticateUserFlow = ai.defineFlow(
     try {
       const userRef = doc(db, "users", validatedUser.id);
       
-      // Optional: Check if user already exists to avoid unnecessary writes
-      // const userSnap = await getDoc(userRef);
-      
       await setDoc(userRef, {
         name: validatedUser.name,
         email: validatedUser.email,
         last_login: new Date().toISOString(),
-      }, { merge: true }); // Use merge to avoid overwriting existing fields
+      }, { merge: true });
 
     } catch (firestoreError) {
       console.error('Firestore error:', firestoreError);
-      // Decide if this should be a critical failure
       return { success: false, message: 'Could not save user data.', user: null };
     }
 
@@ -121,8 +123,3 @@ export const authenticateUserFlow = ai.defineFlow(
     };
   }
 );
-
-// Export a wrapper function for client-side use
-export async function authenticateUser(input: AuthenticateUserInput): Promise<AuthenticateUserOutput> {
-  return authenticateUserFlow(input);
-}
