@@ -26,8 +26,8 @@ export function VoiceControls() {
 
   const getStatusText = () => {
     if (!isConnected) return 'Disconnected';
-    if (isRecording) return 'Recording...';
     if (isTalking) return 'Thinking...';
+    if (isRecording) return 'Recording...';
     return 'Connected';
   };
   

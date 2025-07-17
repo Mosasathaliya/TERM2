@@ -34,7 +34,7 @@ export function useVoiceChat() {
   const handleAudioData = useCallback(async (dataUri: string) => {
     if (isMuted || isTalking) return;
   
-    setIsTalking(true);
+    setIsTalking(true); // Set to "Thinking..." state
     try {
       const result = await runVoiceChatPipeline({
         audioDataUri: dataUri,
@@ -46,7 +46,8 @@ export function useVoiceChat() {
 
       const { transcribedText, response: responseText } = result;
 
-      if (!transcribedText) {
+      // If transcription is empty, just stop "Thinking" and allow new recording
+      if (!transcribedText.trim()) {
           setIsTalking(false);
           return;
       }
@@ -56,20 +57,22 @@ export function useVoiceChat() {
       if (responseText) {
           const modelMessage: Message = { role: 'model', content: responseText };
           setHistory(prev => [...prev, userMessage, modelMessage]);
-          const { audio: audioDataUriResponse } = await textToSpeech({ text: responseText, voice: currentAgent.voice });
-          if (audioRef.current) {
-              audioRef.current.src = audioDataUriResponse;
+          const ttsResult = await textToSpeech({ text: responseText, voice: currentAgent.voice });
+          if (audioRef.current && ttsResult?.audio) {
+              audioRef.current.src = ttsResult.audio;
               audioRef.current.play();
+              // isTalking will be set to false by the 'onended' listener
           } else {
-               setIsTalking(false);
+               setIsTalking(false); // Reset if TTS fails
           }
       } else {
+           // Handle cases where AI might not respond but transcription was successful
            setHistory(prev => [...prev, userMessage]);
            setIsTalking(false);
       }
     } catch (error) {
       console.error('Voice chat pipeline error:', error);
-      setIsTalking(false);
+      setIsTalking(false); // Reset on error
     }
   }, [isMuted, isTalking, currentAgent, userSettings, history]);
   
@@ -80,6 +83,22 @@ export function useVoiceChat() {
     if (!audioRef.current) {
       const audio = new Audio();
       audioRef.current = audio;
+      
+      // Setup audio analysis nodes once
+      try {
+          const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const analyser = context.createAnalyser();
+          const source = context.createMediaElementSource(audio);
+          
+          source.connect(analyser);
+          analyser.connect(context.destination);
+          
+          audioContextRef.current = context;
+          analyserRef.current = analyser;
+          sourceNodeRef.current = source;
+      } catch (e) {
+          console.error("Failed to initialize AudioContext:", e);
+      }
     }
     setIsConnected(true);
   }, []);
@@ -115,30 +134,20 @@ export function useVoiceChat() {
     const audioEl = audioRef.current;
     if (!audioEl) return;
 
+    // This function will be called when the AI's audio playback finishes.
     const handlePlaybackEnd = () => setIsTalking(false);
+    
+    // Add the event listener.
     audioEl.addEventListener('ended', handlePlaybackEnd);
 
+    // Cleanup function to remove the listener when the component unmounts
+    // or when this effect re-runs.
     return () => {
       audioEl.removeEventListener('ended', handlePlaybackEnd);
     };
-  }, [isTalking]); 
+  }, []); // Empty dependency array means this effect runs once on mount.
   
   useEffect(() => {
-    if (isTalking && audioRef.current && !sourceNodeRef.current) {
-      try {
-        if (!audioContextRef.current) {
-          audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        }
-        const audioContext = audioContextRef.current;
-        sourceNodeRef.current = audioContext.createMediaElementSource(audioRef.current);
-        analyserRef.current = audioContext.createAnalyser();
-        sourceNodeRef.current.connect(analyserRef.current);
-        analyserRef.current.connect(audioContext.destination);
-      } catch (e) {
-        console.error("Error setting up AudioContext:", e);
-      }
-    }
-
     let lipSyncFrameId: number;
     const analyser = analyserRef.current;
     
@@ -150,7 +159,7 @@ export function useVoiceChat() {
         const animate = () => {
           analyser.getByteFrequencyData(dataArray);
           const average = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
-          setAudioLevel(average / 128);
+          setAudioLevel(average / 128); // Normalize the audio level
           lipSyncFrameId = requestAnimationFrame(animate);
         };
         animate();

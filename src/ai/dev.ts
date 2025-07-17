@@ -11,9 +11,8 @@ import '@/ai/flows/suggest-new-words.ts';
 import '@/ai/flows/translate-flow.ts';
 
 
-// Voice Chat Agent flows
-import '@/ai/flows/personalize-agent-response.ts';
-import '@/ai/flows/contextualize-ai-persona.ts';
+// Voice Chat Agent flows - Keep only the ones we use
+// contextualize-ai-persona and personalize-agent-response are no longer needed
 import '@/ai/flows/text-to-speech.ts';
 import '@/ai/flows/speech-to-text.ts';
 import '@/ai/flows/voice-chat-pipeline.ts';

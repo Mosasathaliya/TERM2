@@ -54,7 +54,14 @@ const voiceChatPipelineFlow = ai.defineFlow(
     }
     
     // Step 2: Construct the system prompt for the AI's persona
-    const systemPrompt = `You are an AI with the following personality: ${personality}. Address the user as ${userName || 'friend'} if possible.`;
+    // This is a more robust way to build the persona string.
+    let systemPrompt = `You are an AI with the following personality: ${personality}.`;
+    if (userName) {
+      systemPrompt += ` Address the user as ${userName}.`;
+    }
+    if (userInfo) {
+      systemPrompt += ` Here is some information about the user you are talking to: ${userInfo}.`;
+    }
 
     // Step 3: Generate the personalized response using the full context
     const response = await ai.generate({
