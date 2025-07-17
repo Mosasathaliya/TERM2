@@ -218,7 +218,7 @@ function AevyTvDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
                              <Carousel className="h-full w-full" opts={{ loop: true, axis: 'y' }} orientation="vertical">
                                 <CarouselContent className="h-full">
                                     {shorts.map(id => (
-                                        <CarouselItem key={id} className="pt-0">
+                                        <CarouselItem key={id} className="pt-0 flex">
                                             <div className="w-full h-full p-1">
                                                 <iframe
                                                     className="w-full h-full rounded-lg"
@@ -247,7 +247,7 @@ function AevyTvDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
                              <Carousel className="h-full w-full" opts={{ loop: true }}>
                                 <CarouselContent className="h-full">
                                     {videos.map(id => (
-                                        <CarouselItem key={id} className="pl-0">
+                                        <CarouselItem key={id} className="pl-0 flex">
                                             <div className="w-full h-full p-1">
                                                 <iframe
                                                     className="w-full h-full rounded-lg"
