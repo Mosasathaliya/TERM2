@@ -1098,7 +1098,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 
                 <DashboardCard title="المساعد الصوتي" description="تدرب على المحادثة مع مساعد صوتي يعمل بالذكاء الاصطناعي."
                   icon={<Ear className="h-8 w-8 text-cyan-500" />} onClick={() => openDialog('voiceAssistant')}
-                  unlockThreshold={42} completedCount={completedItemsCount} />
+                  unlockThreshold={48} completedCount={completedItemsCount} />
             </div>
         </div>
 
@@ -1351,16 +1351,6 @@ export function BookScreen() {
         </section>
     );
 }
-
-const chartData = [
-  { day: "الأحد", lessons: 2 },
-  { day: "الاثنين", lessons: 3 },
-  { day: "الثلاثاء", lessons: 1 },
-  { day: "الأربعاء", lessons: 4 },
-  { day: "الخميس", lessons: 3 },
-  { day: "الجمعة", lessons: 1 },
-  { day: "السبت", lessons: 5 },
-];
 
 const chartConfig: ChartConfig = {
   lessons: {
