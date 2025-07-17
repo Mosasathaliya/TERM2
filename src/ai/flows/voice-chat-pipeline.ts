@@ -54,7 +54,6 @@ const voiceChatPipelineFlow = ai.defineFlow(
     }
     
     // Step 2: Construct the system prompt for the AI's persona
-    // This is a more robust way to build the persona string.
     let systemPrompt = `You are an AI with the following personality: ${personality}.`;
     if (userName) {
       systemPrompt += ` Address the user as ${userName}.`;
@@ -63,12 +62,17 @@ const voiceChatPipelineFlow = ai.defineFlow(
       systemPrompt += ` Here is some information about the user you are talking to: ${userInfo}.`;
     }
 
-    // Step 3: Generate the personalized response using the full context
+    // Step 3: Add the new user message to the history for the LLM call
+    const llmHistory: Message[] = [...history, { role: 'user', content: transcribedText }];
+
+
+    // Step 4: Generate the personalized response using the full context
     const response = await ai.generate({
         model: 'googleai/gemini-2.5-flash',
         system: systemPrompt,
+        // The prompt is the last user message, but history provides the full context
         prompt: transcribedText,
-        history,
+        history: history, // Send the history *before* the current user message
     });
     
     const responseText = response.text;

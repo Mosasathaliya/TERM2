@@ -32,9 +32,9 @@ export function useVoiceChat() {
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
 
   const handleAudioData = useCallback(async (dataUri: string) => {
-    if (isMuted || isTalking) return;
+    if (isMuted) return;
   
-    setIsTalking(true); // Set to "Thinking..." state
+    setIsTalking(true); // AI starts "thinking"
     try {
       const result = await runVoiceChatPipeline({
         audioDataUri: dataUri,
@@ -45,10 +45,9 @@ export function useVoiceChat() {
       });
 
       const { transcribedText, response: responseText } = result;
-
-      // If transcription is empty, just stop "Thinking" and allow new recording
+      
       if (!transcribedText.trim()) {
-          setIsTalking(false);
+          setIsTalking(false); // Nothing was said, so AI is done "thinking"
           return;
       }
       
@@ -60,45 +59,49 @@ export function useVoiceChat() {
           const ttsResult = await textToSpeech({ text: responseText, voice: currentAgent.voice });
           if (audioRef.current && ttsResult?.audio) {
               audioRef.current.src = ttsResult.audio;
-              audioRef.current.play();
-              // isTalking will be set to false by the 'onended' listener
+              audioRef.current.play().catch(e => {
+                console.error("Audio playback error:", e);
+                setIsTalking(false); // Reset state if playback fails
+              });
           } else {
-               setIsTalking(false); // Reset if TTS fails
+               setIsTalking(false);
           }
       } else {
-           // Handle cases where AI might not respond but transcription was successful
            setHistory(prev => [...prev, userMessage]);
            setIsTalking(false);
       }
     } catch (error) {
       console.error('Voice chat pipeline error:', error);
-      setIsTalking(false); // Reset on error
+      setIsTalking(false);
     }
-  }, [isMuted, isTalking, currentAgent, userSettings, history]);
+  }, [isMuted, currentAgent, userSettings, history]);
   
 
   const { start, stop } = useAudioProcessor(handleAudioData);
 
   const connect = useCallback(() => {
     if (!audioRef.current) {
-      const audio = new Audio();
-      audioRef.current = audio;
-      
-      // Setup audio analysis nodes once
-      try {
-          const context = new (window.AudioContext || (window as any).webkitAudioContext)();
-          const analyser = context.createAnalyser();
-          const source = context.createMediaElementSource(audio);
-          
-          source.connect(analyser);
-          analyser.connect(context.destination);
-          
-          audioContextRef.current = context;
-          analyserRef.current = analyser;
-          sourceNodeRef.current = source;
-      } catch (e) {
-          console.error("Failed to initialize AudioContext:", e);
-      }
+        const audio = new Audio();
+        audioRef.current = audio;
+        
+        audio.onended = () => setIsTalking(false);
+
+        try {
+            const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const analyser = context.createAnalyser();
+            // Check if source node already exists before creating a new one
+            if (audioRef.current && !sourceNodeRef.current) {
+                const source = context.createMediaElementSource(audioRef.current);
+                sourceNodeRef.current = source;
+                source.connect(analyser);
+            }
+            analyser.connect(context.destination);
+            
+            audioContextRef.current = context;
+            analyserRef.current = analyser;
+        } catch (e) {
+            console.error("Failed to initialize AudioContext:", e);
+        }
     }
     setIsConnected(true);
   }, []);
@@ -130,22 +133,6 @@ export function useVoiceChat() {
     setIsRecording(prev => !prev);
   }, [isRecording, start, stop]);
   
-  useEffect(() => {
-    const audioEl = audioRef.current;
-    if (!audioEl) return;
-
-    // This function will be called when the AI's audio playback finishes.
-    const handlePlaybackEnd = () => setIsTalking(false);
-    
-    // Add the event listener.
-    audioEl.addEventListener('ended', handlePlaybackEnd);
-
-    // Cleanup function to remove the listener when the component unmounts
-    // or when this effect re-runs.
-    return () => {
-      audioEl.removeEventListener('ended', handlePlaybackEnd);
-    };
-  }, []); // Empty dependency array means this effect runs once on mount.
   
   useEffect(() => {
     let lipSyncFrameId: number;
