@@ -29,6 +29,7 @@ export function useVoiceChat() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
 
   const handleAudioData = useCallback(async (dataUri: string) => {
     if (isMuted || isTalking) return;
@@ -65,6 +66,9 @@ export function useVoiceChat() {
       if (audioRef.current) {
         audioRef.current.src = audioDataUri;
         await audioRef.current.play();
+      } else {
+        // If audio element isn't ready, we can't play, so we're not "talking" anymore.
+        setIsTalking(false);
       }
     } catch (error) {
       console.error('Voice chat pipeline error:', error);
@@ -78,23 +82,23 @@ export function useVoiceChat() {
     if (!audioRef.current) {
       const audio = new Audio();
       audioRef.current = audio;
-      
-      audio.onended = () => {
-        setIsTalking(false);
-      };
-
-      if (!audioContextRef.current) {
-        const context = new (window.AudioContext || (window as any).webkitAudioContext)();
-        audioContextRef.current = context;
-        const source = context.createMediaElementSource(audio);
-        const analyser = context.createAnalyser();
-        analyserRef.current = analyser;
-        source.connect(analyser);
-        analyser.connect(context.destination);
-      }
     }
     setIsConnected(true);
   }, []);
+  
+  // Effect to manage the onended event listener for the audio element.
+  // This ensures the listener always has the current `setIsTalking` function.
+  useEffect(() => {
+    const audioEl = audioRef.current;
+    if (audioEl) {
+      const handlePlaybackEnd = () => setIsTalking(false);
+      audioEl.addEventListener('ended', handlePlaybackEnd);
+      return () => {
+        audioEl.removeEventListener('ended', handlePlaybackEnd);
+      };
+    }
+  }, [setIsTalking]);
+
 
   const disconnect = useCallback(() => {
     if (isRecording) {
@@ -107,26 +111,57 @@ export function useVoiceChat() {
     setIsConnected(false);
     setIsTalking(false);
     setHistory([]);
-  }, [isRecording, stop]);
+    setAudioLevel(0);
+  }, [isRecording, stop, setAudioLevel]);
 
   const toggleMute = () => setIsMuted((prev) => !prev);
   
   useEffect(() => {
     let lipSyncFrameId: number;
-    
-    if (isTalking && analyserRef.current) {
-      const analyser = analyserRef.current;
-      analyser.fftSize = 32;
-      const bufferLength = analyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
 
-      const animate = () => {
-        analyser.getByteFrequencyData(dataArray);
-        const average = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
-        setAudioLevel(average / 128);
-        lipSyncFrameId = requestAnimationFrame(animate);
-      };
-      animate();
+    const setupAudioAnalysis = () => {
+        if (!audioRef.current) return;
+        
+        if (!audioContextRef.current) {
+            const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+            audioContextRef.current = context;
+        }
+
+        if (!analyserRef.current) {
+            analyserRef.current = audioContextRef.current.createAnalyser();
+        }
+        
+        if (!sourceNodeRef.current) {
+            try {
+                sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
+                sourceNodeRef.current.connect(analyserRef.current);
+                analyserRef.current.connect(audioContextRef.current.destination);
+            } catch (e) {
+                if (e instanceof DOMException && e.name === 'InvalidStateError') {
+                    // This error means the source node is already connected, which is fine.
+                } else {
+                    console.error("Error setting up audio source node:", e);
+                }
+            }
+        }
+    };
+
+    if (isTalking) {
+      setupAudioAnalysis();
+      const analyser = analyserRef.current;
+      if (analyser) {
+        analyser.fftSize = 32;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        const animate = () => {
+          analyser.getByteFrequencyData(dataArray);
+          const average = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
+          setAudioLevel(average / 128); // Normalize the audio level
+          lipSyncFrameId = requestAnimationFrame(animate);
+        };
+        animate();
+      }
     } else {
       setAudioLevel(0);
     }
