@@ -1,3 +1,4 @@
+
 'use client';
 
 /**
@@ -13,6 +14,11 @@ import { speechToText } from '@/ai/flows/speech-to-text';
 import { contextualizeAIPersona } from '@/ai/flows/contextualize-ai-persona';
 import { personalizeAgentResponse, type Message } from '@/ai/flows/personalize-agent-response';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
+
+// Simple VAD (Voice Activity Detection) parameters
+const VAD_SILENCE_TIMEOUT = 1200; // ms of silence before stopping recording
+const VAD_SPEECH_TIMEOUT = 30000; // max speech duration in ms
+const VAD_THRESHOLD = 0.1; // sensitivity to start detecting speech
 
 export function useVoiceChat() {
   // State from Zustand store
@@ -37,7 +43,11 @@ export function useVoiceChat() {
     try {
       // 1. Convert speech to text
       const { text: transcribedText } = await speechToText({ audio: dataUri });
-      if (!transcribedText.trim()) return; // Ignore empty transcriptions
+      if (!transcribedText.trim()) {
+        // If transcription is empty, just restart listening
+        startRecording();
+        return;
+      }
 
       setIsSpeaking(false);
       setIsTalking(true);
@@ -69,35 +79,50 @@ export function useVoiceChat() {
     } catch (error) {
       console.error('Voice chat pipeline error:', error);
       setIsTalking(false);
+      startRecording(); // Restart recording on error
     }
   }, [isMuted, isTalking, currentAgent, userSettings, history]);
 
   // Initialize the audio processor hook
   const { isRecording, start: startRecording, stop: stopRecording } = useAudioProcessor(handleAudioData);
 
-  // Callback for when the user starts speaking
-  const handleSpeechStart = useCallback(() => {
-    setIsSpeaking(true);
-    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-  }, []);
+  // Effect to manage VAD (Voice Activity Detection) logic
+  useEffect(() => {
+    if (!isConnected || isTalking) return;
 
-  // Callback for when the user stops speaking
-  const handleSpeechEnd = useCallback(() => {
-    // Start a timer. If there's silence for 1 second, stop recording.
-    silenceTimerRef.current = setTimeout(() => {
-      if (isRecording) {
-        stopRecording();
+    if (isSpeaking) {
+      // User is speaking, clear any silence timer
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
       }
-      setIsSpeaking(false);
-    }, 1000);
-  }, [isRecording, stopRecording]);
+    } else if (isRecording) {
+      // User is not speaking, but we are recording. Start a silence timer.
+      if (!silenceTimerRef.current) {
+        silenceTimerRef.current = setTimeout(() => {
+          // If silence persists, stop recording to process audio
+          stopRecording();
+        }, VAD_SILENCE_TIMEOUT);
+      }
+    }
+
+    return () => {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+      }
+    };
+  }, [isSpeaking, isRecording, isConnected, isTalking, stopRecording]);
+
 
   // Connect and start the voice chat
   const connect = useCallback(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
-      // When AI finishes talking, allow user to speak again
-      audioRef.current.onended = () => setIsTalking(false);
+      // When AI finishes talking, allow user to speak again by restarting recording
+      audioRef.current.onended = () => {
+        setIsTalking(false);
+        startRecording();
+      };
     }
     startRecording();
     setIsConnected(true);
@@ -119,51 +144,79 @@ export function useVoiceChat() {
 
   const toggleMute = () => setIsMuted((prev) => !prev);
 
-  // Effect to manage audio analysis for lip-syncing
+  // Effect to manage audio analysis for lip-syncing & VAD `isSpeaking` state
   useEffect(() => {
     if (!audioRef.current || !isTalking) {
       setAudioLevel(0);
-      return;
     }
-
-    const audioContext = new AudioContext();
-    const analyser = audioContext.createAnalyser();
-    const source = audioContext.createMediaElementSource(audioRef.current);
-    source.connect(analyser);
-    analyser.connect(audioContext.destination);
-    analyser.fftSize = 32;
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    let animationFrameId: number;
-    const animate = () => {
-      analyser.getByteFrequencyData(dataArray);
-      const average = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
-      setAudioLevel(average / 128); // Normalize to a 0-1 range
-      animationFrameId = requestAnimationFrame(animate);
-    };
-    animate();
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      source.disconnect();
-      analyser.disconnect();
-    };
-  }, [isTalking, setAudioLevel]);
-
-  // This is a placeholder for a more robust VAD (Voice Activity Detection)
-  // For now, we simulate it with simple timeouts
-  useEffect(() => {
+    
+    // VAD logic for user speaking
+    let vadFrameId: number;
     if (isRecording) {
-      // In a real implementation, a VAD library would trigger these
-      // For now, we use the isSpeaking state as a proxy
-      if (isSpeaking) {
-        handleSpeechStart();
-      } else {
-        handleSpeechEnd();
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      let analyser: AnalyserNode | null = null;
+      let microphone: MediaStreamAudioSourceNode | null = null;
+
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        microphone = audioContext.createMediaStreamSource(stream);
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 512;
+        microphone.connect(analyser);
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        const detectSpeech = () => {
+          if (!analyser) return;
+          analyser.getByteTimeDomainData(dataArray);
+          const volume = dataArray.reduce((sum, value) => sum + Math.abs(value - 128), 0) / dataArray.length;
+          
+          if (volume > VAD_THRESHOLD) {
+            setIsSpeaking(true);
+          } else {
+            setIsSpeaking(false);
+          }
+          vadFrameId = requestAnimationFrame(detectSpeech);
+        };
+        detectSpeech();
+
+      }).catch(err => {
+        console.error("Mic access error for VAD:", err);
+      });
+
+      return () => {
+        cancelAnimationFrame(vadFrameId);
+        microphone?.disconnect();
+        analyser?.disconnect();
       }
     }
-  }, [isSpeaking, isRecording, handleSpeechStart, handleSpeechEnd]);
+
+
+    // Lip-sync logic for AI speaking
+    let lipSyncFrameId: number;
+    if (isTalking && audioRef.current) {
+      const audioContext = new AudioContext();
+      const analyser = audioContext.createAnalyser();
+      const source = audioContext.createMediaElementSource(audioRef.current);
+      source.connect(analyser);
+      analyser.connect(audioContext.destination);
+      analyser.fftSize = 32;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+  
+      const animate = () => {
+        analyser.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
+        setAudioLevel(average / 128); // Normalize to a 0-1 range
+        lipSyncFrameId = requestAnimationFrame(animate);
+      };
+      animate();
+  
+      return () => {
+        cancelAnimationFrame(lipSyncFrameId);
+        source.disconnect();
+        analyser.disconnect();
+      };
+    }
+  }, [isRecording, isTalking, setAudioLevel]);
 
   return {
     isConnected,
