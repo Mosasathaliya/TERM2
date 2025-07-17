@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -38,6 +39,7 @@ const speechToTextFlow = ai.defineFlow(
   async ({ audio }) => {
     // Generate content using the Gemini model with a prompt that includes media.
     const { text } = await ai.generate({
+      model: 'googleai/gemini-2.5-flash',
       prompt: [
         // Provide the audio media directly in the prompt.
         { media: { url: audio } },
