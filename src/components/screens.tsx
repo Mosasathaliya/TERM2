@@ -262,11 +262,14 @@ function AiStoryMaker() {
 
     return (
         <div className="flex flex-col h-full">
-            <CardHeader>
-                <CardTitle>مولد قصص الذكاء الاصطناعي</CardTitle>
-                <CardDescription>اكتب فكرة وسيقوم الذكاء الاصطناعي بكتابة قصة قصيرة باللغة الإنجليزية وتوضيحها.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow flex flex-col gap-4">
+            <DialogHeader className="p-4 border-b">
+                <DialogTitle>مولد قصص الذكاء الاصطناعي</DialogTitle>
+                <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </DialogClose>
+            </DialogHeader>
+            <div className="p-4 flex flex-col gap-4">
                  <Textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
@@ -278,9 +281,10 @@ function AiStoryMaker() {
                 <Button onClick={generateStory} disabled={loading || !prompt.trim()}>
                     {loading ? '...جاري الكتابة' : <><Sparkles className="mr-2 h-4 w-4"/> إنشاء قصة</>}
                 </Button>
-
+            </div>
+            <div className="flex-grow p-4 pt-0 min-h-0">
                  {(loading || story) && (
-                    <ScrollArea className="flex-grow rounded-lg border bg-muted/50 p-4">
+                    <ScrollArea className="h-full rounded-lg border bg-muted/50 p-4">
                         {imageUrl && (
                              <div className="mb-4 border rounded-lg overflow-hidden">
                                 <Image
@@ -301,7 +305,7 @@ function AiStoryMaker() {
                         <p className="whitespace-pre-wrap" dir="ltr">{story}{loading && story.length === 0 ? '...' : ''}</p>
                     </ScrollArea>
                 )}
-            </CardContent>
+            </div>
         </div>
     );
 }
@@ -359,9 +363,6 @@ export function AiScreen({ setActiveTab }: AiScreenProps) {
             {/* Story Maker Dialog */}
             <Dialog open={isStoryMakerOpen} onOpenChange={setIsStoryMakerOpen}>
                 <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
-                    <DialogHeader className="sr-only">
-                        <DialogTitle>AI Story Maker</DialogTitle>
-                    </DialogHeader>
                    <AiStoryMaker />
                 </DialogContent>
             </Dialog>
