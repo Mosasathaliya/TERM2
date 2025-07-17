@@ -400,8 +400,8 @@ function MotivationDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
 function AiLessonsDialog({ isOpen, onOpenChange, onSelectLesson }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void, onSelectLesson: (lesson: AiLesson) => void }) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl h-[80vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-3xl h-[80vh] flex flex-col p-0">
+        <DialogHeader className="p-4 border-b shrink-0">
           <DialogTitle>تعلم عن الذكاء الاصطناعي</DialogTitle>
           <DialogDescription>اختر موضوعًا لتبدأ التعلم.</DialogDescription>
         </DialogHeader>
@@ -413,7 +413,7 @@ function AiLessonsDialog({ isOpen, onOpenChange, onSelectLesson }: { isOpen: boo
                   <CardTitle>{lesson.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Image src={lesson.image} alt={lesson.title} width={300} height={150} className="w-full object-cover rounded-md" data-ai-hint={lesson.image_hint} />
+                  <Image src={lesson.image} alt={lesson.title} width={300} height={150} className="w-full h-auto object-cover rounded-md" data-ai-hint={lesson.image_hint} />
                 </CardContent>
               </Card>
             ))}
@@ -464,8 +464,8 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+        <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={onBack}><ChevronLeft/></Button>
             {lesson.title}
@@ -473,7 +473,7 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
         </DialogHeader>
         <ScrollArea className="flex-grow">
           <div className="p-6">
-            <Image src={lesson.image} alt={lesson.title} width={600} height={400} className="w-full object-cover rounded-md mb-4" data-ai-hint={lesson.image_hint}/>
+            <Image src={lesson.image} alt={lesson.title} width={600} height={400} className="w-full h-auto object-cover rounded-md mb-4" data-ai-hint={lesson.image_hint}/>
             <p className="text-foreground/90 leading-relaxed mb-4">{lesson.content}</p>
             <Button onClick={handleExplain} disabled={isExplaining}>
               {isExplaining ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Volume2 className="mr-2 h-4 w-4"/>}
@@ -766,7 +766,7 @@ export function BookScreen() {
                         </CardHeader>
                         <CardContent>
                             <CardDescription className="text-center text-muted-foreground">
-                                أنشئ اختبارًا عشوائيًا من 50 سؤالًا بناءً على المواد التعليمية.
+                                أنشئ اختبارًا عشوائيًا من 20 سؤالًا بناءً على المواد التعليمية.
                             </CardDescription>
                         </CardContent>
                     </Card>
@@ -783,7 +783,7 @@ export function BookScreen() {
                 <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
                     <DialogHeader className="p-4 border-b shrink-0">
                         <DialogTitle>AI Generated Quiz</DialogTitle>
-                        <DialogDescription>Test your knowledge with 50 questions from the library.</DialogDescription>
+                        <DialogDescription>Test your knowledge with 20 questions from the library.</DialogDescription>
                          <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
                             <X className="h-4 w-4" />
                             <span className="sr-only">Close</span>
