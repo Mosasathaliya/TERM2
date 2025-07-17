@@ -3,8 +3,8 @@
 
 /**
  * @fileOverview Defines a consolidated Genkit flow for the entire voice chat pipeline.
- * This flow handles speech-to-text, persona contextualization, response generation,
- * and text-to-speech in a more optimized sequence.
+ * This flow handles speech-to-text, persona contextualization, and response generation
+ * in a more optimized sequence.
  */
 
 import {ai} from '@/ai/genkit';
@@ -28,6 +28,7 @@ export type VoiceChatInput = z.infer<typeof VoiceChatInputSchema>;
 // Output schema for the consolidated pipeline
 const VoiceChatOutputSchema = z.object({
   response: z.string().describe("The AI agent's final text response."),
+  transcribedText: z.string().describe("The transcribed text from the user's audio."),
 });
 export type VoiceChatOutput = z.infer<typeof VoiceChatOutputSchema>;
 
@@ -50,30 +51,24 @@ const voiceChatPipelineFlow = ai.defineFlow(
     });
 
     if (!transcribedText || !transcribedText.trim()) {
-      return { response: "" }; // Return empty if transcription is empty
+      return { response: "", transcribedText: "" }; // Return empty if transcription is empty
     }
 
+    // Step 2: Add the user's new message to the history
     const userMessage: Message = { role: 'user', content: transcribedText };
+    const updatedHistory = [...history, userMessage];
 
-    // Step 2 & 3 happen in parallel for speed
-    const [personaResult, responseResult] = await Promise.all([
-        // Step 2: Contextualize the AI's persona
-        contextualizeAIPersona({
-            personality,
-            userName,
-            userInfo,
-        }),
-        // Step 3: Generate the personalized response
-        personalizeAgentResponse({
-            // Note: We create a temporary persona here for the response generation.
-            // The full persona is mainly for system-level context.
-            contextualizedPersona: `You are an AI with the following personality: ${personality}.`,
-            history: [...history, userMessage],
-            prompt: transcribedText,
-        })
-    ]);
+    // Step 3: Generate the personalized response using the full context
+    const responseResult = await personalizeAgentResponse({
+        contextualizedPersona: `You are an AI with the following personality: ${personality}. Address the user as ${userName || 'friend'} if possible.`,
+        history: updatedHistory,
+        prompt: transcribedText,
+    });
 
-    return { response: responseResult.response };
+    return { 
+      response: responseResult.response,
+      transcribedText: transcribedText, // Pass the transcription back to the client
+    };
   }
 );
 
@@ -82,7 +77,7 @@ const voiceChatPipelineFlow = ai.defineFlow(
  * An exported async function that wraps the Genkit flow.
  * This is the function that will be called from the application's frontend.
  * @param input - The voice chat input data.
- * @returns A promise that resolves to the AI's final text response.
+ * @returns A promise that resolves to the AI's final text response and the transcription.
  */
 export async function runVoiceChatPipeline(
   input: VoiceChatInput

@@ -13,8 +13,6 @@ import { useAgentStore } from './use-agent-store';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import type { Message } from '@/ai/flows/personalize-agent-response';
 import { runVoiceChatPipeline } from '@/ai/flows/voice-chat-pipeline';
-import { speechToText } from '@/ai/flows/speech-to-text';
-
 
 export function useVoiceChat() {
   // State from Zustand store
@@ -23,7 +21,8 @@ export function useVoiceChat() {
   // Local state for managing chat flow
   const [isConnected, setIsConnected] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [isTalking, setIsTalking] = useState(false);
+  const [isTalking, setIsTalking] = useState(false); // Represents AI talking
+  const [isRecording, setIsRecording] = useState(false);
   const [history, setHistory] = useState<Message[]>([]);
   
   // Refs for managing audio
@@ -37,44 +36,36 @@ export function useVoiceChat() {
   
     setIsTalking(true);
     try {
-      // First, get the transcription of the user's audio
-      const { text: transcribedText } = await speechToText({ audio: dataUri });
-  
-      if (!transcribedText || !transcribedText.trim()) {
-        setIsTalking(false);
-        return; // Nothing was said, so don't proceed
-      }
-  
-      // Add the user's transcribed message to the history
-      const userMessage: Message = { role: 'user', content: transcribedText };
-      const updatedHistory = [...history, userMessage];
-      setHistory(updatedHistory);
-  
-      // Now, call the pipeline with the complete history to get the AI's response
-      const responseResult = await runVoiceChatPipeline({
-        audioDataUri: dataUri, // The pipeline still needs this, but we handle history here now.
+      const result = await runVoiceChatPipeline({
+        audioDataUri: dataUri,
         personality: currentAgent.personality,
         userName: userSettings.name,
         userInfo: userSettings.info,
-        history: updatedHistory, // Send the most up-to-date history
+        history: history,
       });
-  
-      const responseText = responseResult.response;
-  
-      if (!responseText) {
-        setIsTalking(false);
-        return;
-      }
-      
-      const modelMessage: Message = { role: 'model', content: responseText };
-      setHistory(prev => [...prev, modelMessage]);
-  
-      const { audio: audioDataUriResponse } = await textToSpeech({ text: responseText, voice: currentAgent.voice });
-      
-      if (audioRef.current) {
-        audioRef.current.src = audioDataUriResponse;
-        await audioRef.current.play();
+
+      const { transcribedText, response: responseText } = result;
+
+      if (transcribedText) {
+        const userMessage: Message = { role: 'user', content: transcribedText };
+        
+        if (responseText) {
+            const modelMessage: Message = { role: 'model', content: responseText };
+            setHistory(prev => [...prev, userMessage, modelMessage]);
+            const { audio: audioDataUriResponse } = await textToSpeech({ text: responseText, voice: currentAgent.voice });
+            if (audioRef.current) {
+                audioRef.current.src = audioDataUriResponse;
+                audioRef.current.play();
+            } else {
+                 setIsTalking(false);
+            }
+        } else {
+            // Handle case where there's transcription but no AI response
+             setHistory(prev => [...prev, userMessage]);
+             setIsTalking(false);
+        }
       } else {
+        // No transcription, so stop the "thinking" state
         setIsTalking(false);
       }
     } catch (error) {
@@ -84,7 +75,7 @@ export function useVoiceChat() {
   }, [isMuted, isTalking, currentAgent, userSettings, history]);
   
 
-  const { isRecording, start, stop } = useAudioProcessor(handleAudioData);
+  const { start, stop } = useAudioProcessor(handleAudioData);
 
   const connect = useCallback(() => {
     if (!audioRef.current) {
@@ -98,6 +89,7 @@ export function useVoiceChat() {
   const disconnect = useCallback(() => {
     if (isRecording) {
       stop();
+      setIsRecording(false);
     }
     if (audioRef.current) {
       audioRef.current.pause();
@@ -117,6 +109,7 @@ export function useVoiceChat() {
     } else {
       start();
     }
+    setIsRecording(prev => !prev);
   }, [isRecording, start, stop]);
   
   useEffect(() => {
@@ -124,10 +117,7 @@ export function useVoiceChat() {
     if (!audioEl) return;
 
     const handlePlaybackEnd = () => setIsTalking(false);
-
-    if (isTalking) {
-      audioEl.addEventListener('ended', handlePlaybackEnd);
-    }
+    audioEl.addEventListener('ended', handlePlaybackEnd);
 
     return () => {
       audioEl.removeEventListener('ended', handlePlaybackEnd);
@@ -135,22 +125,16 @@ export function useVoiceChat() {
   }, [isTalking]); 
   
   useEffect(() => {
-    const audioEl = audioRef.current;
-    const audioCtx = audioContextRef.current;
-
-    if (isTalking && audioEl && !audioCtx) {
+    if (isTalking && audioRef.current && !sourceNodeRef.current) {
       try {
         const newAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
         audioContextRef.current = newAudioContext;
-        
-        if (!sourceNodeRef.current) {
-          const source = newAudioContext.createMediaElementSource(audioEl);
-          sourceNodeRef.current = source;
-          const analyser = newAudioContext.createAnalyser();
-          analyserRef.current = analyser;
-          source.connect(analyser);
-          analyser.connect(newAudioContext.destination);
-        }
+        const source = newAudioContext.createMediaElementSource(audioRef.current);
+        sourceNodeRef.current = source;
+        const analyser = newAudioContext.createAnalyser();
+        analyserRef.current = analyser;
+        source.connect(analyser);
+        analyser.connect(newAudioContext.destination);
       } catch (e) {
         console.error("Error setting up AudioContext:", e);
       }
