@@ -45,7 +45,7 @@ export function useVoiceChat() {
       const { text: transcribedText } = await speechToText({ audio: dataUri });
       if (!transcribedText.trim()) {
         // If transcription is empty, just restart listening
-        startRecording();
+        if (isConnected) startRecording();
         return;
       }
 
@@ -79,9 +79,9 @@ export function useVoiceChat() {
     } catch (error) {
       console.error('Voice chat pipeline error:', error);
       setIsTalking(false);
-      startRecording(); // Restart recording on error
+      if (isConnected) startRecording(); // Restart recording on error
     }
-  }, [isMuted, isTalking, currentAgent, userSettings, history]);
+  }, [isMuted, isTalking, currentAgent, userSettings, history, isConnected]);
 
   // Initialize the audio processor hook
   const { isRecording, start: startRecording, stop: stopRecording } = useAudioProcessor(handleAudioData);
@@ -90,20 +90,19 @@ export function useVoiceChat() {
   useEffect(() => {
     if (!isConnected || isTalking) return;
 
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+
     if (isSpeaking) {
-      // User is speaking, clear any silence timer
-      if (silenceTimerRef.current) {
-        clearTimeout(silenceTimerRef.current);
-        silenceTimerRef.current = null;
-      }
+      // User is speaking, do nothing with the timer.
     } else if (isRecording) {
       // User is not speaking, but we are recording. Start a silence timer.
-      if (!silenceTimerRef.current) {
-        silenceTimerRef.current = setTimeout(() => {
-          // If silence persists, stop recording to process audio
-          stopRecording();
-        }, VAD_SILENCE_TIMEOUT);
-      }
+      silenceTimerRef.current = setTimeout(() => {
+        // If silence persists, stop recording to process audio
+        stopRecording();
+      }, VAD_SILENCE_TIMEOUT);
     }
 
     return () => {
@@ -121,12 +120,12 @@ export function useVoiceChat() {
       // When AI finishes talking, allow user to speak again by restarting recording
       audioRef.current.onended = () => {
         setIsTalking(false);
-        startRecording();
+        if (isConnected) startRecording();
       };
     }
     startRecording();
     setIsConnected(true);
-  }, [startRecording]);
+  }, [startRecording, isConnected]);
 
   // Disconnect and stop the voice chat
   const disconnect = useCallback(() => {
@@ -152,12 +151,14 @@ export function useVoiceChat() {
     
     // VAD logic for user speaking
     let vadFrameId: number;
+    let stream: MediaStream | null = null;
     if (isRecording) {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       let analyser: AnalyserNode | null = null;
       let microphone: MediaStreamAudioSourceNode | null = null;
 
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(micStream => {
+        stream = micStream;
         microphone = audioContext.createMediaStreamSource(stream);
         analyser = audioContext.createAnalyser();
         analyser.fftSize = 512;
@@ -184,8 +185,10 @@ export function useVoiceChat() {
 
       return () => {
         cancelAnimationFrame(vadFrameId);
+        stream?.getTracks().forEach(track => track.stop());
         microphone?.disconnect();
         analyser?.disconnect();
+        audioContext.close();
       }
     }
 
@@ -214,6 +217,7 @@ export function useVoiceChat() {
         cancelAnimationFrame(lipSyncFrameId);
         source.disconnect();
         analyser.disconnect();
+        audioContext.close();
       };
     }
   }, [isRecording, isTalking, setAudioLevel]);
