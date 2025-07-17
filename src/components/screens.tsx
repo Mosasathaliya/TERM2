@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
@@ -109,6 +110,10 @@ function VideoPlayerModal({ videoUrl, onClose }: { videoUrl: string, onClose: ()
   return (
     <Dialog open={!!videoUrl} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="max-w-4xl h-[70vh] p-0 border-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Video Player</DialogTitle>
+          <DialogDescription>Playing selected educational video.</DialogDescription>
+        </DialogHeader>
         <iframe
           width="100%"
           height="100%"
