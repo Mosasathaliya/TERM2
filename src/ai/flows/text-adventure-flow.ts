@@ -106,7 +106,6 @@ export const generateImageForWord = ai.defineFlow(
       prompt,
       config: {
         responseModalities: ['TEXT', 'IMAGE'],
-        aspectRatio: '1:1',
       },
     });
     
