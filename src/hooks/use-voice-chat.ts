@@ -116,6 +116,14 @@ export function useVoiceChat() {
 
   const toggleMute = () => setIsMuted((prev) => !prev);
   
+  const toggleRecording = useCallback(() => {
+    if (isRecording) {
+      stop();
+    } else {
+      start();
+    }
+  }, [isRecording, start, stop]);
+  
   useEffect(() => {
     let lipSyncFrameId: number;
 
@@ -125,19 +133,13 @@ export function useVoiceChat() {
         if (!audioContextRef.current) {
             const context = new (window.AudioContext || (window as any).webkitAudioContext)();
             audioContextRef.current = context;
-        }
-
-        if (!analyserRef.current) {
-            analyserRef.current = audioContextRef.current.createAnalyser();
-        }
-        
-        if (!sourceNodeRef.current) {
+            analyserRef.current = context.createAnalyser();
             try {
-                sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
+                sourceNodeRef.current = context.createMediaElementSource(audioRef.current);
                 sourceNodeRef.current.connect(analyserRef.current);
-                analyserRef.current.connect(audioContextRef.current.destination);
+                analyserRef.current.connect(context.destination);
             } catch (e) {
-                if (e instanceof DOMException && e.name === 'InvalidStateError') {
+                 if (e instanceof DOMException && e.name === 'InvalidStateError') {
                     // This error means the source node is already connected, which is fine.
                 } else {
                     console.error("Error setting up audio source node:", e);
@@ -181,7 +183,6 @@ export function useVoiceChat() {
     connect,
     disconnect,
     toggleMute,
-    startRecording: start,
-    stopRecording: stop,
+    toggleRecording,
   };
 }

@@ -9,7 +9,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useVoiceChat } from '@/hooks/use-voice-chat';
-import { Mic, MicOff, Phone, PhoneOff, Send } from 'lucide-react';
+import { Mic, MicOff, Phone, PhoneOff, Square } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export function VoiceControls() {
@@ -21,8 +21,7 @@ export function VoiceControls() {
     connect,
     disconnect,
     toggleMute,
-    startRecording,
-    stopRecording,
+    toggleRecording,
   } = useVoiceChat();
 
   const getStatusText = () => {
@@ -32,19 +31,6 @@ export function VoiceControls() {
     return 'Connected';
   };
   
-  const handleRecordPress = () => {
-    if (isConnected && !isTalking) {
-      startRecording();
-    }
-  };
-
-  const handleRecordRelease = () => {
-    if (isRecording) {
-      stopRecording();
-    }
-  };
-
-
   return (
     <div className="flex flex-col items-center gap-4">
       {/* Animated status text */}
@@ -87,18 +73,15 @@ export function VoiceControls() {
           {isConnected ? <PhoneOff /> : <Phone />}
         </Button>
         
-        {/* Record/Send Button */}
+        {/* Record/Stop Button */}
          <Button
           variant="outline"
           size="icon"
           className={`h-14 w-14 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all ${isRecording ? 'scale-110 bg-blue-500' : ''}`}
-          onMouseDown={handleRecordPress}
-          onMouseUp={handleRecordRelease}
-          onTouchStart={handleRecordPress}
-          onTouchEnd={handleRecordRelease}
+          onClick={toggleRecording}
           disabled={!isConnected || isTalking}
         >
-          <Send />
+          {isRecording ? <Square /> : <Mic />}
         </Button>
       </div>
     </div>
