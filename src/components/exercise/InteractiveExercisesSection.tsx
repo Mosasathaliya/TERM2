@@ -3,12 +3,12 @@ import type { FC } from 'react';
 import type { InteractiveExercise, Lesson } from '@/types/lesson';
 import MultipleChoiceExercise from './MultipleChoiceExercise';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MessageCircleQuestion, Award } from 'lucide-react'; // Or other suitable icon
+import { MessageCircleQuestion, Award } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface InteractiveExercisesSectionProps {
   exercises: InteractiveExercise[];
-  lesson: Lesson; // Pass the full lesson context for AI
+  lesson: Lesson;
   onCorrectAnswer: () => void;
   hasPassed: boolean;
 }

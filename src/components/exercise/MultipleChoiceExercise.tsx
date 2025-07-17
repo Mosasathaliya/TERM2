@@ -14,7 +14,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/card
 
 interface MultipleChoiceExerciseProps {
   exercise: InteractiveExercise;
-  lesson: Lesson; // Pass the full lesson context for AI
+  lesson: Lesson;
   onCorrect: () => void;
 }
 
