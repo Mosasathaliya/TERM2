@@ -38,4 +38,3 @@ export interface Lesson {
   main_image_url?: string;
   meta?: LessonMeta;
 }
-

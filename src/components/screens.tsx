@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { LearningItem, Lesson, Story } from '@/lib/lessons';
+import type { LearningItem, Story } from '@/lib/lessons';
 import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
@@ -35,6 +35,7 @@ import { TenseTeacherApp } from './tense-teacher-app';
 import { ChatterbotApp } from './chatterbot-app';
 import { DialogDescription } from './ui/dialog';
 import { lessons } from '@/data/lingo-lessons-data';
+import type { Lesson } from '@/types/lesson';
 import LessonDisplay from './lesson/LessonDisplay';
 import { generateLessonContent } from '@/ai/flows/generate-lesson-content';
 import Link from 'next/link';
@@ -113,6 +114,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
     const [loadingLesson, setLoadingLesson] = useState(false);
 
     const handleLessonClick = async (lesson: Lesson) => {
+        setIsLessonsOpen(false); // Close the list dialog
         setLoadingLesson(true);
         try {
             if (lesson.meta?.englishGrammarTopic) {
@@ -121,7 +123,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                     englishGrammarTopic: lesson.meta.englishGrammarTopic,
                     lessonLevel: lesson.level,
                     englishAdditionalNotes: lesson.additional_notes,
-                    englishCommonMistakes: lesson.common_mistakes,
+                    commonMistakes: lesson.common_mistakes,
                 });
                 setSelectedLesson({
                     ...lesson,
@@ -136,10 +138,16 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
         } catch (e) {
             console.error("Failed to generate lesson content", e);
             // Handle error, maybe show a toast
+            setLoadingLesson(false); // Make sure loading stops on error
         } finally {
-            setLoadingLesson(false);
+            // Loading will be set to false inside the LessonDisplay component after it receives the lesson
         }
     };
+
+    const handleLessonDetailClose = () => {
+        setSelectedLesson(null);
+        setLoadingLesson(false);
+    }
     
   return (
     <>
@@ -305,10 +313,10 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
         </DialogContent>
     </Dialog>
 
-     <Dialog open={!!selectedLesson || loadingLesson} onOpenChange={(isOpen) => !isOpen && setSelectedLesson(null)}>
+     <Dialog open={!!selectedLesson || loadingLesson} onOpenChange={(isOpen) => !isOpen && handleLessonDetailClose()}>
         <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0">
-            {loadingLesson && <div className="flex items-center justify-center h-full">Loading...</div>}
-            {selectedLesson && !loadingLesson && <LessonDisplay lesson={selectedLesson} />}
+            {loadingLesson && <div className="flex items-center justify-center h-full">Loading Lesson...</div>}
+            {selectedLesson && <LessonDisplay lesson={selectedLesson} />}
         </DialogContent>
     </Dialog>
 
