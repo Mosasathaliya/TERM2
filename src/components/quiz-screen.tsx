@@ -2,7 +2,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { generateQuiz, type QuizQuestion } from '@/ai/flows/generate-quiz-flow';
+import { generateQuiz } from '@/ai/flows/generate-quiz-flow';
+import type { QuizQuestion } from '@/types/quiz';
 import { Button } from './ui/button';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
