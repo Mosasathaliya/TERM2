@@ -17,7 +17,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, PhoneOff, User, MessageCircle, Mic, AlertTriangle, Volume2, VolumeX, MicOff, MessageSquareQuote } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, PhoneOff, User, MessageCircle, Mic, AlertTriangle, Volume2, VolumeX, MicOff, MessageSquareQuote, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { textToSpeech } from '@/ai/flows/tts-flow';
 import { ScrollArea } from './ui/scroll-area';
@@ -43,7 +44,15 @@ export interface ConversationEntry {
   message: string;
 }
 
-const MAX_HISTORY_PAIRS = 10; // 10 pairs = 20 entries (user + AI)
+const MAX_HISTORY_PAIRS = 15; // 15 pairs = 30 entries (user + AI)
+
+const TENSES_LIST = [
+    "Present Simple", "Present Continuous", "Present Perfect", "Present Perfect Continuous",
+    "Past Simple", "Past Continuous", "Past Perfect", "Past Perfect Continuous",
+    "Future Simple", "Future Continuous", "Future Perfect", "Future Perfect Continuous",
+    "Zero Conditional", "First Conditional", "Second Conditional", "Third Conditional", "Mixed Conditionals",
+    "Passive Voice (Present)", "Passive Voice (Past)", "Passive Voice (Future)"
+];
 
 export function TenseTeacherApp() {
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher>("Ahmed");
@@ -57,6 +66,7 @@ export function TenseTeacherApp() {
   const [speechRecognitionSupported, setSpeechRecognitionSupported] = useState(true);
   const speechRecognitionRef = useRef<SpeechRecognition | null>(null);
   const [conversationHistory, setConversationHistory] = useState<ConversationEntry[]>([]);
+  const [selectedTense, setSelectedTense] = useState<string>("");
 
 
   const ahmedForm = useForm<AhmedFormData>({
@@ -71,7 +81,6 @@ export function TenseTeacherApp() {
 
   // Effect to reset state when teacher changes
   useEffect(() => {
-    // This check is important because window is not defined on the server.
     if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
     }
@@ -82,7 +91,8 @@ export function TenseTeacherApp() {
     }
     setCallState("idle");
     setExplanation(null);
-    setConversationHistory([]); // Reset history when teacher changes
+    setConversationHistory([]); 
+    setSelectedTense("");
     ahmedForm.reset({ englishGrammarConcept: "" });
     saraForm.reset({ englishGrammarConcept: "", userLanguageProficiency: "" });
     ahmedForm.clearErrors();
@@ -113,92 +123,6 @@ export function TenseTeacherApp() {
       }
   };
 
-  // Effect for speech recognition setup
-  useEffect(() => {
-    // SpeechRecognition is a browser API, so we need to check if window is defined.
-    if (typeof window === 'undefined') {
-        setSpeechRecognitionSupported(false);
-        return;
-    }
-    
-    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognitionAPI) {
-      console.warn("Speech Recognition API not supported in this browser.");
-      setSpeechRecognitionSupported(false);
-      return;
-    }
-    setSpeechRecognitionSupported(true);
-
-    const recognition = new SpeechRecognitionAPI();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-
-    recognition.onstart = () => {
-      setIsListening(true);
-      if (window.speechSynthesis && window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-      }
-    };
-
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      const currentForm = selectedTeacher === 'Ahmed' ? ahmedForm : saraForm;
-      currentForm.setValue("englishGrammarConcept", transcript, { shouldValidate: true });
-    };
-
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error, "Lang:", speechRecognitionRef.current?.lang);
-      let errorMessage = "خطأ في التعرف على الكلام. يرجى المحاولة مرة أخرى.";
-      if (event.error === 'no-speech') {
-        errorMessage = "لم يتم اكتشاف أي كلام. يرجى المحاولة مرة أخرى.";
-      } else if (event.error === 'audio-capture') {
-        errorMessage = "خطأ في التقاط الصوت. تأكد من أن الميكروفون يعمل.";
-      } else if (event.error === 'not-allowed') {
-        errorMessage = "تم رفض الوصول إلى الميكروفون. يرجى تفعيل الأذونات.";
-      } else if (event.error === 'language-not-supported') {
-        errorMessage = `اللغة المحددة (${speechRecognitionRef.current?.lang}) غير مدعومة للتعرف على الكلام.`;
-      }
-      toast({ variant: "destructive", title: "خطأ في الإدخال الصوتي", description: errorMessage });
-      setIsListening(false);
-      setListeningLanguage(null);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-      setListeningLanguage(null);
-    };
-
-    speechRecognitionRef.current = recognition;
-
-    return () => {
-      if (speechRecognitionRef.current) {
-        speechRecognitionRef.current.abort();
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTeacher]); 
-
-  const toggleListening = (language: SpeechLanguage) => {
-    if (!speechRecognitionRef.current || !speechRecognitionSupported) {
-      toast({ variant: "destructive", title: "الميزة غير مدعومة", description: "التعرف على الكلام غير متوفر في متصفحك." });
-      return;
-    }
-    if (isListening) {
-      speechRecognitionRef.current.stop();
-    } else {
-      try {
-        speechRecognitionRef.current.lang = language;
-        setListeningLanguage(language);
-        speechRecognitionRef.current.start();
-      } catch (e) {
-        console.error("Error starting speech recognition:", e);
-        toast({ variant: "destructive", title: "خطأ في الإدخال الصوتي", description: "تعذر بدء التعرف. قد يكون مشغولاً أو نشطًا بالفعل."});
-        setIsListening(false);
-        setListeningLanguage(null);
-      }
-    }
-  };
-
   const commonSubmitLogic = () => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
@@ -211,7 +135,7 @@ export function TenseTeacherApp() {
     setCallState("calling");
     setExplanation(null);
   };
-
+  
   const handleAhmedSubmit: SubmitHandler<AhmedFormData> = async (data) => {
     commonSubmitLogic();
     try {
@@ -226,7 +150,8 @@ export function TenseTeacherApp() {
       const userEntry: ConversationEntry = { speaker: 'User', message: data.englishGrammarConcept };
       const aiEntry: ConversationEntry = { speaker: 'Ahmed', message: result.explanation };
       setConversationHistory(prev => [...prev, userEntry, aiEntry].slice(- (MAX_HISTORY_PAIRS * 2)));
-      
+      ahmedForm.reset({ englishGrammarConcept: "" }); // Clear input after submit
+
       toast({
         title: "تم استلام الشرح",
         description: "أحمد قدم شرحًا.",
@@ -261,6 +186,7 @@ export function TenseTeacherApp() {
       const userEntry: ConversationEntry = { speaker: 'User', message: data.englishGrammarConcept };
       const aiEntry: ConversationEntry = { speaker: 'Sara', message: result.explanation };
       setConversationHistory(prev => [...prev, userEntry, aiEntry].slice(- (MAX_HISTORY_PAIRS * 2)));
+      saraForm.reset({ ...saraForm.getValues(), englishGrammarConcept: "" }); // Clear input
 
        toast({
         title: "تم استلام الشرح",
@@ -280,6 +206,30 @@ export function TenseTeacherApp() {
     }
   };
 
+  // Trigger AI call when a tense is selected from dropdown
+  useEffect(() => {
+    if (selectedTense) {
+        const currentForm = selectedTeacher === 'Ahmed' ? ahmedForm : saraForm;
+        currentForm.setValue('englishGrammarConcept', selectedTense);
+        const values = currentForm.getValues();
+        
+        // Ensure proficiency is set for Sara before submitting
+        if (selectedTeacher === 'Sara' && !(values as SaraFormData).userLanguageProficiency) {
+            toast({
+                title: "مطلوب مستوى الإتقان",
+                description: "يرجى إدخال مستوى إتقانك للغة الإنجليزية قبل اختيار زمن.",
+                variant: "destructive"
+            });
+            setSelectedTense(""); // Reset selection
+            return;
+        }
+
+        currentForm.handleSubmit(selectedTeacher === 'Ahmed' ? handleAhmedSubmit : handleSaraSubmit)();
+        setSelectedTense(""); // Reset dropdown after triggering
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTense, selectedTeacher]);
+
   const endCall = () => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
@@ -291,7 +241,8 @@ export function TenseTeacherApp() {
     }
     setCallState("idle");
     setExplanation(null);
-    setConversationHistory([]); // Reset history on call end
+    setConversationHistory([]);
+    setSelectedTense("");
     if (selectedTeacher === "Ahmed") ahmedForm.reset();
     if (selectedTeacher === "Sara") saraForm.reset();
   };
@@ -379,58 +330,7 @@ export function TenseTeacherApp() {
 
               <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                 <form onSubmit={handleSubmit(currentTeacherInfo.onSubmit as SubmitHandler<any>)} className="space-y-4 sm:space-y-6">
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <Label htmlFor="englishGrammarConcept" className="text-sm sm:text-md font-medium">مفهوم قواعد اللغة (إنجليزية أو عربية)</Label>
-                      {speechRecognitionSupported && (
-                        <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleListening('en-US')}
-                            className={`${isListening && listeningLanguage === 'en-US' ? 'border-destructive text-destructive' : 'border-primary text-primary'} text-xs px-2 sm:px-3`}
-                            disabled={callState === "calling" || isSubmitting || (isListening && listeningLanguage !== 'en-US') || !speechRecognitionSupported}
-                            aria-label={isListening && listeningLanguage === 'en-US' ? "أوقف الاستماع بالإنجليزية" : "ابدأ الاستماع بالإنجليزية"}
-                            title="تحدث بالإنجليزية"
-                          >
-                            {isListening && listeningLanguage === 'en-US' ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                            EN
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleListening('ar-SA')}
-                            className={`${isListening && listeningLanguage === 'ar-SA' ? 'border-destructive text-destructive' : 'border-primary text-primary'} text-xs px-2 sm:px-3`}
-                            disabled={callState === "calling" || isSubmitting || (isListening && listeningLanguage !== 'ar-SA') || !speechRecognitionSupported}
-                            aria-label={isListening && listeningLanguage === 'ar-SA' ? "أوقف الاستماع بالعربية" : "ابدأ الاستماع بالعربية"}
-                            title="تحدث بالعربية"
-                          >
-                            {isListening && listeningLanguage === 'ar-SA' ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                            AR
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                    <Textarea
-                      id="englishGrammarConcept"
-                      placeholder={
-                        isListening 
-                        ? `جاري الاستماع ${listeningLanguage === 'en-US' ? ' بالإنجليزية' : listeningLanguage === 'ar-SA' ? ' بالعربية' : ''}...` 
-                        : "مثال: Present Perfect، الجمل الشرطية (يمكنك التحدث أو الكتابة)"
-                      }
-                      {...register("englishGrammarConcept")}
-                      className={`mt-1 text-base bg-background focus:ring-2 focus:ring-primary ${errors.englishGrammarConcept ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
-                      rows={3}
-                      disabled={callState === "calling" || isSubmitting || isListening}
-                    />
-                    {errors.englishGrammarConcept && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.englishGrammarConcept.message}</p>}
-                    {!speechRecognitionSupported && (
-                      <p className="text-xs text-muted-foreground mt-1">الإدخال الصوتي غير مدعوم في متصفحك.</p>
-                    )}
-                  </div>
-
+                  
                   {selectedTeacher === "Sara" && (
                     <div>
                       <Label htmlFor="userLanguageProficiency" className="text-sm sm:text-md font-medium">مستوى إتقانك للغة الإنجليزية</Label>
@@ -444,36 +344,76 @@ export function TenseTeacherApp() {
                       {errors.userLanguageProficiency && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.userLanguageProficiency.message}</p>}
                     </div>
                   )}
-                  
-                  <div className="pt-2">
-                  {callState === "idle" || callState === "error" ? (
-                    <Button type="submit" className="w-full py-2.5 sm:py-3 text-base sm:text-lg bg-accent hover:bg-accent/90 text-accent-foreground rounded-md shadow-md transition-transform hover:scale-105" disabled={isSubmitting || isListening}>
-                      <Mic className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> ابدأ المكالمة
-                    </Button>
-                  ) : callState === "calling" ? (
-                    <Button className="w-full py-2.5 sm:py-3 text-base sm:text-lg bg-accent/80 rounded-md" disabled>
-                      <Loader2 className="ms-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" /> جاري الاتصال بـ {currentTeacherInfo.name}...
-                    </Button>
-                  ) : ( // callState === "active"
-                    <div className="grid grid-cols-2 gap-4">
-                      <Button type="submit" className="w-full py-2.5 sm:py-3 text-base sm:text-lg bg-accent hover:bg-accent/90 text-accent-foreground rounded-md shadow-md" disabled={isSubmitting || isListening}>
-                        متابعة
-                      </Button>
-                      <Button type="button" onClick={endCall} variant="outline" className="w-full py-2.5 sm:py-3 text-base sm:text-lg border-destructive text-destructive hover:bg-destructive/10 rounded-md shadow-sm">
-                        <PhoneOff className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> إنهاء المكالمة
-                      </Button>
+
+                  <div>
+                     <Label htmlFor="tense-select" className="text-sm sm:text-md font-medium">اختر زمناً ليبدأ الشرح</Label>
+                     <Select value={selectedTense} onValueChange={setSelectedTense} disabled={callState === "calling" || isSubmitting}>
+                         <SelectTrigger id="tense-select" className="mt-2 text-base">
+                             <SelectValue placeholder="اختر زمناً من القائمة..."/>
+                         </SelectTrigger>
+                         <SelectContent>
+                             {TENSES_LIST.map(tense => (
+                                 <SelectItem key={tense} value={tense}>{tense}</SelectItem>
+                             ))}
+                         </SelectContent>
+                     </Select>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <Label htmlFor="englishGrammarConcept" className="text-sm sm:text-md font-medium">أو اطرح سؤالاً للمتابعة</Label>
                     </div>
-                  )}
+                    <div className="flex gap-2">
+                        <Textarea
+                          id="englishGrammarConcept"
+                          placeholder={
+                            isListening 
+                            ? `جاري الاستماع ${listeningLanguage === 'en-US' ? ' بالإنجليزية' : listeningLanguage === 'ar-SA' ? ' بالعربية' : ''}...` 
+                            : "اكتب سؤال متابعة هنا..."
+                          }
+                          {...register("englishGrammarConcept")}
+                          className={`mt-1 text-base bg-background focus:ring-2 focus:ring-primary ${errors.englishGrammarConcept ? 'border-destructive focus:ring-destructive' : 'border-border'}`}
+                          rows={2}
+                          disabled={callState === "calling" || isSubmitting || isListening}
+                        />
+                         <Button type="submit" size="icon" className="h-auto px-3" disabled={isSubmitting || isListening}>
+                            <Send className="h-5 w-5"/>
+                         </Button>
+                    </div>
+                    {errors.englishGrammarConcept && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.englishGrammarConcept.message}</p>}
+                  </div>
+                  
+                  <div className="pt-2 flex justify-center">
+                    {callState === "active" && (
+                        <Button type="button" onClick={endCall} variant="outline" className="w-full max-w-xs py-2.5 sm:py-3 text-base sm:text-lg border-destructive text-destructive hover:bg-destructive/10 rounded-md shadow-sm">
+                            <PhoneOff className="ms-2 h-4 w-4 sm:h-5 sm:w-5" /> إنهاء المحادثة
+                        </Button>
+                    )}
                   </div>
                 </form>
 
-                {callState === "active" && explanation && (
-                  <div className="mt-4 sm:mt-6 p-4 sm:p-6 bg-secondary/30 rounded-lg shadow-inner border border-border">
-                    <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 text-primary flex items-center">
-                      <MessageCircle className="ms-2 h-5 w-5 sm:h-6 sm:w-6" /> شرح {currentTeacherInfo.name}:
-                    </h3>
-                    <div className="text-sm sm:text-base text-foreground whitespace-pre-wrap leading-relaxed p-2 bg-background rounded" style={{ textAlign: 'right', direction: 'rtl' }}>{explanation}</div>
-                  </div>
+                 {(callState === "active" || callState === "calling") && (
+                    <ScrollArea className="h-64 mt-4 sm:mt-6 p-4 bg-secondary/30 rounded-lg shadow-inner border border-border">
+                        <div className="space-y-4">
+                           {conversationHistory.map((entry, index) => (
+                               <div key={index} className={`flex items-start gap-2 ${entry.speaker === 'User' ? 'justify-end' : 'justify-start'}`}>
+                                   {entry.speaker !== 'User' && <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{entry.speaker.charAt(0)}</AvatarFallback></Avatar>}
+                                   <div className={`rounded-lg px-3 py-2 max-w-[85%] ${entry.speaker === 'User' ? 'bg-primary text-primary-foreground' : 'bg-card'}`}>
+                                        <p className="text-sm whitespace-pre-wrap">{entry.message}</p>
+                                   </div>
+                                    {entry.speaker === 'User' && <Avatar className="h-6 w-6"><AvatarFallback>U</AvatarFallback></Avatar>}
+                               </div>
+                           ))}
+                           {callState === "calling" && (
+                                <div className="flex items-center gap-2">
+                                     <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{selectedTeacher.charAt(0)}</AvatarFallback></Avatar>
+                                     <div className="rounded-lg px-3 py-2 bg-card">
+                                        <Loader2 className="h-4 w-4 animate-spin"/>
+                                     </div>
+                                </div>
+                           )}
+                        </div>
+                    </ScrollArea>
                 )}
                 {callState === "error" && (
                   <div className="mt-4 sm:mt-6 p-4 bg-destructive/10 text-destructive rounded-lg shadow-inner border border-destructive/30 flex items-center gap-2 sm:gap-3">

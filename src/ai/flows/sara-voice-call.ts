@@ -43,21 +43,19 @@ const prompt = ai.definePrompt({
 
 The user's proficiency level in English is: "{{{userLanguageProficiency}}}"
 
-{{#if conversationHistory}}
+{{#if conversationHistory.length}}
 You are in an ongoing conversation. Here's the history so far:
 {{#each conversationHistory}}
-{{this.speaker}}: {{this.message}}
+- {{this.speaker}}: {{this.message}}
 {{/each}}
 ---
 The user's NEWEST message/question, building on this conversation, is: "{{{englishGrammarConcept}}}"
-Your task is to understand this newest message in the context of the conversation history AND the user's proficiency level. Provide a clear explanation or answer in Arabic, tailored to their proficiency. Focus on the newest message. If the newest message is unclear even with history and proficiency, ask for clarification in Arabic.
+Your task is to understand this newest message in the context of the conversation history AND the user's proficiency level. Provide a clear, concise, and helpful explanation or answer in Arabic, tailored to their proficiency. If the newest message is a greeting or unrelated, respond politely. If the question is unclear, ask for clarification in Arabic.
 {{else}}
-The user is starting a new conversation. Their first message/question is: "{{{englishGrammarConcept}}}"
+The user is starting a new conversation. Their first message/question is about the English grammar concept: "{{{englishGrammarConcept}}}"
 This input might be in English, Arabic, or a garbled version from speech-to-text.
-Your task is to interpret this first message, considering the user's proficiency level, to identify the most likely English grammar concept or question they are asking about. Then, explain that concept or answer the question clearly in Arabic, tailored to their proficiency. If the input is too unclear, politely ask for clarification in Arabic.
-{{/if}}
-
-Explanation:`,
+Your task is to interpret this first message, considering the user's proficiency level, to identify the most likely English grammar concept they are asking about. Then, provide a comprehensive but easy-to-understand explanation of that concept in Arabic, tailored to their proficiency. Include simple English examples with Arabic translations. If the input is too unclear, politely ask for clarification in Arabic.
+{{/if}}`,
   config: {
     safetySettings: [
       {
