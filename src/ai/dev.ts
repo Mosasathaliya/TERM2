@@ -14,7 +14,6 @@ import '@/ai/flows/generate-certificate-image.ts';
 import '@/ai/flows/generate-quiz-flow.ts';
 import '@/ai/flows/generate-vocabulary-quiz.ts';
 import '@/ai/flows/story-quiz-flow.ts';
-import '@/ai/flows/authenticate-user-flow.ts';
 
 
 // Voice Chat Agent flows
@@ -32,4 +31,3 @@ import '@/ai/flows/text-adventure-flow.ts';
 import '@/ai/flows/exercise-feedback.ts';
 import '@/ai/flows/generate-lesson-content.ts';
 import '@/ai/flows/lesson-tutor-flow.ts';
-
