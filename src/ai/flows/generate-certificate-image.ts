@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview A Genkit flow for generating a certificate background image.
+ * @fileOverview A Genkit flow for generating a branded certificate background image.
  */
 
 import {ai} from '@/ai/genkit';
@@ -28,7 +28,8 @@ const certificateImageFlow = ai.defineFlow(
     outputSchema: CertificateImageOutputSchema,
   },
   async ({userName}) => {
-    const prompt = `A professional, elegant, and modern certificate background. The design should be abstract with a sophisticated color palette of blue, gold, and white. Include subtle geometric patterns, elegant lines, and a clean, minimalist feel suitable for an official "Certificate of Completion" from a language learning app. Do not include any text.`;
+    // New prompt inspired by the "Speed of Mastery" logo.
+    const prompt = `A professional and prestigious certificate background for 'Speed of Mastery'. Use a color palette of deep navy blue and light sky blue. The design must be clean, elegant, and modern. Include a subtle, elegant watermark of a geometric brain icon in the center. On the bottom right, include a circular seal element that looks like a modern, official stamp. The seal should be light blue and contain abstract, clean lines, but no text.`;
     
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.0-flash-preview-image-generation',

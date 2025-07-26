@@ -18,7 +18,7 @@ import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, Graduati
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { LingoleapApp } from './lingoleap-app';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
@@ -56,7 +56,6 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { cn } from '@/lib/utils';
 import { translateText } from '@/ai/flows/translate-flow';
 import { useStoryStore, type SavedStory, useQuizStore, type StoryQuizResult } from '@/hooks/use-story-store';
-import { generateStoryQuiz, type StoryQuizOutput } from '@/ai/flows/story-quiz-flow';
 import { useProgressStore } from '@/hooks/use-progress-store';
 import {
   Tooltip,
@@ -1032,8 +1031,8 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
         myStories: false,
         chat: false,
         storyMaker: false,
-        aiLessons: false, // Added for AI lessons dialog
-        voiceAssistant: false // Added for Voice Assistant dialog
+        aiLessons: false,
+        voiceAssistant: false
     });
 
     const [selectedAiLesson, setSelectedAiLesson] = useState<AiLesson | null>(null);
@@ -1575,8 +1574,9 @@ export function ProgressScreen() {
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <Button className="w-full" onClick={() => setIsCertificateOpen(true)}>
-                {finalExamPassed ? 'إنشاء شهادة' : 'عرض الشهادة'}
+            <Button className="w-full" onClick={() => setIsCertificateOpen(true)} disabled={!finalExamPassed}>
+                {finalExamPassed ? 'إنشاء شهادة' : 'الشهادة مقفلة'}
+                 {!finalExamPassed && <Lock className="ml-2 h-4 w-4" />}
             </Button>
         </CardContent>
       </Card>
@@ -1585,13 +1585,12 @@ export function ProgressScreen() {
         isOpen={isCertificateOpen} 
         onOpenChange={setIsCertificateOpen}
         userName="طالب مجتهد"
-        isPassed={finalExamPassed}
     />
     </>
   );
 }
 
-function CertificateDialog({ isOpen, onOpenChange, userName, isPassed }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void, userName: string, isPassed: boolean }) {
+function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void, userName: string }) {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
@@ -1599,7 +1598,7 @@ function CertificateDialog({ isOpen, onOpenChange, userName, isPassed }: { isOpe
     useEffect(() => {
         if (isOpen && !imageUrl) {
             setIsLoading(true);
-            generateCertificateImage({ userName }) // The userName is for context, but won't be used if isPassed is false.
+            generateCertificateImage({ userName })
                 .then(result => setImageUrl(result.imageUrl))
                 .catch(err => {
                     console.error("Certificate generation error:", err);
@@ -1618,40 +1617,26 @@ function CertificateDialog({ isOpen, onOpenChange, userName, isPassed }: { isOpe
                 <DialogHeader>
                     <DialogTitle>شهادة إتمام</DialogTitle>
                     <DialogDescription>
-                        {isPassed 
-                          ? "تهانينا على تقدمك! هذه شهادتك."
-                          : "هذه معاينة للشهادة التي ستحصل عليها عند إكمال الاختبار النهائي."
-                        }
+                         تهانينا على تقدمك! هذه شهادتك.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="relative aspect-[4/3] w-full flex items-center justify-center bg-muted rounded-md overflow-hidden">
                     {isLoading && <Loader2 className="h-12 w-12 animate-spin text-primary" />}
-                    {imageUrl && isPassed && (
+                    {imageUrl && (
                         <>
                           <Image src={imageUrl} alt="Certificate Background" fill className="object-cover"/>
                           <div className="absolute inset-0 bg-black/10"></div>
                           <div className="relative w-full h-full flex flex-col items-center justify-center text-center p-8 text-foreground">
                               <p className="text-xl">This certifies that</p>
                               <h2 className="text-4xl font-bold text-primary my-4">{userName}</h2>
-                              <p className="text-xl">has shown outstanding commitment to learning English.</p>
+                              <p className="text-xl">has successfully completed the Speed of Mastery English course.</p>
                               <div className="mt-8 flex items-center gap-4">
-                                  <Image src="https://placehold.co/100x50/ffffff/000000.png?text=Logo" data-ai-hint="company logo" alt="App Logo" width={100} height={50} />
+                                  <Image src="https://storage.googleapis.com/project-108473853069.appspot.com/16a1a9a8-b79e-4a6c-9411-82e16d9a3b61" data-ai-hint="speed of mastery logo" alt="Speed of Mastery Logo" width={100} height={50} className="rounded-full" />
                                   <div>
                                       <p className="border-t border-foreground pt-1">Signature</p>
                                   </div>
                               </div>
                           </div>
-                        </>
-                    )}
-                    {imageUrl && !isPassed && (
-                        <>
-                           <Image src={imageUrl} alt="Certificate Background Preview" fill className="object-cover blur-sm"/>
-                           <div className="absolute inset-0 bg-black/30"></div>
-                           <div className="relative text-center text-white p-4 z-10">
-                             <Lock className="h-12 w-12 mx-auto mb-4" />
-                             <h3 className="text-2xl font-bold">الشهادة مقفلة</h3>
-                             <p>أكمل الاختبار النهائي للحصول على شهادتك.</p>
-                           </div>
                         </>
                     )}
                 </div>
