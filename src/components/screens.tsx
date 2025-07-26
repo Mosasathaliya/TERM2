@@ -33,7 +33,7 @@ import { TextAdventureApp } from './text-adventure-app';
 import { MumbleJumbleApp } from './mumble-jumble-app';
 import { TenseTeacherApp } from './tense-teacher-app';
 import { ChatterbotApp } from './chatterbot-app';
-import { DialogDescription, DialogFooter } from './ui/dialog';
+import { DialogDescription } from './ui/dialog';
 import { lessons } from '@/data/lingo-lessons-data';
 import type { Lesson } from '@/types/lesson';
 import LessonDisplay from './lesson/LessonDisplay';
@@ -57,6 +57,7 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { cn } from '@/lib/utils';
 import { translateText } from '@/ai/flows/translate-flow';
 import { useStoryStore, type SavedStory, useQuizStore, type StoryQuizResult } from '@/hooks/use-story-store';
+import { generateStoryQuiz, type StoryQuizOutput } from '@/ai/flows/story-quiz-flow';
 import { useProgressStore } from '@/hooks/use-progress-store';
 import {
   Tooltip,
@@ -1324,19 +1325,24 @@ export function BookScreen() {
                                                 : "bg-muted/30 border-dashed cursor-not-allowed relative overflow-hidden"
                                         )}
                                     >
-                                        {allLessonsAndStoriesCompleted ? null : (
+                                        {!allLessonsAndStoriesCompleted && (
                                             <>
                                                 <div className="absolute inset-0 bg-black/20 z-10"></div>
                                                 <Lock className="absolute top-4 right-4 h-5 w-5 text-white/50 z-20" />
                                             </>
                                         )}
-                                        <CardHeader className="flex-row items-center justify-center gap-4 space-y-0">
-                                            <FileQuestion className="h-6 w-6 text-accent" />
-                                            <CardTitle className="text-lg text-accent text-center">إنشاء اختبار</CardTitle>
+                                        <CardHeader>
+                                            <CardTitle className="text-lg text-accent text-center flex items-center justify-center gap-2">
+                                                <FileQuestion className="h-6 w-6" />
+                                                الاختبار النهائي
+                                            </CardTitle>
                                         </CardHeader>
                                         <CardContent>
                                             <CardDescription className="text-center text-muted-foreground">
-                                                أنشئ اختبارًا عشوائيًا من 20 سؤالًا بناءً على المواد التعليمية.
+                                                {allLessonsAndStoriesCompleted 
+                                                ? "أنشئ اختبارًا عشوائيًا من 20 سؤالًا بناءً على المواد التعليمية."
+                                                : `أكمل ${learningItems.length - (highestCompletedIndex + 1)} عنصرًا إضافيًا لفتح الاختبار النهائي.`
+                                                }
                                             </CardDescription>
                                         </CardContent>
                                     </Card>
@@ -1375,7 +1381,7 @@ export function BookScreen() {
     );
 }
 
-export function AiScreen({ setActiveTab }: AiScreenProps) {
+export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => void }) {
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [isStoryMakerOpen, setIsStoryMakerOpen] = useState(false);
     const [isVoiceChatOpen, setIsVoiceChatOpen] = useState(false);
@@ -1584,7 +1590,7 @@ export function ProgressScreen() {
   );
 }
 
-function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean, onOpenChange: (open: boolean) => void, userName: string }) {
+function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void, userName: string }) {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
