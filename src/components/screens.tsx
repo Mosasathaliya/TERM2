@@ -19,7 +19,7 @@ import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, Graduati
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { LingoleapApp } from './lingoleap-app';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
@@ -33,7 +33,6 @@ import { TextAdventureApp } from './text-adventure-app';
 import { MumbleJumbleApp } from './mumble-jumble-app';
 import { TenseTeacherApp } from './tense-teacher-app';
 import { ChatterbotApp } from './chatterbot-app';
-import { DialogDescription } from './ui/dialog';
 import { lessons } from '@/data/lingo-lessons-data';
 import type { Lesson } from '@/types/lesson';
 import LessonDisplay from './lesson/LessonDisplay';
@@ -916,59 +915,59 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
-        <DialogHeader className="p-4 border-b shrink-0">
-          <DialogTitle>{story.prompt}</DialogTitle>
-        </DialogHeader>
-        {activeTab === 'story' && (
-          <ScrollArea className="flex-grow">
-            <div className="p-6">
-              {story.imageUrl && <Image src={story.imageUrl} alt={story.prompt} width={600} height={400} className="w-full h-auto object-cover rounded-md mb-4" />}
-              <p className="whitespace-pre-wrap leading-relaxed">{story.content}</p>
-            </div>
-          </ScrollArea>
-        )}
-        {activeTab === 'quiz' && quiz && (
-           <ScrollArea className="flex-grow">
-             <div className="p-6">
-              {isSubmitted && (
-                <Alert className={cn("mb-4", quizResults[story.id]?.passed ? 'bg-green-100 dark:bg-green-900 border-green-500' : 'bg-destructive/10 border-destructive')}>
-                  <AlertTitle className={cn(quizResults[story.id]?.passed ? 'text-green-700' : 'text-destructive')}>
-                    {quizResults[story.id]?.passed ? "Passed!" : "Needs Improvement"}
-                  </AlertTitle>
-                  <AlertDescription>Your score: {quizResults[story.id]?.score} / {quiz.length}</AlertDescription>
-                </Alert>
-              )}
-              <div className="space-y-6">
-                {quiz.map((q, i) => (
-                   <div key={i} className={cn("p-4 border rounded-lg", isSubmitted && (answers[i] === q.correct_answer ? 'border-green-500' : 'border-destructive'))}>
-                    <p className="font-semibold mb-3">{i+1}. {q.question}</p>
-                    <RadioGroup value={answers[i]} onValueChange={(val) => handleAnswerChange(i, val)} disabled={isSubmitted}>
-                      {q.options.map(opt => {
-                         const isCorrect = opt === q.correct_answer;
-                         const isSelected = answers[i] === opt;
-                        return (
-                          <div key={opt} className={cn("flex items-center space-x-2 rounded-md p-2", isSubmitted && isCorrect && "bg-green-500/10 text-green-800 dark:text-green-300", isSubmitted && isSelected && !isCorrect && "bg-destructive/10 text-destructive")}>
-                          <RadioGroupItem value={opt} id={`sq${i}-opt-${opt}`} />
-                          <Label htmlFor={`sq${i}-opt-${opt}`} className="flex-1 cursor-pointer">{opt}</Label>
-                           {isSubmitted && isCorrect && <Check className="h-5 w-5 text-green-500" />}
-                            {isSubmitted && isSelected && !isCorrect && <X className="h-5 w-5 text-destructive" />}
-                          </div>
-                        )
-                      })}
-                    </RadioGroup>
-                  </div>
-                ))}
-              </div>
-             </div>
-           </ScrollArea>
-        )}
-        <DialogFooter className="p-4 border-t">
-          {activeTab === 'story' && <Button onClick={handleStartQuiz} disabled={isLoadingQuiz}>{isLoadingQuiz ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null} خذ الاختبار</Button>}
-          {activeTab === 'quiz' && !isSubmitted && <Button onClick={handleSubmitQuiz} disabled={Object.keys(answers).length !== quiz.length}>إرسال الإجابات</Button>}
-          {activeTab === 'quiz' && isSubmitted && <Button variant="outline" onClick={() => setActiveTab('story')}>العودة للقصة</Button>}
-        </DialogFooter>
-      </DialogContent>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+            <DialogHeader className="p-4 border-b shrink-0">
+                <DialogTitle>{story.prompt}</DialogTitle>
+            </DialogHeader>
+            {activeTab === 'story' && (
+                <ScrollArea className="flex-grow">
+                    <div className="p-6">
+                        {story.imageUrl && <Image src={story.imageUrl} alt={story.prompt} width={600} height={400} className="w-full h-auto object-cover rounded-md mb-4" />}
+                        <p className="whitespace-pre-wrap leading-relaxed">{story.content}</p>
+                    </div>
+                </ScrollArea>
+            )}
+            {activeTab === 'quiz' && quiz && (
+                <ScrollArea className="flex-grow">
+                    <div className="p-6">
+                        {isSubmitted && (
+                            <Alert className={cn("mb-4", quizResults[story.id]?.passed ? 'bg-green-100 dark:bg-green-900 border-green-500' : 'bg-destructive/10 border-destructive')}>
+                                <AlertTitle className={cn(quizResults[story.id]?.passed ? 'text-green-700' : 'text-destructive')}>
+                                    {quizResults[story.id]?.passed ? "Passed!" : "Needs Improvement"}
+                                </AlertTitle>
+                                <AlertDescription>Your score: {quizResults[story.id]?.score} / {quiz.length}</AlertDescription>
+                            </Alert>
+                        )}
+                        <div className="space-y-6">
+                            {quiz.map((q, i) => (
+                                <div key={i} className={cn("p-4 border rounded-lg", isSubmitted && (answers[i] === q.correct_answer ? 'border-green-500' : 'border-destructive'))}>
+                                    <p className="font-semibold mb-3">{i + 1}. {q.question}</p>
+                                    <RadioGroup value={answers[i]} onValueChange={(val) => handleAnswerChange(i, val)} disabled={isSubmitted}>
+                                        {q.options.map(opt => {
+                                            const isCorrect = opt === q.correct_answer;
+                                            const isSelected = answers[i] === opt;
+                                            return (
+                                                <div key={opt} className={cn("flex items-center space-x-2 rounded-md p-2", isSubmitted && isCorrect && "bg-green-500/10 text-green-800 dark:text-green-300", isSubmitted && isSelected && !isCorrect && "bg-destructive/10 text-destructive")}>
+                                                    <RadioGroupItem value={opt} id={`sq${i}-opt-${opt}`} />
+                                                    <Label htmlFor={`sq${i}-opt-${opt}`} className="flex-1 cursor-pointer">{opt}</Label>
+                                                    {isSubmitted && isCorrect && <Check className="h-5 w-5 text-green-500" />}
+                                                    {isSubmitted && isSelected && !isCorrect && <X className="h-5 w-5 text-destructive" />}
+                                                </div>
+                                            )
+                                        })}
+                                    </RadioGroup>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </ScrollArea>
+            )}
+            <DialogFooter className="p-4 border-t">
+                {activeTab === 'story' && <Button onClick={handleStartQuiz} disabled={isLoadingQuiz}>{isLoadingQuiz ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} خذ الاختبار</Button>}
+                {activeTab === 'quiz' && !isSubmitted && <Button onClick={handleSubmitQuiz} disabled={Object.keys(answers).length !== quiz.length}>إرسال الإجابات</Button>}
+                {activeTab === 'quiz' && isSubmitted && <Button variant="outline" onClick={() => setActiveTab('story')}>العودة للقصة</Button>}
+            </DialogFooter>
+        </DialogContent>
     </Dialog>
   );
 }
@@ -1281,7 +1280,8 @@ export function BookScreen() {
     return (
         <section className="animate-fadeIn">
             <h2 className="text-xl font-semibold mb-4 text-center">المكتبة التعليمية</h2>
-            <ScrollArea className="h-[calc(100vh-180px)]">
+            <p className="text-center text-muted-foreground mb-4">أكمل الدروس والقصص بالترتيب لفتح المزيد.</p>
+            <ScrollArea className="h-[calc(100vh-220px)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
                     {learningItems.map((item, i) => {
                          const itemIndex = allItemTitles.indexOf(item.title);
@@ -1470,7 +1470,7 @@ export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => v
 }
 
 export function ProgressScreen() {
-    const { finalExamPassed } = useProgressStore();
+    const { completedItemsCount, finalExamPassed } = useProgressStore();
     const [isCertificateOpen, setIsCertificateOpen] = useState(false);
     
     const chartData = [
@@ -1518,8 +1518,8 @@ export function ProgressScreen() {
                 <CardTitle className="uppercase text-xs text-muted-foreground">الدروس المكتملة</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="text-3xl font-bold">14 / 80</p>
-                <Progress value={(14/80) * 100} className="h-2 mt-2" />
+                <p className="text-3xl font-bold">{completedItemsCount} / 80</p>
+                <Progress value={(completedItemsCount/80) * 100} className="h-2 mt-2" />
             </CardContent>
         </Card>
         <Card className="bg-card/70 backdrop-blur-sm">
@@ -1637,5 +1637,3 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
         </Dialog>
     );
 }
-
-    
