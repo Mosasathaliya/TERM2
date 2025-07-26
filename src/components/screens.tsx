@@ -874,6 +874,7 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
     if (!story) return;
     setIsLoadingQuiz(true);
     try {
+      const { generateStoryQuiz } = await import('@/ai/flows/story-quiz-flow');
       const result = await generateStoryQuiz({ storyContent: story.content });
       setQuiz(result.questions);
       setActiveTab('quiz');
@@ -973,7 +974,7 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
 
 
 function DashboardCard({ title, description, icon, onClick, unlockThreshold, completedCount }: { title: string, description: string, icon: React.ReactNode, onClick?: () => void, unlockThreshold: number, completedCount: number }) {
-  const isLocked = completedCount < unlockThreshold;
+  const isLocked = false; // All features unlocked for testing
 
   const content = (
       <CardHeader>
@@ -1095,7 +1096,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 
                 <DashboardCard title="المساعد الصوتي" description="تدرب على المحادثة مع مساعد صوتي يعمل بالذكاء الاصطناعي."
                   icon={<Ear className="h-8 w-8 text-cyan-500" />} onClick={() => openDialog('voiceAssistant')}
-                  unlockThreshold={0} completedCount={completedItemsCount} />
+                  unlockThreshold={48} completedCount={completedItemsCount} />
             </div>
         </div>
 
@@ -1573,9 +1574,9 @@ export function ProgressScreen() {
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <Button className="w-full" onClick={() => setIsCertificateOpen(true)} disabled={!finalExamPassed}>
-                {finalExamPassed ? 'إنشاء شهادة' : 'الشهادة مقفلة'}
-                 {!finalExamPassed && <Lock className="ml-2 h-4 w-4" />}
+            {/* THIS BUTTON IS NOW ALWAYS ENABLED FOR TESTING */}
+            <Button className="w-full" onClick={() => setIsCertificateOpen(true)}>
+                إنشاء شهادة
             </Button>
         </CardContent>
       </Card>
