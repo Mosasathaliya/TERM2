@@ -18,7 +18,7 @@ import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, Graduati
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { LingoleapApp } from './lingoleap-app';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
@@ -32,14 +32,11 @@ import { TextAdventureApp } from './text-adventure-app';
 import { MumbleJumbleApp } from './mumble-jumble-app';
 import { TenseTeacherApp } from './tense-teacher-app';
 import { ChatterbotApp } from './chatterbot-app';
-import { DialogDescription } from './ui/dialog';
 import { lessons } from '@/data/lingo-lessons-data';
 import type { Lesson } from '@/types/lesson';
-import LessonDisplay from './lesson/LessonDisplay';
-import { generateLessonContent } from '@/ai/flows/generate-lesson-content';
 import Link from 'next/link';
 
-// Import video links from the data files
+// Import video links from the new data file
 import videoLinks from '@/data/video-links';
 import whatIfLinks from '@/data/whatif-links';
 import motivationLinks from '@/data/motivation-links';
@@ -519,7 +516,7 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
         toast({ variant: 'destructive', title: 'حاول مرة أخرى', description: `تحتاج إلى إجابتين صحيحتين على الأقل للنجاح. نتيجتك: ${correctAnswers}` });
     }
   };
-
+  
   if (!lesson) return null;
   const score = lesson.questions.reduce((acc, q, i) => answers[i] === q.answer ? acc + 1 : acc, 0);
 
@@ -1594,9 +1591,11 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
+    const { finalExamPassed } = useProgressStore();
+
 
     useEffect(() => {
-        if (isOpen && !imageUrl) {
+        if (isOpen) {
             setIsLoading(true);
             generateCertificateImage({ userName })
                 .then(result => setImageUrl(result.imageUrl))
@@ -1605,11 +1604,11 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
                     toast({ variant: 'destructive', title: 'فشل إنشاء الشهادة' });
                 })
                 .finally(() => setIsLoading(false));
-        } else if (!isOpen) {
+        } else {
             // Reset when dialog closes
             setImageUrl(null);
         }
-    }, [isOpen, userName, imageUrl, toast]);
+    }, [isOpen, userName, toast]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -1626,17 +1625,24 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
                         <>
                           <Image src={imageUrl} alt="Certificate Background" fill className="object-cover"/>
                           <div className="absolute inset-0 bg-black/10"></div>
-                          <div className="relative w-full h-full flex flex-col items-center justify-center text-center p-8 text-foreground">
-                              <p className="text-xl">This certifies that</p>
-                              <h2 className="text-4xl font-bold text-primary my-4">{userName}</h2>
-                              <p className="text-xl">has successfully completed the Speed of Mastery English course.</p>
-                              <div className="mt-8 flex items-center gap-4">
-                                  <Image src="https://storage.googleapis.com/project-108473853069.appspot.com/16a1a9a8-b79e-4a6c-9411-82e16d9a3b61" data-ai-hint="speed of mastery logo" alt="Speed of Mastery Logo" width={100} height={50} className="rounded-full" />
-                                  <div>
-                                      <p className="border-t border-foreground pt-1">Signature</p>
-                                  </div>
-                              </div>
-                          </div>
+                           {finalExamPassed ? (
+                                <div className="relative w-full h-full flex flex-col items-center justify-center text-center p-8 text-foreground">
+                                    <p className="text-xl">This certifies that</p>
+                                    <h2 className="text-4xl font-bold text-primary my-4">{userName}</h2>
+                                    <p className="text-xl">has successfully completed the Speed of Mastery English course.</p>
+                                    <div className="mt-8 flex items-center gap-4">
+                                        <Image src="https://storage.googleapis.com/project-108473853069.appspot.com/16a1a9a8-b79e-4a6c-9411-82e16d9a3b61" data-ai-hint="speed of mastery logo" alt="Speed of Mastery Logo" width={100} height={50} className="rounded-full" />
+                                        <div>
+                                            <p className="border-t border-foreground pt-1">Signature</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="relative z-10 text-center">
+                                    <h2 className="text-2xl font-bold text-white">شهادة معاينة</h2>
+                                    <p className="text-white/80">أكمل الاختبار النهائي لفتح شهادتك المخصصة.</p>
+                                </div>
+                            )}
                         </>
                     )}
                 </div>
