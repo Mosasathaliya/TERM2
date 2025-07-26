@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
@@ -907,7 +908,9 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
     toast({ title: `Quiz Finished!`, description: `Your score: ${score} / ${quiz.length}. ${passed ? 'You passed!' : 'Try again!'}` });
   };
   
-  if (!story) return null;
+  if (!story) { 
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -1068,31 +1071,31 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 
                 <DashboardCard title="مُنشئ المفردات" description="قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي."
                   icon={<GraduationCap className="h-8 w-8 text-primary" />} onClick={() => openDialog('lingoleap')}
-                  unlockThreshold={5} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
 
                 <DashboardCard title="مغامرة جيمني" description="العب لعبة مغامرة نصية لتعلم المفردات في سياقها."
                   icon={<Gamepad2 className="h-8 w-8 text-accent" />} onClick={() => openDialog('adventure')}
-                  unlockThreshold={10} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
                   
                 <DashboardCard title="صانع القصص" description="حوّل أفكارك إلى قصص قصيرة مصورة باللغة الإنجليزية."
                   icon={<Sparkles className="h-8 w-8 text-yellow-500" />} onClick={() => openDialog('storyMaker')}
-                  unlockThreshold={10} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
 
                 <DashboardCard title="خبير الأزمنة" description="تحدث مع خبير الذكاء الاصطناعي لإتقان أزمنة اللغة الإنجليزية."
                   icon={<BookCheck className="h-8 w-8 text-destructive" />} onClick={() => openDialog('tenseTeacher')}
-                  unlockThreshold={10} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
 
                 <DashboardCard title="لعبة الكلمات المبعثرة" description="أعد ترتيب الحروف لتكوين كلمات وحسّن مهاراتك الإملائية."
                   icon={<Puzzle className="h-8 w-8 text-secondary" />} onClick={() => openDialog('jumble')}
-                  unlockThreshold={10} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
                 
                 <DashboardCard title="قصصي واختباراتي" description="اقرأ القصص التي أنشأتها واختبر فهمك."
                   icon={<NotebookText className="h-8 w-8 text-pink-500" />} onClick={() => openDialog('myStories')}
-                  unlockThreshold={10} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
                 
                 <DashboardCard title="المساعد الصوتي" description="تدرب على المحادثة مع مساعد صوتي يعمل بالذكاء الاصطناعي."
                   icon={<Ear className="h-8 w-8 text-cyan-500" />} onClick={() => openDialog('voiceAssistant')}
-                  unlockThreshold={48} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
             </div>
         </div>
 
@@ -1101,23 +1104,23 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <DashboardCard title="مواد تعليمية" description="تصفح مكتبة الدروس المنظمة حسب المستوى والموضوع."
                   icon={<Library className="h-8 w-8 text-green-500" />} onClick={() => openDialog('lessons')}
-                  unlockThreshold={25} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
                 
                 <DashboardCard title="تعلم بالفيديو" description="شاهد فيديوهات يوتيوب تعليمية مباشرة داخل التطبيق."
                   icon={<Youtube className="h-8 w-8 text-red-600" />} onClick={() => openDialog('videoLearn')}
-                  unlockThreshold={25} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
 
                 <DashboardCard title="ماذا لو...؟" description="استكشف سيناريوهات علمية رائعة مع شرح الذكاء الاصطناعي."
                   icon={<Brain className="h-8 w-8 text-purple-500" />} onClick={() => openDialog('whatIf')}
-                  unlockThreshold={25} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
 
                 <DashboardCard title="جرعة تحفيز" description="فيديوهات قصيرة لإلهامك ومواصلة رحلتك التعليمية."
                   icon={<Flame className="h-8 w-8 text-orange-500" />} onClick={() => openDialog('motivation')}
-                  unlockThreshold={25} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
                 
                 <DashboardCard title="تعلم عن الذكاء الاصطناعي" description="دروس مبسطة حول الذكاء الاصطناعي، مع شروحات صوتية باللغة العربية."
                   icon={<BrainCircuit className="h-8 w-8 text-teal-500" />} onClick={() => openDialog('aiLessons')}
-                  unlockThreshold={42} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
             </div>
         </div>
 
@@ -1267,7 +1270,7 @@ export function BookScreen() {
 
     const allItemTitles = learningItems.map(item => item.title);
     const highestCompletedIndex = highestItemCompleted ? allItemTitles.indexOf(highestItemCompleted) : -1;
-    const allLessonsAndStoriesCompleted = (highestCompletedIndex + 1) >= learningItems.length;
+    const allLessonsAndStoriesCompleted = true; // Unlocked for testing
 
     const handleOpenQuiz = () => {
         setIsQuizOpen(true);
@@ -1280,8 +1283,7 @@ export function BookScreen() {
             <ScrollArea className="h-[calc(100vh-220px)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
                     {learningItems.map((item, i) => {
-                         const itemIndex = allItemTitles.indexOf(item.title);
-                         const isLocked = itemIndex > highestCompletedIndex + 1;
+                         const isLocked = false; // Unlocked for testing
 
                         return (
                         <Card 

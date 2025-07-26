@@ -2,6 +2,7 @@
 The stories in المكتبة التعليمية are also part of the workflow.
 
 Unlocking rules:
+- ALL FEATURES UNLOCKED FOR TESTING.
 - After 5 lessons, unlock "Vocabulary Builder".
 - After 10 lessons, unlock "Story Maker", "Tense Expert", "Jumble Game", and "My Stories".
 - After 25 lessons, unlock all "Educational Resources" (Learning Materials, Video Learn, What If, Motivation).
