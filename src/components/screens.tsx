@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
@@ -19,7 +18,7 @@ import { BookText, Book, Bot, ArrowRight, Sparkles, Image as ImageIcon, Graduati
 import Image from 'next/image';
 import type { ActiveTab } from './main-app';
 import { generateStoryImage } from '@/ai/flows/story-image-flow';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { LingoleapApp } from './lingoleap-app';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
@@ -33,6 +32,7 @@ import { TextAdventureApp } from './text-adventure-app';
 import { MumbleJumbleApp } from './mumble-jumble-app';
 import { TenseTeacherApp } from './tense-teacher-app';
 import { ChatterbotApp } from './chatterbot-app';
+import { DialogDescription } from './ui/dialog';
 import { lessons } from '@/data/lingo-lessons-data';
 import type { Lesson } from '@/types/lesson';
 import LessonDisplay from './lesson/LessonDisplay';
@@ -1474,13 +1474,13 @@ export function ProgressScreen() {
     const [isCertificateOpen, setIsCertificateOpen] = useState(false);
     
     const chartData = [
-      { day: "الأحد", lessons: 2 },
-      { day: "الاثنين", lessons: 3 },
-      { day: "الثلاثاء", lessons: 1 },
-      { day: "الأربعاء", lessons: 4 },
-      { day: "الخميس", lessons: 3 },
-      { day: "الجمعة", lessons: 1 },
-      { day: "السبت", lessons: 5 },
+      { day: "الأحد", lessons: completedItemsCount > 0 ? 2 : 0 },
+      { day: "الاثنين", lessons: completedItemsCount > 2 ? 3 : 0 },
+      { day: "الثلاثاء", lessons: completedItemsCount > 5 ? 1 : 0 },
+      { day: "الأربعاء", lessons: completedItemsCount > 6 ? 4 : 0 },
+      { day: "الخميس", lessons: completedItemsCount > 10 ? 3 : 0 },
+      { day: "الجمعة", lessons: completedItemsCount > 13 ? 1 : 0 },
+      { day: "السبت", lessons: completedItemsCount > 14 ? 5 : 0 },
     ];
     
     const chartConfig: ChartConfig = {
@@ -1575,8 +1575,8 @@ export function ProgressScreen() {
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <Button className="w-full" onClick={() => setIsCertificateOpen(true)} disabled={!finalExamPassed}>
-                {finalExamPassed ? 'إنشاء شهادة' : <><Lock className="mr-2 h-4 w-4" /> الشهادة مقفلة</>}
+            <Button className="w-full" onClick={() => setIsCertificateOpen(true)}>
+                {finalExamPassed ? 'إنشاء شهادة' : 'عرض الشهادة'}
             </Button>
         </CardContent>
       </Card>
@@ -1585,12 +1585,13 @@ export function ProgressScreen() {
         isOpen={isCertificateOpen} 
         onOpenChange={setIsCertificateOpen}
         userName="طالب مجتهد"
+        isPassed={finalExamPassed}
     />
     </>
   );
 }
 
-function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void, userName: string }) {
+function CertificateDialog({ isOpen, onOpenChange, userName, isPassed }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void, userName: string, isPassed: boolean }) {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
@@ -1598,13 +1599,16 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
     useEffect(() => {
         if (isOpen && !imageUrl) {
             setIsLoading(true);
-            generateCertificateImage({ userName })
+            generateCertificateImage({ userName }) // The userName is for context, but won't be used if isPassed is false.
                 .then(result => setImageUrl(result.imageUrl))
                 .catch(err => {
                     console.error("Certificate generation error:", err);
                     toast({ variant: 'destructive', title: 'فشل إنشاء الشهادة' });
                 })
                 .finally(() => setIsLoading(false));
+        } else if (!isOpen) {
+            // Reset when dialog closes
+            setImageUrl(null);
         }
     }, [isOpen, userName, imageUrl, toast]);
 
@@ -1613,24 +1617,42 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
             <DialogContent className="max-w-3xl">
                 <DialogHeader>
                     <DialogTitle>شهادة إتمام</DialogTitle>
-                    <DialogDescription>تهانينا على تقدمك! هذه شهادتك.</DialogDescription>
+                    <DialogDescription>
+                        {isPassed 
+                          ? "تهانينا على تقدمك! هذه شهادتك."
+                          : "هذه معاينة للشهادة التي ستحصل عليها عند إكمال الاختبار النهائي."
+                        }
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="relative aspect-[4/3] w-full flex items-center justify-center bg-muted rounded-md overflow-hidden">
                     {isLoading && <Loader2 className="h-12 w-12 animate-spin text-primary" />}
-                    {imageUrl && (
-                        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${imageUrl})` }}>
-                            <div className="w-full h-full flex flex-col items-center justify-center text-center p-8">
-                                <p className="text-xl text-muted-foreground">This certifies that</p>
-                                <h2 className="text-4xl font-bold text-primary my-4">{userName}</h2>
-                                <p className="text-xl text-muted-foreground">has shown outstanding commitment to learning English.</p>
-                                <div className="mt-8 flex items-center gap-4">
-                                    <Image src="https://placehold.co/100x50/ffffff/000000.png?text=Logo" data-ai-hint="company logo" alt="App Logo" width={100} height={50} />
-                                    <div>
-                                        <p className="border-t border-foreground pt-1">Signature</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    {imageUrl && isPassed && (
+                        <>
+                          <Image src={imageUrl} alt="Certificate Background" fill className="object-cover"/>
+                          <div className="absolute inset-0 bg-black/10"></div>
+                          <div className="relative w-full h-full flex flex-col items-center justify-center text-center p-8 text-foreground">
+                              <p className="text-xl">This certifies that</p>
+                              <h2 className="text-4xl font-bold text-primary my-4">{userName}</h2>
+                              <p className="text-xl">has shown outstanding commitment to learning English.</p>
+                              <div className="mt-8 flex items-center gap-4">
+                                  <Image src="https://placehold.co/100x50/ffffff/000000.png?text=Logo" data-ai-hint="company logo" alt="App Logo" width={100} height={50} />
+                                  <div>
+                                      <p className="border-t border-foreground pt-1">Signature</p>
+                                  </div>
+                              </div>
+                          </div>
+                        </>
+                    )}
+                    {imageUrl && !isPassed && (
+                        <>
+                           <Image src={imageUrl} alt="Certificate Background Preview" fill className="object-cover blur-sm"/>
+                           <div className="absolute inset-0 bg-black/30"></div>
+                           <div className="relative text-center text-white p-4 z-10">
+                             <Lock className="h-12 w-12 mx-auto mb-4" />
+                             <h3 className="text-2xl font-bold">الشهادة مقفلة</h3>
+                             <p>أكمل الاختبار النهائي للحصول على شهادتك.</p>
+                           </div>
+                        </>
                     )}
                 </div>
             </DialogContent>
