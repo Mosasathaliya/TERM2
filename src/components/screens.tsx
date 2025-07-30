@@ -336,7 +336,7 @@ function WhatIfDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
                         ></iframe>
                     )}
                 </div>
-                <DialogFooter className="flex-col sm:flex-row gap-2 justify-between w-full">
+                <div className="flex-col sm:flex-row gap-2 justify-between w-full">
                     <Button onClick={goToPrevious} disabled={videoData.length <= 1}>
                         <ChevronLeft className="mr-2 h-4 w-4" />
                         السابق
@@ -349,7 +349,7 @@ function WhatIfDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
                         التالي
                         <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
-                </DialogFooter>
+                </div>
             </DialogContent>
         </Dialog>
         {currentVideo && (
@@ -856,7 +856,7 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
 
   useEffect(() => {
     if (isOpen && story) {
-        const existingResult = quizResults[story.id];
+        const existingResult = quizResults ? quizResults[story.id] : null;
         if (existingResult) {
             setQuiz(existingResult.questions);
             setAnswers(existingResult.answers);
@@ -913,7 +913,7 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
     return null;
   }
 
-  const currentQuizResult = quizResults[story.id];
+  const currentQuizResult = quizResults ? quizResults[story.id] : null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -980,7 +980,7 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
 
 
 function DashboardCard({ title, description, icon, onClick, unlockThreshold, completedCount }: { title: string, description: string, icon: React.ReactNode, onClick?: () => void, unlockThreshold: number, completedCount: number }) {
-  const isLocked = completedCount < unlockThreshold;
+  const isLocked = false; // UNLOCK ALL FOR TESTING
 
   const content = (
       <CardHeader>
@@ -1078,31 +1078,31 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 
                 <DashboardCard title="مُنشئ المفردات" description="قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي."
                   icon={<GraduationCap className="h-8 w-8 text-primary" />} onClick={() => openDialog('lingoleap')}
-                  unlockThreshold={5} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
 
                 <DashboardCard title="مغامرة جيمني" description="العب لعبة مغامرة نصية لتعلم المفردات في سياقها."
                   icon={<Gamepad2 className="h-8 w-8 text-accent" />} onClick={() => openDialog('adventure')}
-                  unlockThreshold={10} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
                   
                 <DashboardCard title="صانع القصص" description="حوّل أفكارك إلى قصص قصيرة مصورة باللغة الإنجليزية."
                   icon={<Sparkles className="h-8 w-8 text-yellow-500" />} onClick={() => openDialog('storyMaker')}
-                  unlockThreshold={10} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
 
                 <DashboardCard title="خبير الأزمنة" description="تحدث مع خبير الذكاء الاصطناعي لإتقان أزمنة اللغة الإنجليزية."
                   icon={<BookCheck className="h-8 w-8 text-destructive" />} onClick={() => openDialog('tenseTeacher')}
-                  unlockThreshold={10} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
 
                 <DashboardCard title="لعبة الكلمات المبعثرة" description="أعد ترتيب الحروف لتكوين كلمات وحسّن مهاراتك الإملائية."
                   icon={<Puzzle className="h-8 w-8 text-secondary" />} onClick={() => openDialog('jumble')}
-                  unlockThreshold={10} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
                 
                 <DashboardCard title="قصصي واختباراتي" description="اقرأ القصص التي أنشأتها واختبر فهمك."
                   icon={<NotebookText className="h-8 w-8 text-pink-500" />} onClick={() => openDialog('myStories')}
-                  unlockThreshold={10} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
                 
                 <DashboardCard title="المساعد الصوتي" description="تدرب على المحادثة مع مساعد صوتي يعمل بالذكاء الاصطناعي."
                   icon={<Ear className="h-8 w-8 text-cyan-500" />} onClick={() => openDialog('voiceAssistant')}
-                  unlockThreshold={48} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
             </div>
         </div>
 
@@ -1111,23 +1111,23 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <DashboardCard title="مواد تعليمية" description="تصفح مكتبة الدروس المنظمة حسب المستوى والموضوع."
                   icon={<Library className="h-8 w-8 text-green-500" />} onClick={() => openDialog('lessons')}
-                  unlockThreshold={25} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
                 
                 <DashboardCard title="تعلم بالفيديو" description="شاهد فيديوهات يوتيوب تعليمية مباشرة داخل التطبيق."
                   icon={<Youtube className="h-8 w-8 text-red-600" />} onClick={() => openDialog('videoLearn')}
-                  unlockThreshold={25} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
 
                 <DashboardCard title="ماذا لو...؟" description="استكشف سيناريوهات علمية رائعة مع شرح الذكاء الاصطناعي."
                   icon={<Brain className="h-8 w-8 text-purple-500" />} onClick={() => openDialog('whatIf')}
-                  unlockThreshold={25} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
 
                 <DashboardCard title="جرعة تحفيز" description="فيديوهات قصيرة لإلهامك ومواصلة رحلتك التعليمية."
                   icon={<Flame className="h-8 w-8 text-orange-500" />} onClick={() => openDialog('motivation')}
-                  unlockThreshold={25} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
                 
                 <DashboardCard title="تعلم عن الذكاء الاصطناعي" description="دروس مبسطة حول الذكاء الاصطناعي، مع شروحات صوتية باللغة العربية."
                   icon={<BrainCircuit className="h-8 w-8 text-teal-500" />} onClick={() => openDialog('aiLessons')}
-                  unlockThreshold={42} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
             </div>
         </div>
 
@@ -1261,7 +1261,7 @@ export function BookScreen() {
 
     const allItemTitles = learningItems.map(item => item.title);
     const highestCompletedIndex = highestItemCompleted ? allItemTitles.indexOf(highestItemCompleted) : -1;
-    const allLessonsAndStoriesCompleted = highestCompletedIndex >= learningItems.length - 1;
+    const allLessonsAndStoriesCompleted = true; // UNLOCK ALL FOR TESTING
 
     const handleOpenQuiz = () => {
         setIsQuizOpen(true);
@@ -1274,7 +1274,7 @@ export function BookScreen() {
             <ScrollArea className="h-[calc(100vh-220px)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
                     {learningItems.map((item, i) => {
-                         const isLocked = i > highestCompletedIndex + 1;
+                         const isLocked = false; // UNLOCK ALL FOR TESTING
 
                         return (
                         <Card 
@@ -1558,8 +1558,8 @@ export function ProgressScreen() {
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <Button className="w-full" onClick={() => setIsCertificateOpen(true)} disabled={!finalExamPassed}>
-                 {finalExamPassed ? "إنشاء شهادة" : "الشهادة مقفلة"}
+            <Button className="w-full" onClick={() => setIsCertificateOpen(true)} disabled={false}>
+                 {"إنشاء شهادة"}
             </Button>
         </CardContent>
       </Card>
@@ -1577,6 +1577,7 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
+    const { finalExamPassed } = useProgressStore();
 
     useEffect(() => {
         if (isOpen) {
