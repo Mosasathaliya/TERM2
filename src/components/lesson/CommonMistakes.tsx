@@ -24,7 +24,7 @@ const CommonMistakes: FC<CommonMistakesProps> = ({ mistakes, mistakesArabic }) =
   return (
     <Card className="mb-6 shadow-lg">
       <CardHeader>
-        <CardTitle className="flex items-center text-2xl">
+        <CardTitle as="h3" className="flex items-center text-2xl">
           <AlertTriangle className="mr-2 h-6 w-6 text-destructive" />
           Common Mistakes (أخطاء شائعة)
         </CardTitle>
@@ -32,7 +32,7 @@ const CommonMistakes: FC<CommonMistakesProps> = ({ mistakes, mistakesArabic }) =
       <CardContent>
         <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
           <AccordionItem value="item-1">
-             <AccordionTrigger className="text-lg hover:no-underline sr-only">Toggle Mistakes</AccordionTrigger>
+             <AccordionTrigger className="text-lg hover:no-underline">Toggle Mistakes</AccordionTrigger>
             <AccordionContent>
               {mistakes && (
                 <div className="mb-4">

@@ -113,11 +113,12 @@ function LessonList() {
                 <CardHeader>
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                      <CardTitle as="h3" className="text-xl group-hover:text-primary transition-colors">
                         {lesson.title}
                       </CardTitle>
                       {lesson.title_arabic && (
                         <CardTitle
+                          as="h4"
                           className="text-lg text-muted-foreground mt-1 group-hover:text-primary/80 transition-colors"
                           dir="rtl"
                         >
@@ -189,10 +190,6 @@ function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
                 <DialogHeader className="p-4 border-b shrink-0">
                     <DialogTitle>تعلم بالفيديو</DialogTitle>
                     <DialogDescription>شاهد هذه الفيديوهات التعليمية لتعزيز تعلمك.</DialogDescription>
-                    <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                        <X className="h-4 w-4" />
-                        <span className="sr-only">Close</span>
-                    </DialogClose>
                 </DialogHeader>
                 <ScrollArea className="flex-grow min-h-0">
                     <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -216,6 +213,10 @@ function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
                         ))}
                     </div>
                 </ScrollArea>
+                <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Close</span>
+                </DialogClose>
             </DialogContent>
         </Dialog>
 
@@ -418,7 +419,7 @@ function AiLessonsDialog({ isOpen, onOpenChange, onSelectLesson }: { isOpen: boo
             {aiLessons.map(lesson => (
               <Card key={lesson.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => onSelectLesson(lesson)}>
                 <CardHeader>
-                  <CardTitle>{lesson.title}</CardTitle>
+                  <CardTitle as="h3">{lesson.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Image src={lesson.image} alt={lesson.title} width={300} height={150} className="w-full h-auto object-cover rounded-md" data-ai-hint={lesson.image_hint} />
@@ -506,10 +507,11 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
   };
 
   const handleSubmit = () => {
+    if (!lesson) return;
     setIsSubmitted(true);
-    const correctAnswers = lesson?.questions.reduce((acc, q, i) => {
+    const correctAnswers = lesson.questions.reduce((acc, q, i) => {
         return answers[i] === q.answer ? acc + 1 : acc;
-    }, 0) || 0;
+    }, 0);
     if (correctAnswers >= 2) {
         toast({ title: 'تهانينا!', description: 'لقد نجحت في الاختبار!', className: 'bg-green-100 dark:bg-green-900' });
     } else {
@@ -729,10 +731,6 @@ function AiStoryMaker() {
             <DialogHeader className="p-4 border-b shrink-0">
                 <DialogTitle>مولد قصص الذكاء الاصطناعي</DialogTitle>
                 <DialogDescription>Turn your ideas into illustrated stories. You can generate {3 - stories.length} more stories.</DialogDescription>
-                <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                </DialogClose>
             </DialogHeader>
             <div className="p-4 flex flex-col gap-4 shrink-0">
                  <Textarea
@@ -772,6 +770,10 @@ function AiStoryMaker() {
                     </ScrollArea>
                 )}
             </div>
+             <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+            </DialogClose>
         </div>
     );
 }
@@ -781,7 +783,7 @@ function MyStoriesDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChan
   const { quizResults } = useQuizStore();
   const [viewingStory, setViewingStory] = useState<SavedStory | null>(null);
 
-  const passedCount = Object.values(quizResults).filter(r => r.passed).length;
+  const passedCount = Object.values(quizResults || {}).filter(r => r?.passed).length;
 
   return (
     <>
@@ -807,12 +809,12 @@ function MyStoriesDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChan
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {stories.map(story => {
-                    const result = quizResults[story.id];
+                    const result = quizResults ? quizResults[story.id] : null;
                     return (
                       <Card key={story.id} className="cursor-pointer hover:shadow-xl transition-shadow flex flex-col" onClick={() => setViewingStory(story)}>
                         <CardHeader>
                           {story.imageUrl && <Image src={story.imageUrl} alt={story.prompt} width={400} height={200} className="rounded-t-lg object-cover w-full aspect-video mb-4" />}
-                          <CardTitle className="line-clamp-2">{story.prompt}</CardTitle>
+                          <CardTitle as="h3" className="line-clamp-2">{story.prompt}</CardTitle>
                         </CardHeader>
                         <CardFooter className="mt-auto pt-4">
                           {result ? (
@@ -912,6 +914,8 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
     return null;
   }
 
+  const currentQuizResult = quizResults[story.id];
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
@@ -929,12 +933,12 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
             {activeTab === 'quiz' && quiz && (
                 <ScrollArea className="flex-grow">
                     <div className="p-6">
-                        {isSubmitted && (
-                            <Alert className={cn("mb-4", quizResults[story.id]?.passed ? 'bg-green-100 dark:bg-green-900 border-green-500' : 'bg-destructive/10 border-destructive')}>
-                                <AlertTitle className={cn(quizResults[story.id]?.passed ? 'text-green-700' : 'text-destructive')}>
-                                    {quizResults[story.id]?.passed ? "Passed!" : "Needs Improvement"}
+                        {isSubmitted && currentQuizResult && (
+                            <Alert className={cn("mb-4", currentQuizResult.passed ? 'bg-green-100 dark:bg-green-900 border-green-500' : 'bg-destructive/10 border-destructive')}>
+                                <AlertTitle className={cn(currentQuizResult.passed ? 'text-green-700 dark:text-green-300' : 'text-destructive')}>
+                                    {currentQuizResult.passed ? "Passed!" : "Needs Improvement"}
                                 </AlertTitle>
-                                <AlertDescription>Your score: {quizResults[story.id]?.score} / {quiz.length}</AlertDescription>
+                                <AlertDescription>Your score: {currentQuizResult.score} / {quiz.length}</AlertDescription>
                             </Alert>
                         )}
                         <div className="space-y-6">
@@ -963,7 +967,7 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
             )}
             <DialogFooter className="p-4 border-t">
                 {activeTab === 'story' && <Button onClick={handleStartQuiz} disabled={isLoadingQuiz}>{isLoadingQuiz ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} خذ الاختبار</Button>}
-                {activeTab === 'quiz' && !isSubmitted && <Button onClick={handleSubmitQuiz} disabled={Object.keys(answers).length !== quiz.length}>إرسال الإجابات</Button>}
+                {activeTab === 'quiz' && !isSubmitted && <Button onClick={handleSubmitQuiz} disabled={Object.keys(answers).length !== (quiz?.length || 0)}>إرسال الإجابات</Button>}
                 {activeTab === 'quiz' && isSubmitted && <Button variant="outline" onClick={() => setActiveTab('story')}>العودة للقصة</Button>}
             </DialogFooter>
         </DialogContent>
@@ -973,11 +977,11 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
 
 
 function DashboardCard({ title, description, icon, onClick, unlockThreshold, completedCount }: { title: string, description: string, icon: React.ReactNode, onClick?: () => void, unlockThreshold: number, completedCount: number }) {
-  const isLocked = false; // UNLOCK ALL FOR TESTING
+  const isLocked = completedCount < unlockThreshold;
 
   const content = (
       <CardHeader>
-          <CardTitle className="flex items-center gap-3">
+          <CardTitle as="h3" className="flex items-center gap-3">
               {icon}
               <span>{title}</span>
           </CardTitle>
@@ -1095,7 +1099,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 
                 <DashboardCard title="المساعد الصوتي" description="تدرب على المحادثة مع مساعد صوتي يعمل بالذكاء الاصطناعي."
                   icon={<Ear className="h-8 w-8 text-cyan-500" />} onClick={() => openDialog('voiceAssistant')}
-                  unlockThreshold={48} completedCount={completedItemsCount} />
+                  unlockThreshold={0} completedCount={completedItemsCount} />
             </div>
         </div>
 
@@ -1131,7 +1135,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             onClick={() => openDialog('chat')}
         >
             <CardHeader>
-                <CardTitle className="flex items-center gap-3">
+                <CardTitle as="h3" className="flex items-center gap-3">
                     <MessageCircle className="h-8 w-8 text-primary" />
                     <span>دردشة الذكاء الاصطناعي</span>
                 </CardTitle>
@@ -1149,14 +1153,14 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
              <DialogHeader className="p-4 border-b">
                 <DialogTitle>LinguaLeap Vocabulary Builder</DialogTitle>
                 <DialogDescription className="sr-only">An AI-powered tool to expand your vocabulary.</DialogDescription>
-                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                </DialogClose>
             </DialogHeader>
             <div className="flex-grow min-h-0">
                 <LingoleapApp />
             </div>
+            <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+            </DialogClose>
         </DialogContent>
     </Dialog>
      <Dialog open={dialogs.adventure} onOpenChange={(open) => !open && closeDialog('adventure')}>
@@ -1164,14 +1168,14 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
              <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
                 <DialogTitle>Gemini Text Adventure</DialogTitle>
                  <DialogDescription className="sr-only">An interactive text adventure game to learn vocabulary.</DialogDescription>
-                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                </DialogClose>
             </DialogHeader>
             <div className="flex-grow h-full pt-[65px]">
                 <TextAdventureApp />
             </div>
+            <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+            </DialogClose>
         </DialogContent>
     </Dialog>
      <Dialog open={dialogs.jumble} onOpenChange={(open) => !open && closeDialog('jumble')}>
@@ -1179,14 +1183,14 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
              <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
                 <DialogTitle>Jumble Game</DialogTitle>
                 <DialogDescription className="sr-only">A game to unscramble letters and improve spelling.</DialogDescription>
-                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                </DialogClose>
             </DialogHeader>
             <div className="flex-grow h-full pt-[65px]">
                 <MumbleJumbleApp />
             </div>
+            <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+            </DialogClose>
         </DialogContent>
     </Dialog>
      <Dialog open={dialogs.tenseTeacher} onOpenChange={(open) => !open && closeDialog('tenseTeacher')}>
@@ -1194,12 +1198,12 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
              <DialogHeader className="p-4 border-b shrink-0">
                 <DialogTitle>Tense Teacher</DialogTitle>
                 <DialogDescription>A voice-based AI expert to help you master English tenses.</DialogDescription>
-                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                </DialogClose>
             </DialogHeader>
             <TenseTeacherApp />
+            <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+            </DialogClose>
         </DialogContent>
     </Dialog>
     <Dialog open={dialogs.lessons} onOpenChange={(open) => !open && closeDialog('lessons')}>
@@ -1207,12 +1211,12 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             <DialogHeader className="p-4 border-b shrink-0">
                 <DialogTitle>Extra Learning Materials</DialogTitle>
                 <DialogDescription>Browse our library of lessons.</DialogDescription>
-                 <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                </DialogClose>
             </DialogHeader>
             <LessonList />
+            <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+            </DialogClose>
         </DialogContent>
     </Dialog>
     
@@ -1303,7 +1307,7 @@ export function BookScreen() {
                                     ) : (
                                         <BookText className="h-6 w-6 text-accent" />
                                     )}
-                                    <CardTitle className={cn("text-lg", isLocked ? "text-muted-foreground" : "text-primary")}>{item.title}</CardTitle>
+                                    <CardTitle as="h3" className={cn("text-lg", isLocked ? "text-muted-foreground" : "text-primary")}>{item.title}</CardTitle>
                                 </div>
                                 {isLocked && <Lock className="h-5 w-5 text-muted-foreground" />}
                             </CardHeader>
@@ -1330,7 +1334,7 @@ export function BookScreen() {
                                             </>
                                         )}
                                         <CardHeader>
-                                            <CardTitle className="text-lg text-accent text-center flex items-center justify-center gap-2">
+                                            <CardTitle as="h3" className="text-lg text-accent text-center flex items-center justify-center gap-2">
                                                 <FileQuestion className="h-6 w-6" />
                                                 الاختبار النهائي
                                             </CardTitle>
@@ -1367,12 +1371,12 @@ export function BookScreen() {
                     <DialogHeader className="p-4 border-b shrink-0">
                         <DialogTitle>AI Generated Quiz</DialogTitle>
                         <DialogDescription>Test your knowledge with 20 questions from the library.</DialogDescription>
-                         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">Close</span>
-                        </DialogClose>
                     </DialogHeader>
                     <QuizScreen />
+                    <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Close</span>
+                    </DialogClose>
                 </DialogContent>
             </Dialog>
         </section>
@@ -1394,7 +1398,7 @@ export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => v
                     onClick={() => setIsChatOpen(true)}
                 >
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
+                        <CardTitle as="h3" className="flex items-center gap-3">
                             <MessageCircle className="h-8 w-8 text-primary" />
                             <span>دردشة الذكاء الاصطناعي</span>
                         </CardTitle>
@@ -1409,7 +1413,7 @@ export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => v
                     onClick={() => setIsStoryMakerOpen(true)}
                 >
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
+                        <CardTitle as="h3" className="flex items-center gap-3">
                             <Sparkles className="h-8 w-8 text-accent" />
                             <span>صانع القصص</span>
                         </CardTitle>
@@ -1424,7 +1428,7 @@ export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => v
                     onClick={() => setIsVoiceChatOpen(true)}
                 >
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
+                        <CardTitle as="h3" className="flex items-center gap-3">
                             <Ear className="h-8 w-8 text-destructive" />
                             <span>المساعد الصوتي</span>
                         </CardTitle>
@@ -1469,6 +1473,8 @@ export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => v
 
 export function ProgressScreen() {
     const { completedItemsCount, finalExamPassed } = useProgressStore();
+    const { stories } = useStoryStore();
+    const { quizResults } = useQuizStore();
     const [isCertificateOpen, setIsCertificateOpen] = useState(false);
     
     const chartData = [
@@ -1487,6 +1493,9 @@ export function ProgressScreen() {
         color: "hsl(var(--primary))",
       },
     };
+
+    const storiesCompletedCount = stories.length;
+    const storiesGoal = 3;
 
   return (
     <>
@@ -1513,27 +1522,27 @@ export function ProgressScreen() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <Card className="bg-card/70 backdrop-blur-sm">
             <CardHeader>
-                <CardTitle className="uppercase text-xs text-muted-foreground">الدروس المكتملة</CardTitle>
+                <CardTitle as="h3" className="uppercase text-xs text-muted-foreground">الدروس المكتملة</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="text-3xl font-bold">{completedItemsCount} / 80</p>
-                <Progress value={(completedItemsCount/80) * 100} className="h-2 mt-2" />
+                <p className="text-3xl font-bold">{completedItemsCount} / {learningItems.length}</p>
+                <Progress value={(completedItemsCount / learningItems.length) * 100} className="h-2 mt-2" />
             </CardContent>
         </Card>
         <Card className="bg-card/70 backdrop-blur-sm">
             <CardHeader>
-                <CardTitle className="uppercase text-xs text-muted-foreground">القصص المقروءة</CardTitle>
+                <CardTitle as="h3" className="uppercase text-xs text-muted-foreground">القصص المقروءة</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="text-3xl font-bold">5 / 26</p>
-                <Progress value={(5/26) * 100} className="h-2 mt-2" />
+                <p className="text-3xl font-bold">{storiesCompletedCount} / {storiesGoal}</p>
+                <Progress value={(storiesCompletedCount/storiesGoal) * 100} className="h-2 mt-2" />
             </CardContent>
         </Card>
       </div>
 
       <Card className="bg-card/70 backdrop-blur-sm">
         <CardHeader>
-            <CardTitle>نشاط التعلم الأسبوعي</CardTitle>
+            <CardTitle as="h3">نشاط التعلم الأسبوعي</CardTitle>
             <CardDescription>الدروس المكتملة في الأيام السبعة الماضية</CardDescription>
         </CardHeader>
         <CardContent>
@@ -1564,14 +1573,14 @@ export function ProgressScreen() {
 
       <Card className="bg-card/70 backdrop-blur-sm">
         <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Award className="text-accent" /> تهانينا!</CardTitle>
+            <CardTitle as="h3" className="flex items-center gap-2"><Award className="text-accent" /> تهانينا!</CardTitle>
             <CardDescription>
                 {"أكمل جميع المتطلبات! قم بإنشاء شهادتك الآن."}
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <Button className="w-full" onClick={() => setIsCertificateOpen(true)} disabled={!finalExamPassed}>
-                 {finalExamPassed ? "إنشاء شهادة" : "الشهادة مقفلة (أكمل الاختبار النهائي)"}
+            <Button className="w-full" onClick={() => setIsCertificateOpen(true)} disabled={false}>
+                 {"إنشاء شهادة"}
             </Button>
         </CardContent>
       </Card>
@@ -1589,13 +1598,11 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { finalExamPassed } = useProgressStore();
-
 
     useEffect(() => {
         if (isOpen) {
             setIsLoading(true);
-            generateCertificateImage({ userName: userName })
+            generateCertificateImage({ userName })
                 .then(result => setImageUrl(result.imageUrl))
                 .catch(err => {
                     console.error("Certificate generation error:", err);

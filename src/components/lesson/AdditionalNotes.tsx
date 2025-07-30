@@ -25,7 +25,7 @@ const AdditionalNotes: FC<AdditionalNotesProps> = ({ notes, notesArabic }) => {
   return (
     <Card className="mb-6 shadow-lg border-primary/50">
       <CardHeader>
-        <CardTitle className="flex items-center text-2xl text-primary">
+        <CardTitle as="h3" className="flex items-center text-2xl text-primary">
           <StickyNote className="mr-2 h-6 w-6" />
           Additional Notes (ملاحظات إضافية)
         </CardTitle>
@@ -33,7 +33,7 @@ const AdditionalNotes: FC<AdditionalNotesProps> = ({ notes, notesArabic }) => {
       <CardContent>
         <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
           <AccordionItem value="item-1">
-            <AccordionTrigger className="text-lg hover:no-underline sr-only">Toggle Notes</AccordionTrigger>
+            <AccordionTrigger className="text-lg hover:no-underline">Toggle Notes</AccordionTrigger>
             <AccordionContent>
               {notes && (
                 <div className="mb-4">
