@@ -59,6 +59,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { learningItems, type LearningItem } from '@/lib/lessons';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -333,7 +334,7 @@ function WhatIfDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
                         ></iframe>
                     )}
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2 justify-between w-full">
+                <DialogFooter className="flex-col sm:flex-row gap-2 justify-between w-full">
                     <Button onClick={goToPrevious} disabled={videoData.length <= 1}>
                         <ChevronLeft className="mr-2 h-4 w-4" />
                         السابق
@@ -346,7 +347,7 @@ function WhatIfDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
                         التالي
                         <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
-                </div>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
         {currentVideo && (
@@ -1569,8 +1570,8 @@ export function ProgressScreen() {
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <Button className="w-full" onClick={() => setIsCertificateOpen(true)}>
-                 إنشاء شهادة
+            <Button className="w-full" onClick={() => setIsCertificateOpen(true)} disabled={!finalExamPassed}>
+                 {finalExamPassed ? "إنشاء شهادة" : "الشهادة مقفلة (أكمل الاختبار النهائي)"}
             </Button>
         </CardContent>
       </Card>
