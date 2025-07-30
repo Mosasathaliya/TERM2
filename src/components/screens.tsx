@@ -10,8 +10,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { LearningItem, Story } from '@/lib/lessons';
-import { learningItems } from '@/lib/lessons';
 import { LessonDetailDialog } from '@/components/lesson-detail-dialog';
 import { chatStream } from '@/ai/flows/chat-flow';
 import { useToast } from "@/hooks/use-toast"
@@ -335,7 +333,7 @@ function WhatIfDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
                         ></iframe>
                     )}
                 </div>
-                <div className="flex-col sm:flex-row gap-2 justify-between w-full">
+                <div className="flex flex-col sm:flex-row gap-2 justify-between w-full">
                     <Button onClick={goToPrevious} disabled={videoData.length <= 1}>
                         <ChevronLeft className="mr-2 h-4 w-4" />
                         السابق
@@ -391,7 +389,7 @@ function MotivationDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
                         ></iframe>
                     )}
                 </div>
-                <div className="flex-row gap-2 justify-between w-full">
+                <div className="flex flex-row gap-2 justify-between w-full">
                     <Button onClick={goToPrevious} disabled={videoData.length <= 1}>
                         <ChevronLeft className="mr-2 h-4 w-4" />
                         السابق
@@ -1096,7 +1094,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 
                 <DashboardCard title="المساعد الصوتي" description="تدرب على المحادثة مع مساعد صوتي يعمل بالذكاء الاصطناعي."
                   icon={<Ear className="h-8 w-8 text-cyan-500" />} onClick={() => openDialog('voiceAssistant')}
-                  unlockThreshold={0} completedCount={completedItemsCount} />
+                  unlockThreshold={48} completedCount={completedItemsCount} />
             </div>
         </div>
 
@@ -1567,14 +1565,11 @@ export function ProgressScreen() {
         <CardHeader>
             <CardTitle className="flex items-center gap-2"><Award className="text-accent" /> تهانينا!</CardTitle>
             <CardDescription>
-                {finalExamPassed 
-                  ? "لقد أكملت جميع المتطلبات! قم بإنشاء شهادتك الآن."
-                  : "أكمل جميع الدروس والامتحان النهائي لفتح شهادتك."
-                }
+                {"أكمل جميع المتطلبات! قم بإنشاء شهادتك الآن."}
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <Button className="w-full" onClick={() => setIsCertificateOpen(true)} disabled={false}>
+            <Button className="w-full" onClick={() => setIsCertificateOpen(true)}>
                  إنشاء شهادة
             </Button>
         </CardContent>
@@ -1599,7 +1594,7 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
     useEffect(() => {
         if (isOpen) {
             setIsLoading(true);
-            generateCertificateImage({ userName: finalExamPassed ? userName : "PREVIEW" })
+            generateCertificateImage({ userName: userName })
                 .then(result => setImageUrl(result.imageUrl))
                 .catch(err => {
                     console.error("Certificate generation error:", err);
@@ -1610,7 +1605,7 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
             // Reset when dialog closes
             setImageUrl(null);
         }
-    }, [isOpen, userName, toast, finalExamPassed]);
+    }, [isOpen, userName, toast]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -1627,24 +1622,17 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
                         <>
                           <Image src={imageUrl} alt="Certificate Background" fill className="object-cover"/>
                           <div className="absolute inset-0 bg-black/10"></div>
-                           {finalExamPassed ? (
-                                <div className="relative w-full h-full flex flex-col items-center justify-center text-center p-8 text-foreground">
-                                    <p className="text-xl">This certifies that</p>
-                                    <h2 className="text-4xl font-bold text-primary my-4">{userName}</h2>
-                                    <p className="text-xl">has successfully completed the Speed of Mastery English course.</p>
-                                    <div className="mt-8 flex items-center gap-4">
-                                        <Image src="https://storage.googleapis.com/project-108473853069.appspot.com/16a1a9a8-b79e-4a6c-9411-82e16d9a3b61" data-ai-hint="speed of mastery logo" alt="Speed of Mastery Logo" width={100} height={50} className="rounded-full" />
-                                        <div>
-                                            <p className="border-t border-foreground pt-1">Signature</p>
-                                        </div>
+                           <div className="relative w-full h-full flex flex-col items-center justify-center text-center p-8 text-foreground">
+                                <p className="text-xl">This certifies that</p>
+                                <h2 className="text-4xl font-bold text-primary my-4">{userName}</h2>
+                                <p className="text-xl">has successfully completed the Speed of Mastery English course.</p>
+                                <div className="mt-8 flex items-center gap-4">
+                                    <div className='w-[100px] h-[50px] bg-white rounded-full' data-ai-hint="speed of mastery logo"></div>
+                                    <div>
+                                        <p className="border-t border-foreground pt-1">Signature</p>
                                     </div>
                                 </div>
-                            ) : (
-                                <div className="relative z-10 text-center">
-                                    <h2 className="text-2xl font-bold text-white">شهادة معاينة</h2>
-                                    <p className="text-white/80">أكمل الاختبار النهائي لفتح شهادتك المخصصة.</p>
-                                </div>
-                            )}
+                            </div>
                         </>
                     )}
                 </div>

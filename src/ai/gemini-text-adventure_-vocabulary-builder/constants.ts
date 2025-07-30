@@ -1,1 +1,0 @@
-export const GAME_GENRES = ['fantasy', 'sci-fi', 'mystery', 'cyberpunk', 'steampunk', 'saudi-folklore'] as const;
