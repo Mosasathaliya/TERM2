@@ -59,7 +59,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { learningItems, type LearningItem } from '@/lib/lessons';
+import { learningItems } from '@/lib/lessons';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -186,7 +186,7 @@ function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
     return (
       <>
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
+            <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
                 <DialogHeader className="p-4 border-b shrink-0">
                     <DialogTitle>تعلم بالفيديو</DialogTitle>
                     <DialogDescription>شاهد هذه الفيديوهات التعليمية لتعزيز تعلمك.</DialogDescription>
@@ -213,10 +213,11 @@ function VideoLearnDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
                         ))}
                     </div>
                 </ScrollArea>
-                <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                        <X className="h-4 w-4" />
-                        <span className="sr-only">Close</span>
-                </DialogClose>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button variant="outline">Close</Button>
+                    </DialogClose>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
 
@@ -409,7 +410,7 @@ function MotivationDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
 function AiLessonsDialog({ isOpen, onOpenChange, onSelectLesson }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void, onSelectLesson: (lesson: AiLesson) => void }) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl h-[80vh] flex flex-col p-0">
+      <DialogContent className="max-w-3xl h-[80vh] flex flex-col">
         <DialogHeader className="p-4 border-b shrink-0">
           <DialogTitle>تعلم عن الذكاء الاصطناعي</DialogTitle>
           <DialogDescription>اختر موضوعًا لتبدأ التعلم.</DialogDescription>
@@ -524,12 +525,12 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
-        <DialogHeader className="p-4 border-b">
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+        <DialogHeader className="p-4 border-b flex-row items-center">
             <Button variant="ghost" size="icon" onClick={onBack}><ChevronLeft/></Button>
-            {lesson.title}
-          </DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+                {lesson.title}
+            </DialogTitle>
         </DialogHeader>
         <ScrollArea className="flex-grow">
           <div className="p-6">
@@ -746,9 +747,9 @@ function AiStoryMaker() {
                 </Button>
                  {!canGenerate && <p className="text-center text-sm text-destructive">You have reached the maximum of 3 stories.</p>}
             </div>
-            <div className="flex-grow p-4 pt-0 min-h-0">
+            <ScrollArea className="flex-grow p-4 pt-0 min-h-0">
                  {(loading || storyContent) && (
-                    <ScrollArea className="h-full rounded-lg border bg-muted/50 p-4">
+                    <div className="h-full rounded-lg border bg-muted/50 p-4">
                         {imageUrl && (
                              <div className="mb-4 border rounded-lg overflow-hidden">
                                 <Image
@@ -767,13 +768,9 @@ function AiStoryMaker() {
                             </div>
                         )}
                         <p className="whitespace-pre-wrap" dir="ltr">{storyContent}{loading && storyContent.length === 0 ? '...' : ''}</p>
-                    </ScrollArea>
+                    </div>
                 )}
-            </div>
-             <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-            </DialogClose>
+            </ScrollArea>
         </div>
     );
 }
@@ -788,7 +785,7 @@ function MyStoriesDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChan
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
           <DialogHeader className="p-4 border-b shrink-0">
             <DialogTitle>قصصي واختباراتي</DialogTitle>
             <DialogDescription>
@@ -836,11 +833,13 @@ function MyStoriesDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChan
           </ScrollArea>
         </DialogContent>
       </Dialog>
-      <StoryViewerDialog 
-        story={viewingStory} 
-        isOpen={!!viewingStory} 
-        onOpenChange={(open) => !open && setViewingStory(null)} 
-      />
+      {viewingStory && (
+          <StoryViewerDialog 
+            story={viewingStory} 
+            isOpen={!!viewingStory} 
+            onOpenChange={(open) => !open && setViewingStory(null)} 
+          />
+      )}
     </>
   );
 }
@@ -918,10 +917,16 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
             <DialogHeader className="p-4 border-b shrink-0">
                 <DialogTitle>{story.prompt}</DialogTitle>
             </DialogHeader>
+            <div className="flex border-b">
+                <Button variant={activeTab === 'story' ? 'secondary': 'ghost'} onClick={() => setActiveTab('story')} className="rounded-none flex-1">Story</Button>
+                <Button variant={activeTab === 'quiz' ? 'secondary': 'ghost'} onClick={handleStartQuiz} disabled={isLoadingQuiz} className="rounded-none flex-1">
+                    {isLoadingQuiz ? <Loader2 className="animate-spin" /> : 'Quiz'}
+                </Button>
+            </div>
             {activeTab === 'story' && (
                 <ScrollArea className="flex-grow">
                     <div className="p-6">
@@ -962,14 +967,12 @@ function StoryViewerDialog({ story, isOpen, onOpenChange }: { story: SavedStory 
                                 </div>
                             ))}
                         </div>
+                         <div className="mt-6 flex justify-end">
+                            {!isSubmitted && <Button onClick={handleSubmitQuiz} disabled={Object.keys(answers).length !== (quiz?.length || 0)}>إرسال الإجابات</Button>}
+                        </div>
                     </div>
                 </ScrollArea>
             )}
-            <DialogFooter className="p-4 border-t">
-                {activeTab === 'story' && <Button onClick={handleStartQuiz} disabled={isLoadingQuiz}>{isLoadingQuiz ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} خذ الاختبار</Button>}
-                {activeTab === 'quiz' && !isSubmitted && <Button onClick={handleSubmitQuiz} disabled={Object.keys(answers).length !== (quiz?.length || 0)}>إرسال الإجابات</Button>}
-                {activeTab === 'quiz' && isSubmitted && <Button variant="outline" onClick={() => setActiveTab('story')}>العودة للقصة</Button>}
-            </DialogFooter>
         </DialogContent>
     </Dialog>
   );
@@ -1075,31 +1078,31 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 
                 <DashboardCard title="مُنشئ المفردات" description="قم بتوسيع مفرداتك مع كلمات وتعريفات وأمثلة مولدة بالذكاء الاصطناعي."
                   icon={<GraduationCap className="h-8 w-8 text-primary" />} onClick={() => openDialog('lingoleap')}
-                  unlockThreshold={0} completedCount={completedItemsCount} />
+                  unlockThreshold={5} completedCount={completedItemsCount} />
 
                 <DashboardCard title="مغامرة جيمني" description="العب لعبة مغامرة نصية لتعلم المفردات في سياقها."
                   icon={<Gamepad2 className="h-8 w-8 text-accent" />} onClick={() => openDialog('adventure')}
-                  unlockThreshold={0} completedCount={completedItemsCount} />
+                  unlockThreshold={10} completedCount={completedItemsCount} />
                   
                 <DashboardCard title="صانع القصص" description="حوّل أفكارك إلى قصص قصيرة مصورة باللغة الإنجليزية."
                   icon={<Sparkles className="h-8 w-8 text-yellow-500" />} onClick={() => openDialog('storyMaker')}
-                  unlockThreshold={0} completedCount={completedItemsCount} />
+                  unlockThreshold={10} completedCount={completedItemsCount} />
 
                 <DashboardCard title="خبير الأزمنة" description="تحدث مع خبير الذكاء الاصطناعي لإتقان أزمنة اللغة الإنجليزية."
                   icon={<BookCheck className="h-8 w-8 text-destructive" />} onClick={() => openDialog('tenseTeacher')}
-                  unlockThreshold={0} completedCount={completedItemsCount} />
+                  unlockThreshold={10} completedCount={completedItemsCount} />
 
                 <DashboardCard title="لعبة الكلمات المبعثرة" description="أعد ترتيب الحروف لتكوين كلمات وحسّن مهاراتك الإملائية."
                   icon={<Puzzle className="h-8 w-8 text-secondary" />} onClick={() => openDialog('jumble')}
-                  unlockThreshold={0} completedCount={completedItemsCount} />
+                  unlockThreshold={10} completedCount={completedItemsCount} />
                 
                 <DashboardCard title="قصصي واختباراتي" description="اقرأ القصص التي أنشأتها واختبر فهمك."
                   icon={<NotebookText className="h-8 w-8 text-pink-500" />} onClick={() => openDialog('myStories')}
-                  unlockThreshold={0} completedCount={completedItemsCount} />
+                  unlockThreshold={10} completedCount={completedItemsCount} />
                 
                 <DashboardCard title="المساعد الصوتي" description="تدرب على المحادثة مع مساعد صوتي يعمل بالذكاء الاصطناعي."
                   icon={<Ear className="h-8 w-8 text-cyan-500" />} onClick={() => openDialog('voiceAssistant')}
-                  unlockThreshold={0} completedCount={completedItemsCount} />
+                  unlockThreshold={48} completedCount={completedItemsCount} />
             </div>
         </div>
 
@@ -1108,23 +1111,23 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <DashboardCard title="مواد تعليمية" description="تصفح مكتبة الدروس المنظمة حسب المستوى والموضوع."
                   icon={<Library className="h-8 w-8 text-green-500" />} onClick={() => openDialog('lessons')}
-                  unlockThreshold={0} completedCount={completedItemsCount} />
+                  unlockThreshold={25} completedCount={completedItemsCount} />
                 
                 <DashboardCard title="تعلم بالفيديو" description="شاهد فيديوهات يوتيوب تعليمية مباشرة داخل التطبيق."
                   icon={<Youtube className="h-8 w-8 text-red-600" />} onClick={() => openDialog('videoLearn')}
-                  unlockThreshold={0} completedCount={completedItemsCount} />
+                  unlockThreshold={25} completedCount={completedItemsCount} />
 
                 <DashboardCard title="ماذا لو...؟" description="استكشف سيناريوهات علمية رائعة مع شرح الذكاء الاصطناعي."
                   icon={<Brain className="h-8 w-8 text-purple-500" />} onClick={() => openDialog('whatIf')}
-                  unlockThreshold={0} completedCount={completedItemsCount} />
+                  unlockThreshold={25} completedCount={completedItemsCount} />
 
                 <DashboardCard title="جرعة تحفيز" description="فيديوهات قصيرة لإلهامك ومواصلة رحلتك التعليمية."
                   icon={<Flame className="h-8 w-8 text-orange-500" />} onClick={() => openDialog('motivation')}
-                  unlockThreshold={0} completedCount={completedItemsCount} />
+                  unlockThreshold={25} completedCount={completedItemsCount} />
                 
                 <DashboardCard title="تعلم عن الذكاء الاصطناعي" description="دروس مبسطة حول الذكاء الاصطناعي، مع شروحات صوتية باللغة العربية."
                   icon={<BrainCircuit className="h-8 w-8 text-teal-500" />} onClick={() => openDialog('aiLessons')}
-                  unlockThreshold={0} completedCount={completedItemsCount} />
+                  unlockThreshold={42} completedCount={completedItemsCount} />
             </div>
         </div>
 
@@ -1157,10 +1160,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             <div className="flex-grow min-h-0">
                 <LingoleapApp />
             </div>
-            <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-            </DialogClose>
+             <DialogClose asChild><Button type="button" variant="secondary" className="absolute top-2 right-2">Close</Button></DialogClose>
         </DialogContent>
     </Dialog>
      <Dialog open={dialogs.adventure} onOpenChange={(open) => !open && closeDialog('adventure')}>
@@ -1172,10 +1172,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             <div className="flex-grow h-full pt-[65px]">
                 <TextAdventureApp />
             </div>
-            <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-            </DialogClose>
+             <DialogClose asChild><Button type="button" variant="secondary" className="absolute top-2 right-2 z-20">Close</Button></DialogClose>
         </DialogContent>
     </Dialog>
      <Dialog open={dialogs.jumble} onOpenChange={(open) => !open && closeDialog('jumble')}>
@@ -1187,10 +1184,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
             <div className="flex-grow h-full pt-[65px]">
                 <MumbleJumbleApp />
             </div>
-            <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-            </DialogClose>
+             <DialogClose asChild><Button type="button" variant="secondary" className="absolute top-2 right-2 z-20">Close</Button></DialogClose>
         </DialogContent>
     </Dialog>
      <Dialog open={dialogs.tenseTeacher} onOpenChange={(open) => !open && closeDialog('tenseTeacher')}>
@@ -1200,28 +1194,24 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
                 <DialogDescription>A voice-based AI expert to help you master English tenses.</DialogDescription>
             </DialogHeader>
             <TenseTeacherApp />
-            <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-            </DialogClose>
+             <DialogClose asChild><Button type="button" variant="secondary" className="absolute top-2 right-2">Close</Button></DialogClose>
         </DialogContent>
     </Dialog>
     <Dialog open={dialogs.lessons} onOpenChange={(open) => !open && closeDialog('lessons')}>
-        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
+        <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
             <DialogHeader className="p-4 border-b shrink-0">
                 <DialogTitle>Extra Learning Materials</DialogTitle>
                 <DialogDescription>Browse our library of lessons.</DialogDescription>
             </DialogHeader>
             <LessonList />
-            <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-            </DialogClose>
+            <DialogFooter>
+                <DialogClose asChild><Button type="button" variant="secondary">Close</Button></DialogClose>
+            </DialogFooter>
         </DialogContent>
     </Dialog>
     
     <Dialog open={dialogs.storyMaker} onOpenChange={(open) => !open && closeDialog('storyMaker')}>
-      <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
+      <DialogContent className="max-w-2xl h-[80vh] flex flex-col">
           <AiStoryMaker />
       </DialogContent>
     </Dialog>
@@ -1244,10 +1234,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
               <DialogDescription>Practice conversation with a voice-based AI assistant.</DialogDescription>
           </DialogHeader>
           <ChatterbotApp />
-           <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20 text-white">
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-          </DialogClose>
+           <DialogClose asChild><Button type="button" variant="secondary" className="absolute top-2 right-2 z-20 text-white bg-black/30">Close</Button></DialogClose>
       </DialogContent>
     </Dialog>
 
@@ -1274,7 +1261,7 @@ export function BookScreen() {
 
     const allItemTitles = learningItems.map(item => item.title);
     const highestCompletedIndex = highestItemCompleted ? allItemTitles.indexOf(highestItemCompleted) : -1;
-    const allLessonsAndStoriesCompleted = true; // UNLOCK ALL FOR TESTING
+    const allLessonsAndStoriesCompleted = highestCompletedIndex >= learningItems.length - 1;
 
     const handleOpenQuiz = () => {
         setIsQuizOpen(true);
@@ -1287,7 +1274,7 @@ export function BookScreen() {
             <ScrollArea className="h-[calc(100vh-220px)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
                     {learningItems.map((item, i) => {
-                         const isLocked = false; // UNLOCK ALL FOR TESTING
+                         const isLocked = i > highestCompletedIndex + 1;
 
                         return (
                         <Card 
@@ -1373,10 +1360,6 @@ export function BookScreen() {
                         <DialogDescription>Test your knowledge with 20 questions from the library.</DialogDescription>
                     </DialogHeader>
                     <QuizScreen />
-                    <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-                        <X className="h-4 w-4" />
-                        <span className="sr-only">Close</span>
-                    </DialogClose>
                 </DialogContent>
             </Dialog>
         </section>
@@ -1448,7 +1431,7 @@ export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => v
 
             {/* Story Maker Dialog */}
             <Dialog open={isStoryMakerOpen} onOpenChange={setIsStoryMakerOpen}>
-                <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
+                <DialogContent className="max-w-2xl h-[80vh] flex flex-col">
                    <AiStoryMaker />
                 </DialogContent>
             </Dialog>
@@ -1461,10 +1444,7 @@ export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => v
                         <DialogDescription>Practice conversation with a voice-based AI assistant.</DialogDescription>
                     </DialogHeader>
                     <ChatterbotApp />
-                     <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-20 text-white">
-                        <X className="h-4 w-4" />
-                        <span className="sr-only">Close</span>
-                    </DialogClose>
+                     <DialogClose asChild><Button type="button" variant="secondary" className="absolute top-2 right-2 z-20 text-white bg-black/30">Close</Button></DialogClose>
                 </DialogContent>
             </Dialog>
         </section>
@@ -1474,7 +1454,6 @@ export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => v
 export function ProgressScreen() {
     const { completedItemsCount, finalExamPassed } = useProgressStore();
     const { stories } = useStoryStore();
-    const { quizResults } = useQuizStore();
     const [isCertificateOpen, setIsCertificateOpen] = useState(false);
     
     const chartData = [
@@ -1575,12 +1554,12 @@ export function ProgressScreen() {
         <CardHeader>
             <CardTitle as="h3" className="flex items-center gap-2"><Award className="text-accent" /> تهانينا!</CardTitle>
             <CardDescription>
-                {"أكمل جميع المتطلبات! قم بإنشاء شهادتك الآن."}
+                {finalExamPassed ? "لقد أكملت جميع المتطلبات! قم بإنشاء شهادتك الآن." : "أكمل الاختبار النهائي بنجاح لفتح شهادتك."}
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <Button className="w-full" onClick={() => setIsCertificateOpen(true)} disabled={false}>
-                 {"إنشاء شهادة"}
+            <Button className="w-full" onClick={() => setIsCertificateOpen(true)} disabled={!finalExamPassed}>
+                 {finalExamPassed ? "إنشاء شهادة" : "الشهادة مقفلة"}
             </Button>
         </CardContent>
       </Card>

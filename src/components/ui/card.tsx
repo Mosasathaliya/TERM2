@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils"
@@ -34,7 +35,7 @@ interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
 }
 
 const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
-  ({ className, as: Tag = 'div', ...props }, ref) => (
+  ({ className, as: Tag = 'h3', ...props }, ref) => (
     <Tag
       ref={ref}
       className={cn(
