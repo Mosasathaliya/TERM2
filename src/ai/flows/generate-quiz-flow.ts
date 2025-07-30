@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -7,10 +8,9 @@
  */
 
 import {ai} from '@/ai/genkit';
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import { GenerateQuizOutputSchema } from '@/types/quiz';
 import type { GenerateQuizOutput } from '@/types/quiz';
+import { learningItems } from '@/lib/lessons';
 
 const generateQuizFlow = ai.defineFlow(
   {
@@ -18,15 +18,21 @@ const generateQuizFlow = ai.defineFlow(
     outputSchema: GenerateQuizOutputSchema,
   },
   async () => {
-    // Read the explanation.txt file
-    const filePath = path.join(process.cwd(), 'explanation.txt');
-    const fileContent = await fs.readFile(filePath, 'utf-8');
+    // Consolidate all learning material into a single string.
+    const learningMaterial = learningItems.map(item => {
+        if (item.type === 'lesson') {
+            return `Title: ${item.title}\nExplanation: ${item.explanation}\nStory: ${item.story?.summary || ''}`;
+        } else {
+            return `Story: ${item.title}\nContent: ${item.content}`;
+        }
+    }).join('\n\n---\n\n');
+
 
     const prompt = `Based on the following English learning material, generate a quiz with exactly 20 unique multiple-choice questions. Each question must have 4 options, and you must clearly indicate the correct answer. The questions should cover the various grammar points, vocabulary, and concepts presented in the text. Ensure the questions are varied and test different aspects of the material.
 
 Here is the material:
 ---
-${fileContent}
+${learningMaterial}
 ---
 
 Your response MUST be a JSON object containing a 'questions' array with exactly 20 question objects.
