@@ -32,19 +32,23 @@ CardHeader.displayName = "CardHeader"
 
 interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
   as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'div';
+  asChild?: boolean;
 }
 
 const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
-  ({ className, as: Tag = 'h3', ...props }, ref) => (
-    <Tag
-      ref={ref}
-      className={cn(
-        "text-2xl font-semibold leading-none tracking-tight",
-        className
-      )}
-      {...props}
-    />
-  )
+  ({ className, as: Tag = 'div', asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : Tag;
+    return (
+        <Comp
+        ref={ref}
+        className={cn(
+            "text-2xl font-semibold leading-none tracking-tight",
+            className
+        )}
+        {...props}
+        />
+    )
+  }
 );
 CardTitle.displayName = "CardTitle"
 
