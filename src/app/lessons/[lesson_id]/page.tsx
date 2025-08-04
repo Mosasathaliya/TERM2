@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import LessonClientComponent from '@/components/lesson/LessonClientComponent';
 import { translateText } from '@/ai/flows/translate-flow';
+import { generateArabicExplanation } from '@/ai/flows/generate-lesson-content';
 
 interface LessonPageProps {
   params: {
@@ -28,15 +29,16 @@ async function getLessonData(lessonId: string): Promise<Lesson | null> {
 
   let lesson: Lesson = JSON.parse(JSON.stringify(baseLessonData)); // Deep copy
 
-  // Instead of generating content, we will translate the existing English content.
+  // Use the generative model to create a rich Arabic explanation,
+  // and the translation model for examples and notes.
   try {
     const [
-      translatedExplanation,
+      explanationResponse, // Generate explanation using the generative model
       translatedExamples,
       translatedNotes,
       translatedMistakes
     ] = await Promise.all([
-      translateText({ text: lesson.arabic_explanation, targetLanguage: 'ar', sourceLanguage: 'en' }), // Placeholder is in English
+      generateArabicExplanation({ grammarTopic: lesson.meta?.englishGrammarTopic || lesson.title, level: lesson.level }),
       Promise.all(lesson.examples.map(async (ex) => {
         const [translatedEnglish, translatedArabic] = await Promise.all([
           translateText({ text: ex.english, targetLanguage: 'ar', sourceLanguage: 'en' }),
@@ -52,18 +54,20 @@ async function getLessonData(lessonId: string): Promise<Lesson | null> {
       lesson.common_mistakes ? translateText({ text: lesson.common_mistakes, targetLanguage: 'ar', sourceLanguage: 'en' }) : Promise.resolve(null)
     ]);
     
-    lesson.arabic_explanation = translatedExplanation.translation;
+    // Assign the newly generated and translated content to the lesson object
+    lesson.arabic_explanation = explanationResponse.arabicExplanation;
     lesson.examples = translatedExamples;
     lesson.additional_notes_arabic = translatedNotes?.translation;
     lesson.common_mistakes_arabic = translatedMistakes?.translation;
 
   } catch (error) {
-    console.error("Failed to translate lesson content:", lessonId, error);
+    console.error("Failed to generate or translate lesson content:", lessonId, error);
     const topic = lesson.meta?.englishGrammarTopic || "this topic";
+    // Provide a more robust fallback message
     lesson.arabic_explanation = `عذرًا، لم نتمكن من تحميل الشرح التفصيلي لهذا الدرس (${topic}) في الوقت الحالي. يرجى المحاولة مرة أخرى لاحقًا.`;
     lesson.examples = [{ english: "Error loading examples.", arabic: "خطأ في تحميل الأمثلة." }];
-    lesson.additional_notes_arabic = "عذرا، لم نتمكن من تحميل الملاحظات الإضافية باللغة العربية حاليا.";
-    lesson.common_mistakes_arabic = "عذرا، لم نتمكن من تحميل الأخطاء الشائعة باللغة العربية حاليا.";
+    lesson.additional_notes_arabic = "عذرًا، لم نتمكن من تحميل الملاحظات الإضافية باللغة العربية حاليًا.";
+    lesson.common_mistakes_arabic = "عذرًا، لم نتمكن من تحميل الأخطاء الشائعة باللغة العربية حاليًا.";
   }
   
   return lesson;
