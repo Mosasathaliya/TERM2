@@ -11,7 +11,7 @@ import { generateVocabularyQuiz, type VocabularyQuizOutput } from "@/ai/flows/ge
 import { useToast } from "@/hooks/use-toast";
 import { BookOpenText, Lightbulb, Loader2, CheckCircle, XCircle, Award, RefreshCw } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "./ui/card";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
 import { Progress } from "./ui/progress";
@@ -103,7 +103,7 @@ export function LingoleapApp() {
         fetchAndSetNewWords(selectedCategory);
       });
     }
-  }, [wordQueue.length, isLoading, selectedCategory, fetchAndSetNewWords]);
+  }, [selectedCategory, fetchAndSetNewWords, isLoading, wordQueue.length]);
 
 
   const getNextWord = useCallback(() => {
@@ -268,7 +268,7 @@ export function LingoleapApp() {
                 size="lg"
                 className="bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md w-full"
               >
-                {(isLoading || isAiLoading) ? 'Loading...' : '🔄 Next Word'}
+                {(isLoading || isAiLoading) ? <Loader2 className="animate-spin" /> : '🔄 Next Word'}
               </Button>
                <div className="text-center text-muted-foreground">
                 <p>Word {wordsSinceQuiz} of {WORDS_PER_QUIZ}</p>
