@@ -4,6 +4,7 @@
  * @fileOverview Provides AI-powered feedback on user responses to interactive exercises,
  * referencing specific sections of the lesson material.
  */
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 export type ExerciseFeedbackInput = z.infer<typeof ExerciseFeedbackInputSchema>;
@@ -40,54 +41,47 @@ const ExerciseFeedbackOutputSchema = z.object({
   feedback: z.string().describe('AI-powered feedback on the user\'s answer, referencing specific sections of the lesson material. This feedback should be primarily in Arabic.'),
 });
 
-async function queryNVIDIA(data: any) {
-    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-    const response = await fetch(API_URL, {
-        headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
-            "Content-Type": "application/json"
-        },
-        method: "POST",
-        body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("NVIDIA API error:", errorText);
-        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
-    }
-    
-    const result = await response.json();
-    return result.choices[0]?.message?.content || "";
-}
-
-export async function getExerciseFeedback(input: ExerciseFeedbackInput): Promise<ExerciseFeedbackOutput> {
-    const exercise = input.lessonInteractiveExercises[0];
-    let prompt = `You are an AI-powered tutor providing feedback to students on their answers to language learning exercises.
+const feedbackPrompt = ai.definePrompt(
+  {
+    name: 'exerciseFeedbackPrompt',
+    input: { schema: ExerciseFeedbackInputSchema },
+    output: { schema: ExerciseFeedbackOutputSchema },
+    prompt: `You are an AI-powered tutor providing feedback to students on their answers to language learning exercises.
 Your primary language for feedback MUST be ARABIC. You can use English for specific grammar terms if necessary, but explanations and clarifications should be in Arabic.
 
-The student is currently working on a lesson titled "${input.lessonTitle}" on the topic of "${input.lessonTopic}" at the "${input.lessonLevel}" level.
-Here is the Arabic explanation of the lesson: "${input.lessonArabicExplanation}".
+The student is currently working on a lesson titled "{{lessonTitle}}" on the topic of "{{lessonTopic}}" at the "{{lessonLevel}}" level.
+Here is the Arabic explanation of the lesson: "{{lessonArabicExplanation}}".
 Here are some examples from the lesson:
-${input.lessonExamples.map(ex => `- English: "${ex.english}", Arabic: "${ex.arabic}"`).join('\n')}
-${input.lessonAdditionalNotesArabic ? `Here are additional notes in Arabic: "${input.lessonAdditionalNotesArabic}"` : ''}
-${input.lessonCommonMistakesArabic ? `Here are common mistakes in Arabic: "${input.lessonCommonMistakesArabic}"` : ''}
+{{#each lessonExamples}}- English: "{{english}}", Arabic: "{{arabic}}"
+{{/each}}
+{{#if lessonAdditionalNotesArabic}}Here are additional notes in Arabic: "{{lessonAdditionalNotesArabic}}"{{/if}}
+{{#if lessonCommonMistakesArabic}}Here are common mistakes in Arabic: "{{lessonCommonMistakesArabic}}"{{/if}}
 
 Now, consider the following interactive exercise and the student's answer:
-Question: "${exercise.question}"
-Correct Answer: "${exercise.correct_answer}"
-Student's Answer: "${exercise.user_answer}"
+Question: "{{lessonInteractiveExercises.[0].question}}"
+Correct Answer: "{{lessonInteractiveExercises.[0].correct_answer}}"
+Student's Answer: "{{lessonInteractiveExercises.[0].user_answer}}"
 
 Provide targeted feedback to the student IN ARABIC.
 If the student's answer is correct, congratulate them in Arabic and perhaps offer a small additional tip or encouragement in Arabic.
 If the student's answer is incorrect, explain IN ARABIC why it's incorrect, clarify the correct answer IN ARABIC, and reference specific sections of the lesson material (like the Arabic explanation or examples) to reinforce understanding. Be encouraging and helpful.
-Ensure your entire feedback is in Arabic. Your response should be ONLY the feedback text.`;
-    
-    const feedbackText = await queryNVIDIA({
-        model: "meta/llama-4-maverick-17b-128e-instruct",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 150,
-    });
-    
-    return { feedback: feedbackText };
+Ensure your entire feedback is in Arabic. Your response should be ONLY the feedback text.`,
   }
+);
+
+
+const exerciseFeedbackFlow = ai.defineFlow(
+  {
+    name: 'exerciseFeedbackFlow',
+    inputSchema: ExerciseFeedbackInputSchema,
+    outputSchema: ExerciseFeedbackOutputSchema,
+  },
+  async (input) => {
+    const { output } = await feedbackPrompt(input);
+    return output!;
+  }
+);
+
+export async function getExerciseFeedback(input: ExerciseFeedbackInput): Promise<ExerciseFeedbackOutput> {
+  return exerciseFeedbackFlow(input);
+}

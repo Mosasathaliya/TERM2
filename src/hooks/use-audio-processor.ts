@@ -1,4 +1,3 @@
-
 'use client';
 
 /**
@@ -10,7 +9,7 @@
 import { useState, useRef, useCallback } from 'react';
 
 // Define the supported audio MIME types
-type MimeType = 'audio/webm' | 'audio/ogg';
+type MimeType = 'audio/webm;codecs=opus' | 'audio/ogg';
 
 interface AudioProcessor {
   isRecording: boolean;
@@ -21,7 +20,7 @@ interface AudioProcessor {
 // Hook signature
 export function useAudioProcessor(
   onAudioData: (dataUri: string) => void,
-  mimeType: MimeType = 'audio/webm'
+  mimeType: MimeType = 'audio/webm;codecs=opus'
 ): AudioProcessor {
   const [isRecording, setIsRecording] = useState(false);
   // Refs to hold the media stream and recorder instances

@@ -1,4 +1,3 @@
-
 'use client';
 
 /**
@@ -10,10 +9,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-// The MMS TTS model from Hugging Face doesn't have named voices, so we simplify this.
 const VALID_VOICES = [
-  'default', // Arabic voice from facebook/mms-tts-ara
-  'algenib', 'antares', 'sirius', // Kept for compatibility but not used by the new TTS flow.
+  'Algenib', 'Antares', 'Sirius', 'Alnilam', 'Gacrux',
+  'Achernar', 'Achird', 'Algieba', 'Rasalgethi', 'Schedar', 'Vindemiatrix'
 ] as const;
 
 // Define the structure for a single AI agent
@@ -42,7 +40,7 @@ interface AgentState {
   setAudioLevel: (level: number) => void;
 }
 
-const STORAGE_VERSION = 2; // Increment this to force a state reset
+const STORAGE_VERSION = 3; // Increment this to force a state reset
 
 // Define the default list of agents
 const defaultAgents: Agent[] = [
@@ -50,19 +48,19 @@ const defaultAgents: Agent[] = [
     name: 'Botty',
     personality: 'The best teacher in English who listens to users and corrects them if they make mistakes or struggle to speak. It is very conversational and will bring topics to speak about.',
     bodyColor: '#9333ea', // purple-600
-    voice: 'default',
+    voice: 'Algenib',
   },
   {
     name: 'Captain Jack',
     personality: 'A witty and adventurous pirate captain with a love for treasure and a good joke.',
     bodyColor: '#ca8a04', // yellow-600
-    voice: 'default',
+    voice: 'Antares',
   },
   {
     name: 'Professor Axiom',
     personality: 'A brilliant, slightly eccentric professor of theoretical physics who explains things with elaborate analogies.',
     bodyColor: '#1d4ed8', // blue-700
-    voice: 'default',
+    voice: 'Sirius',
   },
 ];
 

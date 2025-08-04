@@ -4,7 +4,7 @@
  * @fileoverview Defines a consolidated pipeline for voice chat.
  * This flow handles speech-to-text, persona contextualization, and response generation.
  */
-
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 // Define a schema for a single chat message, which will be used for history
@@ -32,51 +32,57 @@ const VoiceChatOutputSchema = z.object({
 export type VoiceChatOutput = z.infer<typeof VoiceChatOutputSchema>;
 
 
-async function transcribeAudio(dataUri: string): Promise<string> {
-    const API_URL = "https://api-inference.huggingface.co/models/openai/whisper-large-v3";
-    const audioBlob = await (await fetch(dataUri)).blob();
-    const response = await fetch(API_URL, {
-        headers: { "Authorization": `Bearer ${process.env.NEXT_PUBLIC_HUGGING_FACE_API_KEY}` },
-        method: "POST",
-        body: audioBlob,
-    });
-    
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Hugging Face STT API error:", errorText);
-        throw new Error(`Hugging Face STT API request failed: ${response.statusText}`);
+const voiceChatPipelineFlow = ai.defineFlow(
+    {
+      name: 'voiceChatPipelineFlow',
+      inputSchema: VoiceChatInputSchema,
+      outputSchema: VoiceChatOutputSchema,
+    },
+    async (input) => {
+        const { audioDataUri, personality, userName, userInfo, history } = input;
+        
+        // Step 1: Transcribe audio to text
+        const sttResult = await ai.stt({
+            media: {
+                url: audioDataUri,
+            }
+        });
+        const transcribedText = sttResult.text;
+  
+        if (!transcribedText || !transcribedText.trim()) {
+            return { response: "", transcribedText: "" };
+        }
+
+        // Step 2: Construct the system prompt for the AI's persona
+        let systemPrompt = `You are an AI with the following personality: ${personality}.`;
+        if (userName) {
+            systemPrompt += ` Address the user as ${userName}.`;
+        }
+        if (userInfo) {
+            systemPrompt += ` Here is some information about the user you are talking to: ${userInfo}.`;
+        }
+        systemPrompt += ` Keep your responses concise and conversational.`
+
+        // Step 3: Generate the personalized response
+        const { output } = await ai.generate({
+            model: 'gemini-1.5-flash',
+            system: systemPrompt,
+            history: history.map(msg => ({...msg, content: [{text: msg.content}]})),
+            prompt: transcribedText,
+        });
+        const responseText = output as string;
+
+        if (!responseText) {
+            return { response: "I'm sorry, I don't have a response for that.", transcribedText: transcribedText };
+        }
+
+        return { 
+            response: responseText,
+            transcribedText: transcribedText,
+        };
     }
+);
 
-    const result = await response.json();
-    return result.text || "";
-}
-
-async function generateResponse(systemPrompt: string, history: Message[], newUserText: string): Promise<string> {
-    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
-    const conversation = history.map(msg => `${msg.role}: ${msg.content}`).join('\n');
-    const prompt = `${systemPrompt}\n\n${conversation}\nuser: ${newUserText}\nmodel:`;
-    
-    const response = await fetch(API_URL, {
-        headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_HUGGING_FACE_API_KEY}`,
-            "Content-Type": "application/json"
-        },
-        method: "POST",
-        body: JSON.stringify({
-            inputs: prompt,
-            parameters: { max_new_tokens: 100, return_full_text: false }
-        }),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Hugging Face text generation API error:", errorText);
-        throw new Error(`Hugging Face text generation API request failed: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    return result[0]?.generated_text || "I'm sorry, I don't have a response for that.";
-}
 
 /**
  * An exported async function that runs the voice chat pipeline.
@@ -87,34 +93,5 @@ async function generateResponse(systemPrompt: string, history: Message[], newUse
 export async function runVoiceChatPipeline(
   input: VoiceChatInput
 ): Promise<VoiceChatOutput> {
-  const { audioDataUri, personality, userName, userInfo, history } = input;
-
-  // Step 1: Transcribe audio to text
-  const transcribedText = await transcribeAudio(audioDataUri);
-
-  if (!transcribedText || !transcribedText.trim()) {
-    return { response: "", transcribedText: "" };
-  }
-  
-  // Step 2: Construct the system prompt for the AI's persona
-  let systemPrompt = `You are an AI with the following personality: ${personality}.`;
-  if (userName) {
-    systemPrompt += ` Address the user as ${userName}.`;
-  }
-  if (userInfo) {
-    systemPrompt += ` Here is some information about the user you are talking to: ${userInfo}.`;
-  }
-  systemPrompt += ` Keep your responses concise and conversational.`
-
-  // Step 3: Generate the personalized response
-  const responseText = await generateResponse(systemPrompt, history, transcribedText);
-  
-  if (!responseText) {
-    return { response: "I'm sorry, I don't have a response for that.", transcribedText: transcribedText };
-  }
-
-  return { 
-    response: responseText,
-    transcribedText: transcribedText,
-  };
+  return voiceChatPipelineFlow(input);
 }

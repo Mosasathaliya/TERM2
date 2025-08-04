@@ -2,7 +2,7 @@
 /**
  * @fileOverview Provides AI-powered tutoring assistance for specific lesson content.
  */
-
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 export type LessonTutorInput = z.infer<typeof LessonTutorInputSchema>;
@@ -29,56 +29,50 @@ const LessonTutorOutputSchema = z.object({
   aiTutorResponse: z.string().describe('The AI tutor\'s response to the student\'s question, in Arabic.'),
 });
 
-async function queryNVIDIA(data: any) {
-    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-    const response = await fetch(API_URL, {
-        headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
-            "Content-Type": "application/json"
-        },
-        method: "POST",
-        body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("NVIDIA API error:", errorText);
-        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
-    }
-    
-    const result = await response.json();
-    return result.choices[0]?.message?.content || "";
-}
-
-export async function getLessonTutorResponse(input: LessonTutorInput): Promise<LessonTutorOutput> {
-    let prompt = `You are a specialist AI English language tutor for Arabic-speaking students. 
+const lessonTutorPrompt = ai.definePrompt(
+    {
+      name: 'lessonTutorPrompt',
+      input: { schema: LessonTutorInputSchema },
+      output: { schema: LessonTutorOutputSchema },
+      prompt: `You are a specialist AI English language tutor for Arabic-speaking students. 
 Your entire response MUST be in Arabic.
 Your personality is encouraging and patient.
 
-The student is studying a lesson titled "${input.lessonTitle}" on the topic of "${input.lessonTopic}" at the "${input.lessonLevel}" level.
+The student is studying a lesson titled "{{lessonTitle}}" on the topic of "{{lessonTopic}}" at the "{{lessonLevel}}" level.
 
 Here is the core lesson material you must use to answer the question:
 ---
-Lesson Explanation (in Arabic): "${input.lessonArabicExplanation}"
+Lesson Explanation (in Arabic): "{{lessonArabicExplanation}}"
 ---
 Lesson Examples:
-${input.lessonExamples.map(ex => `- English: "${ex.english}", Arabic: "${ex.arabic}"`).join('\n')}
+{{#each lessonExamples}}- English: "{{english}}", Arabic: "{{arabic}}"
+{{/each}}
 ---
-${input.lessonAdditionalNotesArabic ? `Additional Notes (in Arabic): "${input.lessonAdditionalNotesArabic}"\n---` : ''}
-${input.lessonCommonMistakesArabic ? `Common Mistakes (in Arabic): "${input.lessonCommonMistakesArabic}"\n---` : ''}
+{{#if lessonAdditionalNotesArabic}}Additional Notes (in Arabic): "{{lessonAdditionalNotesArabic}}"\n---{{/if}}
+{{#if lessonCommonMistakesArabic}}Common Mistakes (in Arabic): "{{lessonCommonMistakesArabic}}"\n---{{/if}}
 
-The student's question is: "${input.studentQuestion}"
+The student's question is: "{{studentQuestion}}"
 
 Your task is to provide a clear, helpful, and concise answer to the student's question **in Arabic only**.
 Refer to the lesson material provided above (the explanation or examples) if it helps clarify your answer.
 If the student's question is unclear, politely ask for clarification in Arabic, but try to provide a helpful answer first if possible.
-Your response should be complete and ready to display directly to the student. Do not add any extra conversational text like "Here is the answer". Just provide the answer.`;
-    
-    const responseText = await queryNVIDIA({
-        model: "meta/llama-4-maverick-17b-128e-instruct",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 200,
-    });
-    
-    return { aiTutorResponse: responseText };
+Your response should be complete and ready to display directly to the student. Do not add any extra conversational text like "Here is the answer". Just provide the answer.`,
+    }
+  );
+
+const lessonTutorFlow = ai.defineFlow(
+  {
+    name: 'lessonTutorFlow',
+    inputSchema: LessonTutorInputSchema,
+    outputSchema: LessonTutorOutputSchema,
+  },
+  async (input) => {
+    const { output } = await lessonTutorPrompt(input);
+    return output!;
+  }
+);
+
+
+export async function getLessonTutorResponse(input: LessonTutorInput): Promise<LessonTutorOutput> {
+  return lessonTutorFlow(input);
 }

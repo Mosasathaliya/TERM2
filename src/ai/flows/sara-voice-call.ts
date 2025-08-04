@@ -3,7 +3,7 @@
 /**
  * @fileOverview Implements the Sara voice call flow.
  */
-
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const ConversationEntrySchema = z.object({
@@ -23,50 +23,36 @@ const SaraVoiceCallOutputSchema = z.object({
   explanation: z.string().describe('The explanation in Arabic, tailored to the user\'s proficiency.'),
 });
 
-async function queryNVIDIA(data: any) {
-    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-    const response = await fetch(API_URL, {
-        headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
-            "Content-Type": "application/json"
-        },
-        method: "POST",
-        body: JSON.stringify(data),
-    });
+const saraPrompt = ai.definePrompt(
+  {
+    name: 'saraPrompt',
+    input: { schema: SaraVoiceCallInputSchema },
+    output: { schema: SaraVoiceCallOutputSchema },
+    prompt: `You are Sara, a friendly and helpful female AI teacher from Speed of Mastery. Your specialty is explaining English grammar concepts in Arabic, tailored to the user's proficiency level. The user's proficiency is: "{{userLanguageProficiency}}".
+You MUST reply with only the explanation text, without any introductory phrases.
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("NVIDIA API error:", errorText);
-        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
-    }
+Conversation History:
+{{#each conversationHistory}}
+{{speaker}}: {{message}}
+{{/each}}
 
-    const result = await response.json();
-    return result.choices[0]?.message?.content || "";
-}
+New Question from User: {{englishGrammarConcept}}
+Sara's Explanation:`,
+  }
+);
+
+const saraVoiceCallFlow = ai.defineFlow(
+  {
+    name: 'saraVoiceCallFlow',
+    inputSchema: SaraVoiceCallInputSchema,
+    outputSchema: SaraVoiceCallOutputSchema,
+  },
+  async (input) => {
+    const { output } = await saraPrompt(input);
+    return output!;
+  }
+);
 
 export async function saraVoiceCall(input: SaraVoiceCallInput): Promise<SaraVoiceCallOutput> {
-  let systemPrompt = `You are Sara, a friendly and helpful female AI teacher from Speed of Mastery. Your specialty is explaining English grammar concepts in Arabic, tailored to the user's proficiency level. The user's proficiency is: "${input.userLanguageProficiency}".
-You MUST reply with only the explanation text, without any introductory phrases.`;
-
-  let messages = [
-      { role: 'system', content: systemPrompt }
-  ];
-
-  if (input.conversationHistory && input.conversationHistory.length > 0) {
-      messages.push(...input.conversationHistory.map(entry => ({
-          role: entry.speaker === 'User' ? 'user' : 'assistant',
-          content: entry.message
-      })));
-  }
-  
-  messages.push({ role: 'user', content: input.englishGrammarConcept });
-
-
-  const nvidiaResponse = await queryNVIDIA({
-    model: "meta/llama-4-maverick-17b-128e-instruct",
-    messages: messages,
-    max_tokens: 150
-  });
-
-  return { explanation: nvidiaResponse };
+  return saraVoiceCallFlow(input);
 }

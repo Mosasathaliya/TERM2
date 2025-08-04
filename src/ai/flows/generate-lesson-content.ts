@@ -2,7 +2,7 @@
 /**
  * @fileOverview Generates lesson content for English grammar topics targeted at Arabic-speaking students.
  */
-
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 export type GenerateLessonContentInput = z.infer<typeof GenerateLessonContentInputSchema>;
@@ -29,64 +29,37 @@ const GenerateLessonContentOutputSchema = z.object({
   commonMistakesInArabic: z.string().optional().describe('Common mistakes Arabic-speaking students make related to this grammar topic, explained entirely in Arabic with examples if appropriate. This should be a paragraph or two.'),
 });
 
+const generateLessonContentPrompt = ai.definePrompt({
+    name: 'generateLessonContentPrompt',
+    input: { schema: GenerateLessonContentInputSchema },
+    output: { schema: GenerateLessonContentOutputSchema },
+    prompt: `Generate educational content for an English grammar lesson for Arabic-speaking students.
+Lesson Title: "{{lessonTitle}}"
+Topic: "{{englishGrammarTopic}}"
+Level: "{{lessonLevel}}"
+Contextual English Notes: "{{englishAdditionalNotes}}"
+Contextual English Common Mistakes: "{{englishCommonMistakes}}"
 
-async function queryNVIDIA(data: any) {
-    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-    const response = await fetch(API_URL, {
-        headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
-            "Content-Type": "application/json"
-        },
-        method: "POST",
-        body: JSON.stringify(data),
-    });
+Provide the output as a single JSON object with the keys specified in the output schema: "arabicExplanation", "examples" (an array of {english, arabic} objects), "additionalNotesInArabic", "commonMistakesInArabic".`,
+});
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("NVIDIA API error:", errorText);
-        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
+const generateLessonContentFlow = ai.defineFlow(
+  {
+    name: 'generateLessonContentFlow',
+    inputSchema: GenerateLessonContentInputSchema,
+    outputSchema: GenerateLessonContentOutputSchema,
+  },
+  async (input) => {
+    const { output } = await generateLessonContentPrompt(input);
+    if (!output!.examples || output!.examples.length === 0) {
+        output!.examples = [{english: "Example placeholder.", arabic: "مثال مؤقت."}];
     }
-    const result = await response.json();
-    return result.choices[0]?.message?.content || "";
-}
-
+    return output!;
+  }
+);
 
 export async function generateLessonContent(
   input: GenerateLessonContentInput
 ): Promise<GenerateLessonContentOutput> {
-  const prompt = `Generate educational content for an English grammar lesson for Arabic-speaking students.
-Lesson Title: "${input.lessonTitle}"
-Topic: "${input.englishGrammarTopic}"
-Level: "${input.lessonLevel}"
-Contextual English Notes: "${input.englishAdditionalNotes}"
-Contextual English Common Mistakes: "${input.englishCommonMistakes}"
-
-Provide the output as a single JSON object with the following keys: "arabicExplanation", "examples" (an array of {english, arabic} objects), "additionalNotesInArabic", "commonMistakesInArabic".
-
-Here is the JSON object:
-`;
-
-  try {
-    const nvidiaResponse = await queryNVIDIA({
-        model: "meta/llama-4-maverick-17b-128e-instruct",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 500,
-    });
-    
-    const jsonString = nvidiaResponse.match(/\{[\s\S]*\}/)?.[0];
-    if (!jsonString) {
-        throw new Error("Failed to find a JSON object in the AI response.");
-    }
-    const output = JSON.parse(jsonString);
-
-    if (!output.examples || output.examples.length === 0) {
-        output.examples = [{english: "Example placeholder.", arabic: "مثال مؤقت."}];
-    }
-
-    return GenerateLessonContentOutputSchema.parse(output);
-
-  } catch (error) {
-    console.error("Failed to generate or parse lesson content:", error);
-    throw new Error("Failed to generate lesson content.");
-  }
+  return generateLessonContentFlow(input);
 }

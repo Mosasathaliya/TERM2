@@ -3,7 +3,7 @@
 /**
  * @fileOverview An AI agent for generating a quiz from a story's content.
  */
-
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 export type StoryQuizInput = z.infer<typeof StoryQuizInputSchema>;
@@ -22,57 +22,35 @@ const StoryQuizOutputSchema = z.object({
   questions: z.array(QuizQuestionSchema).length(5).describe('An array of exactly 5 quiz questions based on the story.'),
 });
 
-
-async function queryNVIDIA(data: any) {
-    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-    const response = await fetch(API_URL, {
-        headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
-            "Content-Type": "application/json"
-        },
-        method: "POST",
-        body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("NVIDIA API error:", errorText);
-        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    return result.choices[0]?.message?.content || "";
-}
-
-
-export async function generateStoryQuiz({ storyContent }: StoryQuizInput): Promise<StoryQuizOutput> {
-    const prompt = `Based on the following short story, generate a quiz with exactly 5 multiple-choice questions to test comprehension. Each question must have 4 options, and you must clearly indicate the correct answer. The questions should be about the plot, characters, or key details of the story.
+const storyQuizPrompt = ai.definePrompt(
+  {
+    name: 'storyQuizPrompt',
+    input: { schema: StoryQuizInputSchema },
+    output: { schema: StoryQuizOutputSchema },
+    prompt: `Based on the following short story, generate a quiz with exactly 5 multiple-choice questions to test comprehension. Each question must have 4 options, and you must clearly indicate the correct answer. The questions should be about the plot, characters, or key details of the story.
 
 Your output must be a single JSON object with a "questions" key, which holds an array of 5 question objects.
 
 Story:
 ---
-${storyContent}
----
+{{storyContent}}
+---`,
+  }
+);
 
-Here is the JSON object:
-`;
-    
-    const nvidiaResponse = await queryNVIDIA({
-        model: "meta/llama-4-maverick-17b-128e-instruct",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 500,
-    });
 
-    try {
-        const jsonString = nvidiaResponse.match(/\{[\s\S]*\}/)?.[0];
-        if (!jsonString) {
-            throw new Error("Failed to extract JSON from NVIDIA response.");
-        }
-        const output = JSON.parse(jsonString);
-        return StoryQuizOutputSchema.parse(output);
-    } catch (error) {
-        console.error("Failed to parse story quiz from NVIDIA response:", error);
-        throw new Error("Could not generate a valid story quiz.");
-    }
+const generateStoryQuizFlow = ai.defineFlow(
+  {
+    name: 'generateStoryQuizFlow',
+    inputSchema: StoryQuizInputSchema,
+    outputSchema: StoryQuizOutputSchema,
+  },
+  async ({ storyContent }) => {
+    const { output } = await storyQuizPrompt({ storyContent });
+    return output!;
+  }
+);
+
+export async function generateStoryQuiz({ storyContent }: StoryQuizInput): Promise<StoryQuizOutput> {
+  return generateStoryQuizFlow({ storyContent });
 }

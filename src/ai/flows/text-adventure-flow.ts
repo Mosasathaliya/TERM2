@@ -2,6 +2,7 @@
 /**
  * @fileOverview Flows for the text adventure game.
  */
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const getSystemInstruction = (genre: string, historyLength: number) => `You are a world-class interactive fiction author and game master. 
@@ -11,8 +12,7 @@ Your task is to create a dynamic, branching text adventure in the ${genre} genre
 3.  **Player Choice:** Always provide three distinct and interesting suggested actions for the player.
 4.  **Game State:** The story must be coherent and react logically to the player's choices. Keep track of the story's progression based on the history.
 5.  **Game Over:** If the player's action leads to a definitive end (e.g., player death, quest completion), set 'gameOver' to true.
-Your output must be a single JSON object with keys: "narrative", "newWord", "promptSuggestions", "gameOver".
-`;
+Your output must be a single JSON object with the keys specified in the output schema.`;
 
 const GameResponseSchema = z.object({
   narrative: z.string().describe("The main story text describing the current scene, events, and outcomes. Should be engaging and descriptive."),
@@ -28,62 +28,33 @@ const TextAdventureInputSchema = z.object({
   history: z.array(GameResponseSchema).optional(),
 });
 
-async function queryNVIDIA(data: any) {
-    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-    const response = await fetch(API_URL, {
-        headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
-            "Content-Type": "application/json"
+const textAdventureFlow = ai.defineFlow(
+  {
+    name: 'textAdventureFlow',
+    inputSchema: TextAdventureInputSchema,
+    outputSchema: GameResponseSchema,
+  },
+  async ({ action, genre, playerInput, history }) => {
+    const systemInstruction = getSystemInstruction(genre, history?.length || 0);
+
+    const historyMessages = (history || []).flatMap(h => [
+        { role: 'model' as const, content: [{ text: JSON.stringify({narrative: h.narrative, newWord: h.newWord, promptSuggestions: h.promptSuggestions, gameOver: h.gameOver}) }] },
+        { role: 'user' as const, content: [{ text: h.promptSuggestions?.[0] || 'Continue' }] }
+    ]);
+
+    const { output } = await ai.generate({
+        model: 'gemini-1.5-flash',
+        system: systemInstruction,
+        history: historyMessages,
+        prompt: action === 'start' ? "Start the adventure." : playerInput || "Continue the story.",
+        output: {
+            schema: GameResponseSchema,
         },
-        method: "POST",
-        body: JSON.stringify(data),
     });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("NVIDIA API error:", errorText);
-        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    return result.choices[0]?.message?.content || "";
-}
-
-export async function textAdventureFlow({ action, genre, playerInput, history }: z.infer<typeof TextAdventureInputSchema>): Promise<z.infer<typeof GameResponseSchema>> {
-    const systemPrompt = getSystemInstruction(genre, history?.length || 0);
-    const userPrompt = action === 'start' ? "Start the adventure." : playerInput || "Continue the story.";
-    
-    const messages = [
-        { role: 'system', content: systemPrompt },
-        ...(history || []).flatMap(h => [
-            { role: 'assistant', content: h.narrative },
-            { role: 'user', content: h.promptSuggestions?.[0] || 'Continue' }
-        ]),
-        { role: 'user', content: userPrompt }
-    ];
-    
-    const nvidiaResponse = await queryNVIDIA({
-        model: "meta/llama-4-maverick-17b-128e-instruct",
-        messages: messages,
-        max_tokens: 400,
-    });
-
-    try {
-        const jsonString = nvidiaResponse.match(/\{[\s\S]*\}/)?.[0];
-        if (!jsonString) {
-            throw new Error("Failed to extract JSON from NVIDIA response.");
-        }
-        const output = JSON.parse(jsonString);
-        return GameResponseSchema.parse(output);
-    } catch (error) {
-        console.error("Failed to parse text adventure response from NVIDIA:", error);
-        return {
-            narrative: "An unexpected error occurred in the story. Please try starting a new game.",
-            promptSuggestions: ["Start a new game"],
-            gameOver: true
-        };
-    }
-}
+    return output!;
+  }
+);
+export { textAdventureFlow };
 
 const DefineWordInputSchema = z.object({
   word: z.string(),
@@ -95,34 +66,27 @@ const DefineWordOutputSchema = z.object({
   arabicDefinition: z.string().describe("The Arabic translation of the definition."),
 });
 
-export async function defineWord({ word, genre }: z.infer<typeof DefineWordInputSchema>): Promise<z.infer<typeof DefineWordOutputSchema>> {
-    const prompt = `You are a creative linguist. For the fictional ${genre} word "${word}", provide a JSON object with:
-1.  A concise, dictionary-style definition in English (key: "definition").
-2.  A plausible Arabic translation for the word itself (key: "arabicWord").
-3.  A direct Arabic translation of the English definition (key: "arabicDefinition").
-
-Here is the JSON object:
-`;
-    const nvidiaResponse = await queryNVIDIA({
-        model: "meta/llama-4-maverick-17b-128e-instruct",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 100,
-    });
-
-    try {
-        const jsonString = nvidiaResponse.match(/\{[\s\S]*\}/)?.[0];
-        if (!jsonString) throw new Error("No JSON found in definition response");
-        const output = JSON.parse(jsonString);
-        return DefineWordOutputSchema.parse(output);
-    } catch (error) {
-        console.error("Failed to define word:", error);
-        return {
-            definition: "Definition not available.",
-            arabicWord: "غير متوفر",
-            arabicDefinition: "التعريف غير متوفر."
-        };
+const defineWordFlow = ai.defineFlow(
+    {
+        name: 'defineWordFlow',
+        inputSchema: DefineWordInputSchema,
+        outputSchema: DefineWordOutputSchema,
+    },
+    async ({ word, genre }) => {
+        const { output } = await ai.generate({
+            model: 'gemini-1.5-flash',
+            prompt: `You are a creative linguist. For the fictional ${genre} word "${word}", provide a JSON object with:
+1.  A concise, dictionary-style definition in English.
+2.  A plausible Arabic translation for the word itself.
+3.  A direct Arabic translation of the English definition.`,
+            output: {
+                schema: DefineWordOutputSchema,
+            },
+        });
+        return output!;
     }
-}
+);
+export { defineWordFlow as defineWord };
 
 
 const GenerateImageInputSchema = z.object({
@@ -134,34 +98,21 @@ const GenerateImageOutputSchema = z.object({
   imageUrl: z.string().describe("The generated image as a data URI."),
 });
 
-async function queryImageHuggingFace(data: any): Promise<Blob> {
-    const API_URL = "https://api-inference.huggingface.co/models/stabilityai/sdxl-turbo";
-    const response = await fetch(API_URL, {
-        headers: { "Authorization": `Bearer ${process.env.NEXT_PUBLIC_HUGGING_FACE_API_KEY}` },
-        method: "POST",
-        body: JSON.stringify(data),
-    });
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Hugging Face API error:", errorText);
-        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+const generateImageForWordFlow = ai.defineFlow(
+    {
+        name: 'generateImageForWordFlow',
+        inputSchema: GenerateImageInputSchema,
+        outputSchema: GenerateImageOutputSchema,
+    },
+    async ({ word, definition, genre }) => {
+        const { media } = await ai.generate({
+            model: 'googleai/gemini-2.0-flash-preview-image-generation',
+            prompt: `A vivid, atmospheric, digital painting of "${word}", a concept from a ${genre} world which means: "${definition}". Focus on creating an iconic, visually striking image. Avoid text and borders.`,
+            config: {
+                responseModalities: ['TEXT', 'IMAGE'],
+            },
+        });
+        return { imageUrl: media!.url };
     }
-    return response.blob();
-}
-
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
-export async function generateImageForWord({ word, definition, genre }: z.infer<typeof GenerateImageInputSchema>): Promise<z.infer<typeof GenerateImageOutputSchema>> {
-    const imageBlob = await queryImageHuggingFace({ 
-      inputs: `A vivid, atmospheric, digital painting of "${word}", a concept from a ${genre} world which means: "${definition}". Focus on creating an iconic, visually striking image. Avoid text and borders.` 
-    });
-    const imageUrl = await blobToBase64(imageBlob);
-    return { imageUrl };
-}
+);
+export { generateImageForWordFlow as generateImageForWord };

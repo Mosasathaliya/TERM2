@@ -3,7 +3,7 @@
 /**
  * @fileOverview An AI agent for generating a vocabulary quiz based on a list of words.
  */
-
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const WordSchema = z.object({
@@ -31,30 +31,12 @@ const VocabularyQuizOutputSchema = z.object({
 });
 export type VocabularyQuizOutput = z.infer<typeof VocabularyQuizOutputSchema>;
 
-async function queryNVIDIA(data: any) {
-    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-    const response = await fetch(API_URL, {
-        headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
-            "Content-Type": "application/json"
-        },
-        method: "POST",
-        body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("NVIDIA API error:", errorText);
-        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    return result.choices[0]?.message?.content || "";
-}
-
-
-export async function generateVocabularyQuiz({ words }: VocabularyQuizInput): Promise<VocabularyQuizOutput> {
-    const prompt = `You are a quiz master. Based on the following list of vocabulary words, create a quiz with exactly 5 multiple-choice questions.
+const vocabQuizPrompt = ai.definePrompt(
+  {
+    name: 'vocabQuizPrompt',
+    input: { schema: VocabularyQuizInputSchema },
+    output: { schema: VocabularyQuizOutputSchema },
+    prompt: `You are a quiz master. Based on the following list of vocabulary words, create a quiz with exactly 5 multiple-choice questions.
 
 Each question should test the user's knowledge of one of the words. The question should be a definition or a synonym phrase.
 The options should be four English words, one of which is the correct answer. The correct answer must be one of the words from the provided list. The other three options should be plausible but incorrect distractors.
@@ -62,26 +44,25 @@ The options should be four English words, one of which is the correct answer. Th
 Your output must be a single JSON object with a "questions" key, which holds an array of 5 question objects.
 
 Word List:
-${words.map(w => `- ${w.english}: ${w.definition}`).join('\n')}
+{{#each words}}- {{english}}: {{definition}}
+{{/each}}
+`,
+  }
+);
 
-Here is the JSON object:
-`;
 
-    const nvidiaResponse = await queryNVIDIA({
-        model: "meta/llama-4-maverick-17b-128e-instruct",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 500,
-    });
+const generateVocabularyQuizFlow = ai.defineFlow(
+  {
+    name: 'generateVocabularyQuizFlow',
+    inputSchema: VocabularyQuizInputSchema,
+    outputSchema: VocabularyQuizOutputSchema,
+  },
+  async ({ words }) => {
+    const { output } = await vocabQuizPrompt({ words });
+    return output!;
+  }
+);
 
-    try {
-        const jsonString = nvidiaResponse.match(/\{[\s\S]*\}/)?.[0];
-        if (!jsonString) {
-            throw new Error("Failed to extract JSON from NVIDIA response.");
-        }
-        const output = JSON.parse(jsonString);
-        return VocabularyQuizOutputSchema.parse(output);
-    } catch (error) {
-        console.error("Failed to parse vocabulary quiz from NVIDIA response:", error);
-        throw new Error("Could not generate a valid vocabulary quiz.");
-    }
+export async function generateVocabularyQuiz({ words }: VocabularyQuizInput): Promise<VocabularyQuizOutput> {
+  return generateVocabularyQuizFlow({ words });
 }

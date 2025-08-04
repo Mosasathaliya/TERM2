@@ -3,6 +3,7 @@
 /**
  * @fileOverview This flow allows users to call Ahmed, an AI teacher specializing in Arabic explanations of English grammar.
  */
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const ConversationEntrySchema = z.object({
@@ -21,51 +22,38 @@ const AhmedVoiceCallOutputSchema = z.object({
   explanation: z.string().describe("The explanation in Arabic."),
 });
 
-async function queryNVIDIA(data: any) {
-    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-    const response = await fetch(API_URL, {
-        headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
-            "Content-Type": "application/json"
-        },
-        method: "POST",
-        body: JSON.stringify(data),
-    });
+const ahmedPrompt = ai.definePrompt(
+    {
+      name: 'ahmedPrompt',
+      input: { schema: AhmedVoiceCallInputSchema },
+      output: { schema: AhmedVoiceCallOutputSchema },
+      prompt: `You are Ahmed, an AI teacher from Speed of Mastery. You are a friendly and helpful male expert specializing in explaining English grammar concepts in Arabic.
+Your goal is to provide clear, simple explanations with useful examples. Always address the user directly.
+You MUST reply with only the explanation text, without any introductory phrases like "Here is the explanation:".
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("NVIDIA API error:", errorText);
-        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
+Conversation History:
+{{#each conversationHistory}}
+{{speaker}}: {{message}}
+{{/each}}
+
+New Question from User: {{englishGrammarConcept}}
+Ahmed's Explanation:`,
     }
+  );
 
-    const result = await response.json();
-    return result.choices[0]?.message?.content || "";
-}
+const ahmedVoiceCallFlow = ai.defineFlow(
+  {
+    name: 'ahmedVoiceCallFlow',
+    inputSchema: AhmedVoiceCallInputSchema,
+    outputSchema: AhmedVoiceCallOutputSchema,
+  },
+  async (input) => {
+    const { output } = await ahmedPrompt(input);
+    return output!;
+  }
+);
+
 
 export async function ahmedVoiceCall(input: AhmedVoiceCallInput): Promise<AhmedVoiceCallOutput> {
-  
-  let systemPrompt = `You are Ahmed, an AI teacher from Speed of Mastery. You are a friendly and helpful male expert specializing in explaining English grammar concepts in Arabic.
-Your goal is to provide clear, simple explanations with useful examples. Always address the user directly.
-You MUST reply with only the explanation text, without any introductory phrases like "Here is the explanation:".`;
-
-  let messages = [
-      { role: 'system', content: systemPrompt }
-  ];
-
-  if (input.conversationHistory && input.conversationHistory.length > 0) {
-      messages.push(...input.conversationHistory.map(entry => ({
-          role: entry.speaker === 'User' ? 'user' : 'assistant',
-          content: entry.message
-      })));
-  }
-  
-  messages.push({ role: 'user', content: input.englishGrammarConcept });
-
-  const nvidiaResponse = await queryNVIDIA({
-    model: "meta/llama-4-maverick-17b-128e-instruct",
-    messages: messages,
-    max_tokens: 150
-  });
-
-  return { explanation: nvidiaResponse };
+  return ahmedVoiceCallFlow(input);
 }
