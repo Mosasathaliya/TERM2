@@ -16,11 +16,11 @@ const ExplainVideoOutputSchema = z.object({
   analogy: z.string().describe('An analogy or simple comparison to help understand the topic, in Arabic.'),
 });
 
-async function queryHuggingFace(data: any) {
-    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
+async function queryNVIDIA(data: any) {
+    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
     const response = await fetch(API_URL, {
         headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_HUGGING_FACE_API_KEY}`,
+            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
             "Content-Type": "application/json"
         },
         method: "POST",
@@ -29,12 +29,12 @@ async function queryHuggingFace(data: any) {
     
     if (!response.ok) {
         const errorText = await response.text();
-        console.error("Hugging Face API error:", errorText);
-        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+        console.error("NVIDIA API error:", errorText);
+        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
     }
 
     const result = await response.json();
-    return result[0]?.generated_text || "";
+    return result.choices[0]?.message?.content || "";
 }
 
 
@@ -43,26 +43,30 @@ export async function explainVideoTopic({ videoTitle }: ExplainVideoInput): Prom
 
 Your task is to provide three distinct types of explanations for the main topic of this video, all in simple, clear Arabic.
 
-1.  **Summary (summary)**: Provide a concise, one-paragraph summary of the video's main idea.
-2.  **Key Concepts (keyConcepts)**: List and briefly explain 2-3 key scientific or theoretical concepts discussed in the video.
-3.  **Analogy (analogy)**: Create a simple analogy or comparison to a more familiar concept to help a beginner understand the core idea.
+The output must be a single, valid JSON object with three keys:
+1. "summary": A concise, one-paragraph summary of the video's main idea.
+2. "keyConcepts": A list and brief explanation of 2-3 key scientific or theoretical concepts discussed in the video.
+3. "analogy": A simple analogy or comparison to a more familiar concept to help a beginner understand the core idea.
 
-The output should be a JSON object with keys "summary", "keyConcepts", and "analogy".
+The entire response must be only the JSON object, with no other text before or after it.
 
 Here is the JSON object:`;
     
-    const hfResponse = await queryHuggingFace({
-      inputs: prompt,
-      parameters: { max_new_tokens: 300, return_full_text: false }
+    const nvidiaResponse = await queryNVIDIA({
+        model: "meta/llama-4-maverick-17b-128e-instruct",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 300
     });
 
     try {
-        // Since gpt2 doesn't do structured output well, we do our best to parse it
-        const cleanedResponse = hfResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+        const cleanedResponse = nvidiaResponse.match(/\{[\s\S]*\}/)?.[0];
+        if (!cleanedResponse) {
+            throw new Error("No JSON object found in the response.");
+        }
         const output = JSON.parse(cleanedResponse);
         return ExplainVideoOutputSchema.parse(output);
     } catch (error) {
-        console.error("Failed to parse Hugging Face response as JSON:", error);
+        console.error("Failed to parse NVIDIA response as JSON:", error);
         // Fallback for non-JSON response
         return {
             summary: "شرح غير متوفر حاليًا.",

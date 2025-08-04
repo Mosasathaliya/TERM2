@@ -30,11 +30,11 @@ const GenerateLessonContentOutputSchema = z.object({
 });
 
 
-async function queryHuggingFace(data: any) {
-    const API_URL = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
+async function queryNVIDIA(data: any) {
+    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
     const response = await fetch(API_URL, {
         headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_HUGGING_FACE_API_KEY}`,
+            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
             "Content-Type": "application/json"
         },
         method: "POST",
@@ -43,10 +43,11 @@ async function queryHuggingFace(data: any) {
 
     if (!response.ok) {
         const errorText = await response.text();
-        console.error("Hugging Face API error:", errorText);
-        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+        console.error("NVIDIA API error:", errorText);
+        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
     }
-    return response.json();
+    const result = await response.json();
+    return result.choices[0]?.message?.content || "";
 }
 
 
@@ -66,12 +67,13 @@ Here is the JSON object:
 `;
 
   try {
-    const hfResponse = await queryHuggingFace({
-      inputs: prompt,
-      parameters: { max_new_tokens: 500, return_full_text: false }
+    const nvidiaResponse = await queryNVIDIA({
+        model: "meta/llama-4-maverick-17b-128e-instruct",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 500,
     });
     
-    const jsonString = hfResponse[0]?.generated_text.match(/\{[\s\S]*\}/)?.[0];
+    const jsonString = nvidiaResponse.match(/\{[\s\S]*\}/)?.[0];
     if (!jsonString) {
         throw new Error("Failed to find a JSON object in the AI response.");
     }

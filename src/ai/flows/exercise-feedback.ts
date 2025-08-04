@@ -40,11 +40,11 @@ const ExerciseFeedbackOutputSchema = z.object({
   feedback: z.string().describe('AI-powered feedback on the user\'s answer, referencing specific sections of the lesson material. This feedback should be primarily in Arabic.'),
 });
 
-async function queryHuggingFace(data: any) {
-    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
+async function queryNVIDIA(data: any) {
+    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
     const response = await fetch(API_URL, {
         headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_HUGGING_FACE_API_KEY}`,
+            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
             "Content-Type": "application/json"
         },
         method: "POST",
@@ -53,12 +53,12 @@ async function queryHuggingFace(data: any) {
 
     if (!response.ok) {
         const errorText = await response.text();
-        console.error("Hugging Face API error:", errorText);
-        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+        console.error("NVIDIA API error:", errorText);
+        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
     }
     
     const result = await response.json();
-    return result[0]?.generated_text || "";
+    return result.choices[0]?.message?.content || "";
 }
 
 export async function getExerciseFeedback(input: ExerciseFeedbackInput): Promise<ExerciseFeedbackOutput> {
@@ -83,9 +83,10 @@ If the student's answer is correct, congratulate them in Arabic and perhaps offe
 If the student's answer is incorrect, explain IN ARABIC why it's incorrect, clarify the correct answer IN ARABIC, and reference specific sections of the lesson material (like the Arabic explanation or examples) to reinforce understanding. Be encouraging and helpful.
 Ensure your entire feedback is in Arabic. Your response should be ONLY the feedback text.`;
     
-    const feedbackText = await queryHuggingFace({
-      inputs: prompt,
-      parameters: { max_new_tokens: 150, return_full_text: false }
+    const feedbackText = await queryNVIDIA({
+        model: "meta/llama-4-maverick-17b-128e-instruct",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 150,
     });
     
     return { feedback: feedbackText };

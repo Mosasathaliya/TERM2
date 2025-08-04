@@ -28,11 +28,11 @@ const TextAdventureInputSchema = z.object({
   history: z.array(GameResponseSchema).optional(),
 });
 
-async function queryHuggingFace(data: any) {
-    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
+async function queryNVIDIA(data: any) {
+    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
     const response = await fetch(API_URL, {
         headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_HUGGING_FACE_API_KEY}`,
+            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
             "Content-Type": "application/json"
         },
         method: "POST",
@@ -41,36 +41,42 @@ async function queryHuggingFace(data: any) {
 
     if (!response.ok) {
         const errorText = await response.text();
-        console.error("Hugging Face API error:", errorText);
-        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+        console.error("NVIDIA API error:", errorText);
+        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
     }
 
     const result = await response.json();
-    return result[0]?.generated_text || "";
+    return result.choices[0]?.message?.content || "";
 }
 
 export async function textAdventureFlow({ action, genre, playerInput, history }: z.infer<typeof TextAdventureInputSchema>): Promise<z.infer<typeof GameResponseSchema>> {
     const systemPrompt = getSystemInstruction(genre, history?.length || 0);
     const userPrompt = action === 'start' ? "Start the adventure." : playerInput || "Continue the story.";
     
-    const historyText = (history || []).map(h => `Story: ${h.narrative}\nPlayer action: ${h.promptSuggestions?.[0] || "Continue"}`).join('\n\n');
+    const messages = [
+        { role: 'system', content: systemPrompt },
+        ...(history || []).flatMap(h => [
+            { role: 'assistant', content: h.narrative },
+            { role: 'user', content: h.promptSuggestions?.[0] || 'Continue' }
+        ]),
+        { role: 'user', content: userPrompt }
+    ];
     
-    const fullPrompt = `${systemPrompt}\n\n${historyText}\nPlayer action: ${userPrompt}\n\nHere is the JSON object:\n`;
-    
-    const hfResponse = await queryHuggingFace({
-      inputs: fullPrompt,
-      parameters: { max_new_tokens: 400, return_full_text: false }
+    const nvidiaResponse = await queryNVIDIA({
+        model: "meta/llama-4-maverick-17b-128e-instruct",
+        messages: messages,
+        max_tokens: 400,
     });
 
     try {
-        const jsonString = hfResponse.match(/\{[\s\S]*\}/)?.[0];
+        const jsonString = nvidiaResponse.match(/\{[\s\S]*\}/)?.[0];
         if (!jsonString) {
-            throw new Error("Failed to extract JSON from Hugging Face response.");
+            throw new Error("Failed to extract JSON from NVIDIA response.");
         }
         const output = JSON.parse(jsonString);
         return GameResponseSchema.parse(output);
     } catch (error) {
-        console.error("Failed to parse text adventure response from Hugging Face:", error);
+        console.error("Failed to parse text adventure response from NVIDIA:", error);
         return {
             narrative: "An unexpected error occurred in the story. Please try starting a new game.",
             promptSuggestions: ["Start a new game"],
@@ -97,13 +103,14 @@ export async function defineWord({ word, genre }: z.infer<typeof DefineWordInput
 
 Here is the JSON object:
 `;
-    const hfResponse = await queryHuggingFace({
-      inputs: prompt,
-      parameters: { max_new_tokens: 100, return_full_text: false }
+    const nvidiaResponse = await queryNVIDIA({
+        model: "meta/llama-4-maverick-17b-128e-instruct",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 100,
     });
 
     try {
-        const jsonString = hfResponse.match(/\{[\s\S]*\}/)?.[0];
+        const jsonString = nvidiaResponse.match(/\{[\s\S]*\}/)?.[0];
         if (!jsonString) throw new Error("No JSON found in definition response");
         const output = JSON.parse(jsonString);
         return DefineWordOutputSchema.parse(output);

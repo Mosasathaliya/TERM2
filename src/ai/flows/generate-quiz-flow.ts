@@ -8,11 +8,11 @@ import type { GenerateQuizOutput } from '@/types/quiz';
 import { learningItems } from '@/lib/lessons';
 import { GenerateQuizOutputSchema } from '@/types/quiz';
 
-async function queryHuggingFace(data: any) {
-    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
+async function queryNVIDIA(data: any) {
+    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
     const response = await fetch(API_URL, {
         headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_HUGGING_FACE_API_KEY}`,
+            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
             "Content-Type": "application/json"
         },
         method: "POST",
@@ -21,12 +21,12 @@ async function queryHuggingFace(data: any) {
 
     if (!response.ok) {
         const errorText = await response.text();
-        console.error("Hugging Face API error:", errorText);
-        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+        console.error("NVIDIA API error:", errorText);
+        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
     }
 
     const result = await response.json();
-    return result[0]?.generated_text || "";
+    return result.choices[0]?.message?.content || "";
 }
 
 
@@ -51,20 +51,21 @@ ${learningMaterial}
 Here is the JSON object:
 `;
     
-    const hfResponse = await queryHuggingFace({
-      inputs: prompt,
-      parameters: { max_new_tokens: 2048, return_full_text: false }
+    const nvidiaResponse = await queryNVIDIA({
+        model: "meta/llama-4-maverick-17b-128e-instruct",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 2048,
     });
 
     try {
-        const jsonString = hfResponse.match(/\{[\s\S]*\}/)?.[0];
+        const jsonString = nvidiaResponse.match(/\{[\s\S]*\}/)?.[0];
         if (!jsonString) {
-            throw new Error("Failed to extract JSON from Hugging Face response.");
+            throw new Error("Failed to extract JSON from NVIDIA response.");
         }
         const output = JSON.parse(jsonString);
         return GenerateQuizOutputSchema.parse(output);
     } catch (error) {
-        console.error("Failed to parse quiz from Hugging Face response:", error);
+        console.error("Failed to parse quiz from NVIDIA response:", error);
         throw new Error("Could not generate a valid quiz.");
     }
 }

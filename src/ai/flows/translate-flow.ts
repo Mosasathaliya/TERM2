@@ -15,11 +15,11 @@ const TranslateOutputSchema = z.object({
     translation: z.string().describe('The translated text.'),
 });
 
-async function queryHuggingFace(data: any) {
-    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
+async function queryNVIDIA(data: any) {
+    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
     const response = await fetch(API_URL, {
         headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_HUGGING_FACE_API_KEY}`,
+            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
             "Content-Type": "application/json"
         },
         method: "POST",
@@ -28,21 +28,22 @@ async function queryHuggingFace(data: any) {
 
     if (!response.ok) {
         const errorText = await response.text();
-        console.error("Hugging Face API error:", errorText);
-        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+        console.error("NVIDIA API error:", errorText);
+        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
     }
 
     const result = await response.json();
-    return result[0]?.generated_text || "";
+    return result.choices[0]?.message?.content || "";
 }
 
 // Export a wrapper function to be called from client-side components.
 export async function translateText({ text, targetLanguage }: TranslateInput): Promise<TranslateOutput> {
     const prompt = `Translate the following English text to ${targetLanguage}. Do not add any extra commentary or quotation marks, just provide the direct translation.\n\nEnglish Text: "${text}"\n\n${targetLanguage} Translation:`;
     
-    const translation = await queryHuggingFace({
-      inputs: prompt,
-      parameters: { max_new_tokens: 50, return_full_text: false }
+    const translation = await queryNVIDIA({
+        model: "meta/llama-4-maverick-17b-128e-instruct",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 150,
     });
     
     return { translation: translation.trim() };

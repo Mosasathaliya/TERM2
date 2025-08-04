@@ -29,11 +29,11 @@ const LessonTutorOutputSchema = z.object({
   aiTutorResponse: z.string().describe('The AI tutor\'s response to the student\'s question, in Arabic.'),
 });
 
-async function queryHuggingFace(data: any) {
-    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
+async function queryNVIDIA(data: any) {
+    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
     const response = await fetch(API_URL, {
         headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_HUGGING_FACE_API_KEY}`,
+            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
             "Content-Type": "application/json"
         },
         method: "POST",
@@ -42,12 +42,12 @@ async function queryHuggingFace(data: any) {
 
     if (!response.ok) {
         const errorText = await response.text();
-        console.error("Hugging Face API error:", errorText);
-        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+        console.error("NVIDIA API error:", errorText);
+        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
     }
     
     const result = await response.json();
-    return result[0]?.generated_text || "";
+    return result.choices[0]?.message?.content || "";
 }
 
 export async function getLessonTutorResponse(input: LessonTutorInput): Promise<LessonTutorOutput> {
@@ -74,9 +74,10 @@ Refer to the lesson material provided above (the explanation or examples) if it 
 If the student's question is unclear, politely ask for clarification in Arabic, but try to provide a helpful answer first if possible.
 Your response should be complete and ready to display directly to the student. Do not add any extra conversational text like "Here is the answer". Just provide the answer.`;
     
-    const responseText = await queryHuggingFace({
-      inputs: prompt,
-      parameters: { max_new_tokens: 200, return_full_text: false }
+    const responseText = await queryNVIDIA({
+        model: "meta/llama-4-maverick-17b-128e-instruct",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 200,
     });
     
     return { aiTutorResponse: responseText };

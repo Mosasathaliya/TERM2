@@ -24,11 +24,11 @@ const ExpertChatOutputSchema = z.object({
 export type ExpertChatOutput = z.infer<typeof ExpertChatOutputSchema>;
 
 
-async function queryHuggingFace(data: any) {
-    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
+async function queryNVIDIA(data: any) {
+    const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
     const response = await fetch(API_URL, {
         headers: {
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_HUGGING_FACE_API_KEY}`,
+            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_NVIDIA_API_KEY}`,
             "Content-Type": "application/json"
         },
         method: "POST",
@@ -37,12 +37,12 @@ async function queryHuggingFace(data: any) {
     
     if (!response.ok) {
         const errorText = await response.text();
-        console.error("Hugging Face API error:", errorText);
-        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+        console.error("NVIDIA API error:", errorText);
+        throw new Error(`NVIDIA API request failed: ${response.statusText}`);
     }
 
     const result = await response.json();
-    return result[0]?.generated_text || "";
+    return result.choices[0]?.message?.content || "";
 }
 
 export async function expertChat(input: ExpertChatInput): Promise<ExpertChatOutput> {
@@ -53,12 +53,16 @@ export async function expertChat(input: ExpertChatInput): Promise<ExpertChatOutp
     Answer the user's questions based on this topic. Be friendly, clear, and concise. Use the provided conversation history to understand the context of the user's new question.
     Keep your answers in Arabic unless the user asks for something in English.`;
 
-    const conversation = history.map(msg => `${msg.role}: ${msg.content}`).join('\n');
-    const fullPrompt = `${systemPrompt}\n\n${conversation}\nuser: ${question}\nmodel:`;
+    const messages = [
+        { role: 'system', content: systemPrompt },
+        ...history.map(msg => ({ role: msg.role, content: msg.content })),
+        { role: 'user', content: question }
+    ];
 
-    const answer = await queryHuggingFace({
-        inputs: fullPrompt,
-        parameters: { max_new_tokens: 150, return_full_text: false }
+    const answer = await queryNVIDIA({
+        model: "meta/llama-4-maverick-17b-128e-instruct",
+        messages: messages,
+        max_tokens: 150
     });
 
     return { answer };
