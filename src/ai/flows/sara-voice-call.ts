@@ -8,7 +8,7 @@
 import { z } from 'zod';
 
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
-const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta";
+const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/microsoft/Phi-3-vision-128k-instruct";
 
 const ConversationEntrySchema = z.object({
   speaker: z.enum(['User', 'Sara']),

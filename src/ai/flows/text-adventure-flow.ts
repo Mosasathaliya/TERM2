@@ -6,7 +6,7 @@
 import { z } from 'zod';
 
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
-const TEXT_MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta";
+const TEXT_MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/microsoft/Phi-3-vision-128k-instruct";
 const IMAGE_MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/stabilityai/sdxl-turbo";
 
 // Helper for querying the text model
