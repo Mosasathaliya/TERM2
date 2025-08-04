@@ -9,6 +9,26 @@ const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
 const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
 
+function isBalanced(str: string) {
+    const stack = [];
+    const map: Record<string, string> = {
+        '(': ')',
+        '[': ']',
+        '{': '}'
+    };
+    for (let i = 0; i < str.length; i++) {
+        const char = str[i];
+        if (map[char]) {
+            stack.push(char);
+        } else if (Object.values(map).includes(char)) {
+            if (map[stack.pop()!] !== char) {
+                return false;
+            }
+        }
+    }
+    return stack.length === 0;
+}
+
 async function queryCloudflare(messages: { role: string; content: string }[], isJsonMode: boolean = false): Promise<any> {
     const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
     
@@ -35,9 +55,12 @@ async function queryCloudflare(messages: { role: string; content: string }[], is
         const jsonStart = responseText.indexOf('{');
         const jsonEnd = responseText.lastIndexOf('}');
         if (jsonStart !== -1 && jsonEnd !== -1) {
-            return JSON.parse(responseText.substring(jsonStart, jsonEnd + 1));
+            const jsonString = responseText.substring(jsonStart, jsonEnd + 1);
+             if (isBalanced(jsonString)) {
+                return JSON.parse(jsonString);
+             }
         }
-        throw new Error("No valid JSON object found in response");
+        throw new Error("Incomplete or invalid JSON object found in response");
       } catch (e) {
         console.error("Failed to parse JSON from Cloudflare AI:", jsonResponse.result.response, e);
         throw new Error("Failed to parse JSON from AI response.");
@@ -81,9 +104,18 @@ const textAdventureFlow = async ({ action, genre, playerInput, history }: z.infe
         ...historyMessages,
         { role: 'user', content: userPrompt }
     ];
-
-    const output = await queryCloudflare(messages, true);
-    return GameResponseSchema.parse(output);
+    
+    try {
+        const output = await queryCloudflare(messages, true);
+        return GameResponseSchema.parse(output);
+    } catch(e) {
+        console.error("Error in textAdventureFlow:", e);
+        return {
+            narrative: "The connection to the story world flickers and dies. An error has occurred. Please try starting a new adventure.",
+            promptSuggestions: ["Restart"],
+            gameOver: true
+        };
+    }
 };
 export { textAdventureFlow };
 
@@ -105,8 +137,18 @@ const defineWordFlow = async ({ word, genre }: z.infer<typeof DefineWordInputSch
 Your output must be ONLY the JSON object.`;
     
     const messages = [{role: 'user', content: prompt}];
-    const output = await queryCloudflare(messages, true);
-    return DefineWordOutputSchema.parse(output);
+
+    try {
+        const output = await queryCloudflare(messages, true);
+        return DefineWordOutputSchema.parse(output);
+    } catch (e) {
+         console.error("Error in defineWordFlow:", e);
+         return {
+            definition: "Could not retrieve definition.",
+            arabicWord: "فشل",
+            arabicDefinition: "تعذر استرداد التعريف."
+         };
+    }
 };
 export { defineWordFlow as defineWord };
 

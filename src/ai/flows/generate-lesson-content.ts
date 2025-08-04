@@ -9,6 +9,26 @@ const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
 const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
 
+function isBalanced(str: string) {
+    const stack = [];
+    const map: Record<string, string> = {
+        '(': ')',
+        '[': ']',
+        '{': '}'
+    };
+    for (let i = 0; i < str.length; i++) {
+        const char = str[i];
+        if (map[char]) {
+            stack.push(char);
+        } else if (Object.values(map).includes(char)) {
+            if (map[stack.pop()!] !== char) {
+                return false;
+            }
+        }
+    }
+    return stack.length === 0;
+}
+
 async function queryCloudflare(prompt: string): Promise<any> {
     const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
     
@@ -44,9 +64,12 @@ async function queryCloudflare(prompt: string): Promise<any> {
       const jsonStart = responseText.indexOf('{');
       const jsonEnd = responseText.lastIndexOf('}');
       if (jsonStart !== -1 && jsonEnd !== -1) {
-          return JSON.parse(responseText.substring(jsonStart, jsonEnd + 1));
+          const jsonString = responseText.substring(jsonStart, jsonEnd + 1);
+          if (isBalanced(jsonString)) {
+            return JSON.parse(jsonString);
+          }
       }
-      throw new Error("No valid JSON object found in response");
+      throw new Error("Incomplete or invalid JSON object found in response");
     } catch (e) {
       console.error("Failed to parse JSON from Cloudflare AI:", jsonResponse.result.response, e);
       throw new Error("Failed to parse JSON from AI response.");
@@ -90,12 +113,22 @@ Contextual English Notes: "${input.englishAdditionalNotes}"
 Contextual English Common Mistakes: "${input.englishCommonMistakes}"
 
 Provide the output as a single JSON object with the keys specified in the output schema: "arabicExplanation", "examples" (an array of {english, arabic} objects), "additionalNotesInArabic", "commonMistakesInArabic".`;
+    
+    try {
+      const output = await queryCloudflare(prompt);
 
-  const output = await queryCloudflare(prompt);
+      if (!output.examples || output.examples.length === 0) {
+          output.examples = [{english: "Example placeholder.", arabic: "مثال مؤقت."}];
+      }
 
-  if (!output.examples || output.examples.length === 0) {
-      output.examples = [{english: "Example placeholder.", arabic: "مثال مؤقت."}];
-  }
-
-  return GenerateLessonContentOutputSchema.parse(output);
+      return GenerateLessonContentOutputSchema.parse(output);
+    } catch (error) {
+        console.error("Error in generateLessonContent, returning fallback content:", error);
+        return {
+            arabicExplanation: `عذرًا، حدث خطأ أثناء إنشاء شرح الدرس. يرجى المحاولة مرة أخرى لاحقًا.`,
+            examples: [{ english: "Error generating example.", arabic: "خطأ في إنشاء المثال." }],
+            additionalNotesInArabic: "خطأ في إنشاء الملاحظات الإضافية.",
+            commonMistakesInArabic: "خطأ في إنشاء الأخطاء الشائعة."
+        }
+    }
 }

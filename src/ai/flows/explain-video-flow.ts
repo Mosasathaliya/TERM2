@@ -9,6 +9,27 @@ const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
 const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
 
+function isBalanced(str: string) {
+    const stack = [];
+    const map: Record<string, string> = {
+        '(': ')',
+        '[': ']',
+        '{': '}'
+    };
+    for (let i = 0; i < str.length; i++) {
+        const char = str[i];
+        if (map[char]) {
+            stack.push(char);
+        } else if (Object.values(map).includes(char)) {
+            if (map[stack.pop()!] !== char) {
+                return false;
+            }
+        }
+    }
+    return stack.length === 0;
+}
+
+
 async function queryCloudflare(prompt: string): Promise<any> {
     const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
     
@@ -44,9 +65,12 @@ async function queryCloudflare(prompt: string): Promise<any> {
         const jsonStart = responseText.indexOf('{');
         const jsonEnd = responseText.lastIndexOf('}');
         if (jsonStart !== -1 && jsonEnd !== -1) {
-            return JSON.parse(responseText.substring(jsonStart, jsonEnd + 1));
+            const jsonString = responseText.substring(jsonStart, jsonEnd + 1);
+            if (isBalanced(jsonString)) {
+               return JSON.parse(jsonString);
+            }
         }
-        throw new Error("No valid JSON object found in response");
+        throw new Error("Incomplete or invalid JSON object found in response");
       } catch (e) {
         console.error("Failed to parse JSON from Cloudflare AI:", jsonResponse.result.response, e);
         throw new Error("Failed to parse JSON from AI response.");
@@ -78,6 +102,15 @@ The output must be a single, valid JSON object with three keys as described in t
 
 The entire response must be only the JSON object, with no other text before or after it.`;
 
-    const output = await queryCloudflare(prompt);
-    return ExplainVideoOutputSchema.parse(output);
+    try {
+        const output = await queryCloudflare(prompt);
+        return ExplainVideoOutputSchema.parse(output);
+    } catch (error) {
+        console.error("Error in explainVideoTopic:", error);
+        return {
+            summary: "عذرًا، لم نتمكن من إنشاء ملخص الآن. يرجى المحاولة مرة أخرى.",
+            keyConcepts: "عذرًا، لم نتمكن من إنشاء المفاهيم الرئيسية الآن. يرجى المحاولة مرة أخرى.",
+            analogy: "عذرًا، لم نتمكن من إنشاء تشبيه الآن. يرجى المحاولة مرة أخرى."
+        };
+    }
 }
