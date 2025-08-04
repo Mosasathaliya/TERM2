@@ -341,7 +341,7 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
       setTranslation({ word: cleanedWord, text: 'جاري الترجمة...', isLoading: true });
 
       try {
-        const result = await translateText({ text: cleanedWord, targetLanguage: 'Arabic' });
+        const result = await translateText({ text: cleanedWord, targetLanguage: 'ar' });
         setTranslation({ word: cleanedWord, text: result.translation, isLoading: false });
       } catch (error) {
         console.error('Translation error:', error);
@@ -507,7 +507,7 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
     if (!item || item.type !== 'lesson' || translatedExplanation) return;
     setIsTranslating(true);
     try {
-      const result = await translateText({ text: item.explanation, targetLanguage: 'Arabic' });
+      const result = await translateText({ text: item.explanation, targetLanguage: 'ar' });
       setTranslatedExplanation(result.translation);
     } catch (error) {
       console.error("Translation error:", error);

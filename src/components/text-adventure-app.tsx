@@ -123,12 +123,12 @@ export function TextAdventureApp() {
     if (!cleanedWord) return;
 
     // Pronounce the word
-    textToSpeech(cleanedWord).catch(err => console.error("TTS error:", err));
+    textToSpeech({text: cleanedWord}).catch(err => console.error("TTS error:", err));
 
     // Translate the word
     setTranslation({ word: word, text: 'جاري الترجمة...', isLoading: true });
     try {
-        const result = await translateText({ text: cleanedWord, targetLanguage: 'Arabic' });
+        const result = await translateText({ text: cleanedWord, targetLanguage: 'ar' });
         setTranslation({ word: word, text: result.translation, isLoading: false });
     } catch (error) {
         console.error('Translation error:', error);

@@ -492,7 +492,7 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
     setIsExplaining(true);
     setExplanation(null);
     try {
-      const response = await translateText({ text: lesson.content, targetLanguage: 'Arabic' });
+      const response = await translateText({ text: lesson.content, targetLanguage: 'ar' });
       setExplanation(response.translation);
       await handlePlayAudio(response.translation, 'explanation');
     } catch (err) {
