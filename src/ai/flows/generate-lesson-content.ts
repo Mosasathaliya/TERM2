@@ -7,7 +7,7 @@
 import { z } from 'zod';
 
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
-const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
+const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta";
 
 const GenerateLessonContentInputSchema = z.object({
   lessonTitle: z.string().describe('The title of the lesson (e.g., "Present Simple Tense").'),
