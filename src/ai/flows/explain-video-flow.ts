@@ -1,9 +1,7 @@
-
 'use server';
 /**
  * @fileOverview A flow to generate explanations for a YouTube video topic.
  */
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 export type ExplainVideoInput = z.infer<typeof ExplainVideoInputSchema>;
@@ -18,17 +16,30 @@ const ExplainVideoOutputSchema = z.object({
   analogy: z.string().describe('An analogy or simple comparison to help understand the topic, in Arabic.'),
 });
 
-export const explainVideoTopic = ai.defineFlow(
-  {
-    name: 'explainVideoTopic',
-    inputSchema: ExplainVideoInputSchema,
-    outputSchema: ExplainVideoOutputSchema,
-  },
-  async ({ videoTitle }) => {
-    const { output } = await ai.generate({
-      model: 'gemini-1.5-flash',
-      output: { schema: ExplainVideoOutputSchema },
-      prompt: `You are an expert science communicator for an Arabic-speaking audience. The user is watching a YouTube video from the 'What If' series titled: "${videoTitle}".
+async function queryHuggingFace(data: any) {
+    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
+    const response = await fetch(API_URL, {
+        headers: {
+            "Authorization": `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
+            "Content-Type": "application/json"
+        },
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face API error:", errorText);
+        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return result[0]?.generated_text || "";
+}
+
+
+export async function explainVideoTopic({ videoTitle }: ExplainVideoInput): Promise<ExplainVideoOutput> {
+    const prompt = `You are an expert science communicator for an Arabic-speaking audience. The user is watching a YouTube video from the 'What If' series titled: "${videoTitle}".
 
 Your task is to provide three distinct types of explanations for the main topic of this video, all in simple, clear Arabic.
 
@@ -36,8 +47,27 @@ Your task is to provide three distinct types of explanations for the main topic 
 2.  **Key Concepts (keyConcepts)**: List and briefly explain 2-3 key scientific or theoretical concepts discussed in the video.
 3.  **Analogy (analogy)**: Create a simple analogy or comparison to a more familiar concept to help a beginner understand the core idea.
 
-Ensure all three explanations are in simple Arabic and are easy to understand.`,
+The output should be a JSON object with keys "summary", "keyConcepts", and "analogy".
+
+Here is the JSON object:`;
+    
+    const hfResponse = await queryHuggingFace({
+      inputs: prompt,
+      parameters: { max_new_tokens: 300, return_full_text: false }
     });
-    return output!;
-  }
-);
+
+    try {
+        // Since gpt2 doesn't do structured output well, we do our best to parse it
+        const cleanedResponse = hfResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+        const output = JSON.parse(cleanedResponse);
+        return ExplainVideoOutputSchema.parse(output);
+    } catch (error) {
+        console.error("Failed to parse Hugging Face response as JSON:", error);
+        // Fallback for non-JSON response
+        return {
+            summary: "شرح غير متوفر حاليًا.",
+            keyConcepts: "شرح غير متوفر حاليًا.",
+            analogy: "شرح غير متوفر حاليًا.",
+        };
+    }
+}

@@ -1,13 +1,10 @@
-
 'use server';
 /**
  * @fileOverview A simple conversational flow.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-
-const SystemPromptSchema = z.string().optional();
+import { streamToAsyncIterable } from '@/lib/utils';
 
 // Define the schema for the flow's input
 const ChatInputSchema = z.object({
@@ -17,34 +14,51 @@ const ChatInputSchema = z.object({
       content: z.string(),
     })
   ),
-  systemPrompt: SystemPromptSchema,
+  systemPrompt: z.string().optional(),
 });
 
-// A streamable flow that takes a history and a system prompt and returns a stream of the AI's response.
-export const chatStream = ai.defineFlow(
-  {
-    name: 'chatStream',
-    inputSchema: ChatInputSchema,
-    outputSchema: z.string(),
-    stream: true,
-  },
-  async ({ history, systemPrompt }, streamingCallback) => {
-    // Construct a system prompt if provided.
-    const system = systemPrompt
-      ? {
-          content: systemPrompt,
-          role: 'system' as const,
-        }
-      : undefined;
+async function queryHuggingFace(data: any) {
+    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
+    const response = await fetch(API_URL, {
+        headers: {
+            "Authorization": `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
+            "Content-Type": "application/json"
+        },
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face API error:", errorText);
+        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+    }
 
-    const { stream, response } = await ai.generate({
-      model: 'gemini-1.5-flash',
-      history: system ? [system, ...history] : history,
-      stream: streamingCallback,
+    return response;
+}
+
+// A streamable flow that takes a history and a system prompt and returns a stream of the AI's response.
+export async function chatStream(prompt: string): Promise<ReadableStream<Uint8Array>> {
+    const hfResponse = await queryHuggingFace({
+        inputs: prompt,
+        parameters: { max_new_tokens: 250, return_full_text: false }
     });
 
-    // Wait for the response to be fully processed, then extract the final text.
-    const result = await response;
-    return result.text;
-  }
-);
+    if (!hfResponse.body) {
+        throw new Error("The response body is null.");
+    }
+    
+    // For non-streaming models, we need to adapt the response.
+    // The gpt2 endpoint does not stream. We'll return the full response as a single chunk.
+    const result = await hfResponse.json();
+    const text = result[0]?.generated_text || "";
+
+    const stream = new ReadableStream({
+        start(controller) {
+            controller.enqueue(new TextEncoder().encode(text));
+            controller.close();
+        }
+    });
+
+    return stream;
+}

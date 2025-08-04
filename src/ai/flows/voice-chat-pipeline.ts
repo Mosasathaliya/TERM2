@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -6,8 +5,6 @@
  * This flow handles speech-to-text, persona contextualization, and response generation.
  */
 
-import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 
 // Define a schema for a single chat message, which will be used for history
@@ -36,22 +33,49 @@ export type VoiceChatOutput = z.infer<typeof VoiceChatOutputSchema>;
 
 
 async function transcribeAudio(dataUri: string): Promise<string> {
-    const { text } = await ai.stt({
-        model: googleAI.model('gemini-1.5-flash'),
-        media: {
-            url: dataUri,
-        },
+    const API_URL = "https://api-inference.huggingface.co/models/openai/whisper-large-v3";
+    const audioBlob = await (await fetch(dataUri)).blob();
+    const response = await fetch(API_URL, {
+        headers: { "Authorization": `Bearer ${process.env.HUGGING_FACE_API_KEY}` },
+        method: "POST",
+        body: audioBlob,
     });
-    return text;
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face STT API error:", errorText);
+        throw new Error(`Hugging Face STT API request failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return result.text || "";
 }
 
 async function generateResponse(systemPrompt: string, history: Message[], newUserText: string): Promise<string> {
-  const { response } = await ai.generate({
-    model: 'gemini-1.5-flash',
-    system: systemPrompt,
-    history: [...history, { role: 'user', content: newUserText }],
-  });
-  return response.text;
+    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
+    const conversation = history.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+    const prompt = `${systemPrompt}\n\n${conversation}\nuser: ${newUserText}\nmodel:`;
+    
+    const response = await fetch(API_URL, {
+        headers: {
+            "Authorization": `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
+            "Content-Type": "application/json"
+        },
+        method: "POST",
+        body: JSON.stringify({
+            inputs: prompt,
+            parameters: { max_new_tokens: 100, return_full_text: false }
+        }),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face text generation API error:", errorText);
+        throw new Error(`Hugging Face text generation API request failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return result[0]?.generated_text || "I'm sorry, I don't have a response for that.";
 }
 
 /**

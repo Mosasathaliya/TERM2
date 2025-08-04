@@ -1,12 +1,9 @@
-
 'use server';
 /**
  * @fileOverview Provides AI-powered tutoring assistance for specific lesson content.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import type { LessonExample } from '@/types/lesson';
 
 export type LessonTutorInput = z.infer<typeof LessonTutorInputSchema>;
 const LessonTutorInputSchema = z.object({
@@ -32,14 +29,28 @@ const LessonTutorOutputSchema = z.object({
   aiTutorResponse: z.string().describe('The AI tutor\'s response to the student\'s question, in Arabic.'),
 });
 
+async function queryHuggingFace(data: any) {
+    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
+    const response = await fetch(API_URL, {
+        headers: {
+            "Authorization": `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
+            "Content-Type": "application/json"
+        },
+        method: "POST",
+        body: JSON.stringify(data),
+    });
 
-export const getLessonTutorResponse = ai.defineFlow(
-  {
-    name: 'getLessonTutorResponse',
-    inputSchema: LessonTutorInputSchema,
-    outputSchema: LessonTutorOutputSchema,
-  },
-  async (input) => {
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face API error:", errorText);
+        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+    }
+    
+    const result = await response.json();
+    return result[0]?.generated_text || "";
+}
+
+export async function getLessonTutorResponse(input: LessonTutorInput): Promise<LessonTutorOutput> {
     let prompt = `You are a specialist AI English language tutor for Arabic-speaking students. 
 Your entire response MUST be in Arabic.
 Your personality is encouraging and patient.
@@ -63,11 +74,10 @@ Refer to the lesson material provided above (the explanation or examples) if it 
 If the student's question is unclear, politely ask for clarification in Arabic, but try to provide a helpful answer first if possible.
 Your response should be complete and ready to display directly to the student. Do not add any extra conversational text like "Here is the answer". Just provide the answer.`;
     
-    const { response } = await ai.generate({
-      model: 'gemini-1.5-flash',
-      prompt,
+    const responseText = await queryHuggingFace({
+      inputs: prompt,
+      parameters: { max_new_tokens: 200, return_full_text: false }
     });
     
-    return { aiTutorResponse: response.text };
-  }
-);
+    return { aiTutorResponse: responseText };
+}

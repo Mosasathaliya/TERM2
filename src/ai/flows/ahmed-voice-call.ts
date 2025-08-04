@@ -1,11 +1,8 @@
-
 'use server';
 
 /**
  * @fileOverview This flow allows users to call Ahmed, an AI teacher specializing in Arabic explanations of English grammar.
  */
-
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const ConversationEntrySchema = z.object({
@@ -24,6 +21,28 @@ const AhmedVoiceCallOutputSchema = z.object({
   explanation: z.string().describe("The explanation in Arabic."),
 });
 
+async function queryHuggingFace(data: any) {
+    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
+    const response = await fetch(API_URL, {
+        headers: {
+            "Authorization": `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
+            "Content-Type": "application/json"
+        },
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face API error:", errorText);
+        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    // Extract the generated text from the result, which may be nested.
+    return result[0]?.generated_text || "";
+}
+
 export async function ahmedVoiceCall(input: AhmedVoiceCallInput): Promise<AhmedVoiceCallOutput> {
   
   let systemPrompt = `You are Ahmed, an AI teacher from Speed of Mastery. You are a friendly and helpful male expert specializing in explaining English grammar concepts in Arabic.
@@ -36,16 +55,13 @@ You MUST reply with only the explanation text, without any introductory phrases 
       systemPrompt += `\n\nThe user is starting a new conversation. Provide a clear and simple explanation of the concept they ask about in Arabic. Use simple English sentences with Arabic translations as examples.`;
   }
   
-  const history = input.conversationHistory.map(entry => ({
-      role: entry.speaker === 'User' ? 'user' : 'model',
-      content: entry.message
-  }));
+  const conversation = input.conversationHistory.map(entry => `${entry.speaker}: ${entry.message}`).join('\n');
+  const fullPrompt = `${systemPrompt}\n\n${conversation}\nUser: ${input.englishGrammarConcept}\nAhmed:`;
 
-  const { response } = await ai.generate({
-      model: 'gemini-1.5-flash',
-      system: systemPrompt,
-      history: [...history, { role: 'user', content: input.englishGrammarConcept }],
+  const hfResponse = await queryHuggingFace({
+    inputs: fullPrompt,
+    parameters: { max_new_tokens: 150, return_full_text: false }
   });
 
-  return { explanation: response.text };
+  return { explanation: hfResponse };
 }

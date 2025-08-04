@@ -1,10 +1,8 @@
-
 'use server';
 /**
  * @fileOverview Generates lesson content for English grammar topics targeted at Arabic-speaking students.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 export type GenerateLessonContentInput = z.infer<typeof GenerateLessonContentInputSchema>;
@@ -32,36 +30,61 @@ const GenerateLessonContentOutputSchema = z.object({
 });
 
 
-export const generateLessonContent = ai.defineFlow(
-  {
-    name: 'generateLessonContent',
-    inputSchema: GenerateLessonContentInputSchema,
-    outputSchema: GenerateLessonContentOutputSchema,
-  },
-  async (input) => {
-    let prompt = `You are an expert English language professor creating educational content for Arabic-speaking students.
-Your task is to generate the content for a lesson titled "${input.lessonTitle}" focusing on the English grammar topic: "${input.englishGrammarTopic}".
-The target students are at the "${input.lessonLevel}" proficiency level.
+async function queryHuggingFace(data: any) {
+    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
+    const response = await fetch(API_URL, {
+        headers: {
+            "Authorization": `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
+            "Content-Type": "application/json"
+        },
+        method: "POST",
+        body: JSON.stringify(data),
+    });
 
-Please provide the following:
-1.  **Arabic Explanation (arabicExplanation)**: A clear, detailed, and comprehensive explanation of "${input.englishGrammarTopic}". This explanation MUST be entirely in Arabic. It should be easy for a ${input.lessonLevel} Arabic-speaking student to understand. Cover the main rules, usage contexts, and any important nuances.
-2.  **Examples (examples)**: Provide 3 to 5 distinct English example sentences that clearly illustrate the "${input.englishGrammarTopic}". For each English example, also provide its accurate Arabic translation. Ensure each object in the array has 'english' and 'arabic' fields.
-3.  **Additional Notes in Arabic (additionalNotesInArabic)**: Provide helpful additional notes or tips related to the "${input.englishGrammarTopic}". These notes MUST be entirely in Arabic and should be concise and easy for a ${input.lessonLevel} student to understand.
-${input.englishAdditionalNotes ? `When generating these Arabic additional notes, please also consider these points which were noted in English: "${input.englishAdditionalNotes}". Ensure your Arabic notes are comprehensive and cover these aspects if relevant, in addition to other important tips.` : ''}
-4.  **Common Mistakes in Arabic (commonMistakesInArabic)**: Describe common mistakes that Arabic-speaking students often make when learning or using "${input.englishGrammarTopic}". This explanation MUST be entirely in Arabic. Include examples of mistakes and their corrections if possible.
-${input.englishCommonMistakes ? `When generating these Arabic common mistakes, please also consider these points which were noted in English: "${input.englishCommonMistakes}". Ensure your Arabic explanation of common mistakes covers these aspects if relevant, in addition to other common errors.` : ''}
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face API error:", errorText);
+        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+
+export async function generateLessonContent(
+  input: GenerateLessonContentInput
+): Promise<GenerateLessonContentOutput> {
+  const prompt = `Generate educational content for an English grammar lesson for Arabic-speaking students.
+Lesson Title: "${input.lessonTitle}"
+Topic: "${input.englishGrammarTopic}"
+Level: "${input.lessonLevel}"
+Contextual English Notes: "${input.englishAdditionalNotes}"
+Contextual English Common Mistakes: "${input.englishCommonMistakes}"
+
+Provide the output as a single JSON object with the following keys: "arabicExplanation", "examples" (an array of {english, arabic} objects), "additionalNotesInArabic", "commonMistakesInArabic".
+
+Here is the JSON object:
 `;
 
-    const { output } = await ai.generate({
-      model: 'gemini-1.5-flash',
-      output: { schema: GenerateLessonContentOutputSchema },
-      prompt,
+  try {
+    const hfResponse = await queryHuggingFace({
+      inputs: prompt,
+      parameters: { max_new_tokens: 500, return_full_text: false }
     });
     
+    const jsonString = hfResponse[0]?.generated_text.match(/\{[\s\S]*\}/)?.[0];
+    if (!jsonString) {
+        throw new Error("Failed to find a JSON object in the AI response.");
+    }
+    const output = JSON.parse(jsonString);
+
     if (!output.examples || output.examples.length === 0) {
         output.examples = [{english: "Example placeholder.", arabic: "مثال مؤقت."}];
     }
-    
-    return output;
+
+    return GenerateLessonContentOutputSchema.parse(output);
+
+  } catch (error) {
+    console.error("Failed to generate or parse lesson content:", error);
+    throw new Error("Failed to generate lesson content.");
   }
-);
+}
