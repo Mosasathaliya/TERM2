@@ -29,14 +29,21 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
   const [audioLoading, setAudioLoading] = React.useState<Record<string, boolean>>({});
 
   const handleSpeak = async (text: string, lang: 'en' | 'ar', id: string) => {
-    if (audioLoading[id]) return;
+    if (audioLoading[id] || !text) return;
 
     setAudioLoading(prev => ({...prev, [id]: true}));
     try {
         const result = await textToSpeech({text, language: lang});
         if (result && result.media) {
             const audio = new Audio(result.media);
-            audio.play();
+            audio.play().catch(e => {
+              console.error("Audio playback error:", e);
+              toast({
+                  title: "Audio Playback Error",
+                  description: "Could not play audio.",
+                  variant: "destructive",
+              });
+            });
         } else {
             toast({
                 title: "Text-to-Speech Error",
@@ -52,7 +59,10 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
             variant: "destructive",
         });
     } finally {
-        setAudioLoading(prev => ({...prev, [id]: false}));
+        // A short delay helps give the audio time to start playing before the loading state is removed.
+        setTimeout(() => {
+           setAudioLoading(prev => ({...prev, [id]: false}));
+        }, 300);
     }
   };
 
