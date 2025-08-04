@@ -250,7 +250,7 @@ function ExplanationDialog({ videoTitle, isOpen, onOpenChange }: { videoTitle: s
     if (!text || audioLoading === id) return;
     setAudioLoading(id);
     try {
-      const result = await textToSpeech({ text, voice: 'achernar' });
+      const result = await textToSpeech({ text, language: 'ar' });
       if (result?.media) {
         new Audio(result.media).play();
       }
@@ -455,11 +455,11 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
     setActiveAudioId(null);
   }, [lesson]);
 
-  const handlePlayAudio = async (text: string, id: string) => {
+  const handlePlayAudio = async (text: string, id: string, lang: 'en' | 'ar' = 'ar') => {
     if (!text || activeAudioId) return;
     setActiveAudioId(id);
     try {
-      const result = await textToSpeech({ text, voice: 'achernar' });
+      const result = await textToSpeech({ text, language: lang });
       if (result?.media) {
         if (!audioRef.current) {
           audioRef.current = new Audio();
@@ -494,7 +494,7 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
     try {
       const response = await translateText({ text: lesson.content, targetLanguage: 'ar' });
       setExplanation(response.translation);
-      await handlePlayAudio(response.translation, 'explanation');
+      await handlePlayAudio(response.translation, 'explanation', 'ar');
     } catch (err) {
       toast({ variant: 'destructive', title: 'خطأ', description: 'فشل في الحصول على الشرح.' });
     } finally {
@@ -1234,7 +1234,7 @@ export function HomeScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) =>
               <DialogDescription>Practice conversation with a voice-based AI assistant.</DialogDescription>
           </DialogHeader>
           <ChatterbotApp />
-           <DialogClose asChild><Button type="button" variant="secondary" className="absolute top-2 right-2 z-20 text-white bg-black/30">Close</Button></DialogClose>
+           <DialogClose asChild><Button type="button" variant="secondary" className="absolute top-2 right-2 z-20">Close</Button></DialogClose>
       </DialogContent>
     </Dialog>
 
@@ -1444,7 +1444,7 @@ export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => v
                         <DialogDescription>Practice conversation with a voice-based AI assistant.</DialogDescription>
                     </DialogHeader>
                     <ChatterbotApp />
-                     <DialogClose asChild><Button type="button" variant="secondary" className="absolute top-2 right-2 z-20 text-white bg-black/30">Close</Button></DialogClose>
+                     <DialogClose asChild><Button type="button" variant="secondary" className="absolute top-2 right-2 z-20">Close</Button></DialogClose>
                 </DialogContent>
             </Dialog>
         </section>

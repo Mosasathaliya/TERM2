@@ -18,13 +18,12 @@ export const VocabularyPanel: React.FC<VocabularyPanelProps> = ({ selectedWord, 
   const { toast } = useToast();
   const [audioLoading, setAudioLoading] = React.useState<Record<string, boolean>>({});
 
-  const handleSpeak = async (text: string, lang: 'en-US' | 'ar-SA', id: string) => {
+  const handleSpeak = async (text: string, lang: 'en' | 'ar', id: string) => {
     if (!text || audioLoading[id]) return;
 
     setAudioLoading(prev => ({...prev, [id]: true}));
     try {
-        const voice = lang === 'en-US' ? 'algenib' : 'achernar';
-        const result = await textToSpeech({ text, voice });
+        const result = await textToSpeech({ text, language: lang });
         if (result && result.media) {
             const audio = new Audio(result.media);
             audio.play();
@@ -74,12 +73,12 @@ export const VocabularyPanel: React.FC<VocabularyPanelProps> = ({ selectedWord, 
           <div>
             <div className="flex items-center justify-between">
               <h3 className="text-2xl font-bold text-purple-400 capitalize">{selectedWord.word}</h3>
-              <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.word, 'en-US', 'en-word')} disabled={audioLoading['en-word']}><Volume2 className="h-5 w-5" /></Button>
+              <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.word, 'en', 'en-word')} disabled={audioLoading['en-word']}><Volume2 className="h-5 w-5" /></Button>
             </div>
             {selectedWord.arabicWord && (
               <div className="flex items-center justify-between" dir="rtl">
                 <h3 className="text-xl font-semibold text-cyan-400">{selectedWord.arabicWord}</h3>
-                <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.arabicWord!, 'ar-SA', 'ar-word')} disabled={audioLoading['ar-word']}><Volume2 className="h-5 w-5" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.arabicWord!, 'ar', 'ar-word')} disabled={audioLoading['ar-word']}><Volume2 className="h-5 w-5" /></Button>
               </div>
             )}
           </div>
@@ -89,7 +88,7 @@ export const VocabularyPanel: React.FC<VocabularyPanelProps> = ({ selectedWord, 
           <div>
              <div className="flex items-center justify-between">
                 <h4 className="font-semibold text-gray-200">Definition</h4>
-                <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.definition, 'en-US', 'en-def')} disabled={audioLoading['en-def']}><Volume2 className="h-5 w-5" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.definition, 'en', 'en-def')} disabled={audioLoading['en-def']}><Volume2 className="h-5 w-5" /></Button>
               </div>
             <p className="text-gray-300 leading-relaxed">{selectedWord.definition}</p>
           </div>
@@ -98,7 +97,7 @@ export const VocabularyPanel: React.FC<VocabularyPanelProps> = ({ selectedWord, 
             <div>
               <div className="flex items-center justify-between" dir="rtl">
                 <h4 className="font-semibold text-gray-200">التعريف</h4>
-                <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.arabicDefinition!, 'ar-SA', 'ar-def')} disabled={audioLoading['ar-def']}><Volume2 className="h-5 w-5" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.arabicDefinition!, 'ar', 'ar-def')} disabled={audioLoading['ar-def']}><Volume2 className="h-5 w-5" /></Button>
               </div>
               <p className="text-gray-300 leading-relaxed text-right" dir="rtl">{selectedWord.arabicDefinition}</p>
             </div>

@@ -28,12 +28,12 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
   const { toast } = useToast();
   const [audioLoading, setAudioLoading] = React.useState<Record<string, boolean>>({});
 
-  const handleSpeak = async (text: string, id: string) => {
+  const handleSpeak = async (text: string, lang: 'en' | 'ar', id: string) => {
     if (audioLoading[id]) return;
 
     setAudioLoading(prev => ({...prev, [id]: true}));
     try {
-        const result = await textToSpeech({text, voice: 'algenib'});
+        const result = await textToSpeech({text, language: lang});
         if (result && result.media) {
             const audio = new Audio(result.media);
             audio.play();
@@ -78,8 +78,8 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
             <Skeleton className="h-4 w-1/4" />
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-4/5" />
-          </div>
-          <div className="space-y-2">
+           </div>
+           <div className="space-y-2">
              <Skeleton className="h-4 w-1/4" />
              <Skeleton className="h-4 w-full" />
              <Skeleton className="h-4 w-4/5" />
@@ -112,7 +112,7 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
         <Button
             variant="ghost"
             size="icon"
-            onClick={() => handleSpeak(word.english, 'word')}
+            onClick={() => handleSpeak(word.english, 'en', 'word')}
             aria-label={`Listen to ${word.english}`}
             title="Listen to pronunciation"
             className="text-primary hover:text-primary/80"
@@ -138,7 +138,7 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
                 <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleSpeak(word.definition, 'definition')}
+                    onClick={() => handleSpeak(word.definition, 'en', 'definition')}
                     aria-label="Listen to English definition"
                     title="Listen to definition"
                     className="text-primary hover:text-primary/80 h-5 w-5 p-0"
@@ -155,7 +155,7 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
                 <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleSpeak(word.example, 'example')}
+                    onClick={() => handleSpeak(word.example, 'en', 'example')}
                     aria-label="Listen to English example sentence"
                     title="Listen to example"
                     className="text-primary hover:text-primary/80 h-5 w-5 p-0"

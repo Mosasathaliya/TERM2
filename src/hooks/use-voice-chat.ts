@@ -4,7 +4,7 @@
 /**
  * @fileoverview Custom hook to manage the entire voice chat lifecycle.
  * It integrates audio processing, AI interactions (STT, persona, TTS),
- * and state management, all using Hugging Face models.
+ * all using Cloudflare AI.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -13,6 +13,7 @@ import { useAgentStore } from './use-agent-store';
 import { textToSpeech } from '@/ai/flows/tts-flow';
 import type { Message } from '@/ai/flows/voice-chat-pipeline';
 import { runVoiceChatPipeline } from '@/ai/flows/voice-chat-pipeline';
+import { ai as genkitAi } from '@/ai/genkit'; // Using a different name to avoid conflicts
 
 const MAX_HISTORY_MESSAGES = 30; // 15 pairs of user/model messages
 
@@ -34,29 +35,40 @@ export function useVoiceChat() {
   
     setIsTalking(true);
     try {
-      const pipelineInput = {
-        audioDataUri: dataUri,
-        personality: currentAgent.personality,
-        userName: userSettings.name,
-        userInfo: userSettings.info,
-        history: history,
-      };
+       // Step 1: Transcribe audio to text (using Genkit's STT)
+      const sttResult = await genkitAi.stt({
+        media: {
+            url: dataUri,
+        }
+      });
+      const transcribedText = sttResult.text;
 
-      const result = await runVoiceChatPipeline(pipelineInput);
-      const { transcribedText, response: responseText } = result;
-      
-      if (!transcribedText.trim()) {
+      if (!transcribedText || !transcribedText.trim()) {
           setIsTalking(false);
           return;
       }
       
       const userMessage: Message = { role: 'user', content: transcribedText };
+      // Immediately update history with user's message
+      setHistory(prev => [...prev, userMessage].slice(-MAX_HISTORY_MESSAGES));
+
+      const pipelineInput = {
+        audioDataUri: dataUri, // This is not used by the pipeline now, but kept for structure
+        personality: currentAgent.personality,
+        userName: userSettings.name,
+        userInfo: userSettings.info,
+        history: [...history, userMessage], // Pass the most up-to-date history
+        transcribedText: transcribedText,
+      };
+
+      const result = await runVoiceChatPipeline(pipelineInput);
+      const { response: responseText } = result;
       
       if (responseText) {
           const modelMessage: Message = { role: 'model', content: responseText };
-          setHistory(prev => [...prev, userMessage, modelMessage].slice(-MAX_HISTORY_MESSAGES));
+          setHistory(prev => [...prev, modelMessage].slice(-MAX_HISTORY_MESSAGES));
           
-          const ttsResult = await textToSpeech({ text: responseText, voice: currentAgent.voice });
+          const ttsResult = await textToSpeech({ text: responseText, language: 'en' });
           if (audioRef.current && ttsResult?.media) {
               audioRef.current.src = ttsResult.media;
               audioRef.current.play().catch(e => {
@@ -67,7 +79,6 @@ export function useVoiceChat() {
                setIsTalking(false);
           }
       } else {
-           setHistory(prev => [...prev, userMessage].slice(-MAX_HISTORY_MESSAGES));
            setIsTalking(false);
       }
     } catch (error) {

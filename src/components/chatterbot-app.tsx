@@ -28,7 +28,7 @@ export function ChatterbotApp() {
       />
 
       {/* Header section with dialog triggers */}
-      <header className="absolute top-0 flex w-full justify-between p-4">
+      <header className="absolute top-0 flex w-full justify-between p-4 z-20">
         <AgentEditDialog />
         <UserSettingsDialog />
       </header>
