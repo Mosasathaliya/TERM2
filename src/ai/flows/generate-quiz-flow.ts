@@ -9,7 +9,7 @@ import { learningItems } from '@/lib/lessons';
 
 const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
-const MODEL_NAME = '@cf/mistral/mistral-7b-instruct-v0.1';
+const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
 
 function isBalanced(str: string) {
     const stack = [];
