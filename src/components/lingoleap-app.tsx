@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { CategorySelector } from "@/components/CategorySelector";
 import { WordCard, type Word } from "@/components/WordCard";
-import { suggestNewWords, type SuggestNewWordsInput } from "@/ai/flows/suggest-new-words";
+import { suggestNewWords, getWordDetails, type SuggestNewWordsInput } from "@/ai/flows/suggest-new-words";
 import { generateVocabularyQuiz, type VocabularyQuizOutput } from "@/ai/flows/generate-vocabulary-quiz";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpenText, Lightbulb, Loader2, CheckCircle, XCircle, Award, RefreshCw } from "lucide-react";
@@ -37,7 +37,7 @@ interface QuizQuestion {
 
 export function LingoleapApp() {
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
-  const [wordQueue, setWordQueue] = useState<Word[]>([]);
+  const [wordQueue, setWordQueue] = useState<string[]>([]);
   const [viewedWords, setViewedWords] = useState<Word[]>([]);
   const [wordsSinceQuiz, setWordsSinceQuiz] = useState(0);
   
@@ -55,58 +55,35 @@ export function LingoleapApp() {
   const [showQuizResult, setShowQuizResult] = useState(false);
 
   const { toast } = useToast();
-
-  const fetchAndSetNewWords = useCallback(async (category: string) => {
+  
+  const fetchNewWordDetails = useCallback(async (word: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      const input: SuggestNewWordsInput = { category, numberOfWords: 5 };
-      const aiResult = await suggestNewWords(input);
-
-      if (!aiResult || aiResult.length === 0) {
-         throw new Error("AI did not return any words.");
-      }
-
-      const newWords: Word[] = aiResult.map(item => ({
-          english: item.english,
-          arabic: item.arabic,
-          definition: item.definition,
-          arabicDefinition: item.arabicDefinition,
-          example: item.example,
-          arabicExample: item.arabicExample,
-      }));
-
-      setWordQueue(prev => [...prev, ...newWords]);
-      if (!currentWord) {
-        setCurrentWord(newWords[0] || null);
-        setViewedWords(newWords);
-        setWordsSinceQuiz(1);
-      }
-      
-    } catch (err) {
-      console.error("Error fetching words:", err);
-      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while fetching words.";
-      setError(`Oops! Couldn't fetch word details. ${errorMessage}`);
-      toast({
-        title: "Error Fetching Words",
-        description: errorMessage,
-        variant: "destructive",
-      });
+        const details = await getWordDetails({ word, category: selectedCategory });
+        if (details) {
+            setCurrentWord(details);
+            setViewedWords(prev => [...prev, details]);
+            setWordsSinceQuiz(prev => prev + 1);
+        } else {
+            throw new Error(`Could not fetch details for the word "${word}".`);
+        }
+    } catch(err) {
+        console.error("Error fetching word details:", err);
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while fetching word details.";
+        setError(`Oops! Couldn't fetch word details. ${errorMessage}`);
+        toast({
+            title: "Error Fetching Word Details",
+            description: errorMessage,
+            variant: "destructive",
+        });
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  }, [toast, currentWord]);
-
-  useEffect(() => {
-    if (wordQueue.length === 0 && !isLoading) {
-      startAiTransition(() => {
-        fetchAndSetNewWords(selectedCategory);
-      });
-    }
-  }, [selectedCategory, fetchAndSetNewWords, isLoading, wordQueue.length]);
+  }, [selectedCategory, toast]);
 
 
-  const getNextWord = useCallback(() => {
+  const getNextWord = useCallback(async () => {
     if (wordsSinceQuiz >= WORDS_PER_QUIZ && viewedWords.length >= WORDS_PER_QUIZ) {
       startAiTransition(async () => {
           try {
@@ -128,18 +105,41 @@ export function LingoleapApp() {
     if (wordQueue.length > 0) {
         const nextWord = wordQueue[0];
         setWordQueue(wordQueue.slice(1));
-        setCurrentWord(nextWord);
-        setViewedWords(prev => [...prev, nextWord]);
-        setWordsSinceQuiz(prev => prev + 1);
+        await fetchNewWordDetails(nextWord);
+    } else {
+        // If queue is empty, fetch a new list of words
+        startAiTransition(async () => {
+             try {
+                const newWordList = await suggestNewWords({ category: selectedCategory, numberOfWords: 5 });
+                if (newWordList && newWordList.length > 0) {
+                    const firstWord = newWordList[0];
+                    setWordQueue(newWordList.slice(1));
+                    await fetchNewWordDetails(firstWord);
+                } else {
+                     throw new Error("AI did not return any words.");
+                }
+            } catch (err) {
+                console.error("Error fetching new word list:", err);
+                const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+                setError(`Oops! Couldn't get new words. ${errorMessage}`);
+                toast({ title: "Error Getting Words", description: errorMessage, variant: "destructive" });
+            }
+        });
     }
-  }, [wordQueue, wordsSinceQuiz, viewedWords, toast]);
+  }, [wordQueue, wordsSinceQuiz, viewedWords, toast, fetchNewWordDetails, selectedCategory]);
 
-  const handleCategoryChange = (newCategory: string) => {
-    setSelectedCategory(newCategory);
+  useEffect(() => {
+    // Initial load when category changes or component mounts
+    setCurrentWord(null);
     setWordQueue([]);
     setViewedWords([]);
     setWordsSinceQuiz(0);
-    setCurrentWord(null);
+    getNextWord();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory]);
+
+  const handleCategoryChange = (newCategory: string) => {
+    setSelectedCategory(newCategory);
   };
   
   const handleQuizAnswer = () => {
@@ -264,7 +264,7 @@ export function LingoleapApp() {
 
               <Button
                 onClick={getNextWord}
-                disabled={isLoading || isAiLoading || (wordQueue.length === 0 && !currentWord)}
+                disabled={isLoading || isAiLoading}
                 size="lg"
                 className="bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md w-full"
               >
