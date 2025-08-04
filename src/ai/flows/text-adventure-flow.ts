@@ -91,16 +91,32 @@ const TextAdventureInputSchema = z.object({
   action: z.enum(['start', 'continue']),
   genre: z.string(),
   playerInput: z.string().optional(),
-  history: z.array(GameResponseSchema).optional(),
+  history: z.array(z.object({
+      id: z.number(),
+      sender: z.enum(['user', 'ai']),
+      text: z.string(),
+      vocabularyWord: z.string().optional(),
+      suggestions: z.array(z.string()).optional(),
+      gameOver: z.boolean().optional(),
+  })).optional(),
 });
+
 
 const textAdventureFlow = async ({ action, genre, playerInput, history }: z.infer<typeof TextAdventureInputSchema>) => {
     const systemInstruction = getSystemInstruction(genre, history?.length || 0);
 
-    const historyMessages = (history || []).flatMap(h => [
-        { role: 'assistant' as const, content: JSON.stringify({narrative: h.narrative, newWord: h.newWord, promptSuggestions: h.promptSuggestions, gameOver: h.gameOver}) },
-        { role: 'user' as const, content: h.promptSuggestions?.[0] || 'Continue' }
-    ]);
+    const historyMessages = (history || []).map(h => {
+        if (h.sender === 'ai') {
+            const aiContent = {
+                narrative: h.text,
+                newWord: h.vocabularyWord,
+                promptSuggestions: h.suggestions,
+                gameOver: h.gameOver,
+            };
+            return { role: 'assistant' as const, content: JSON.stringify(aiContent) };
+        }
+        return { role: 'user' as const, content: h.text };
+    });
     
     const userPrompt = action === 'start' ? "Start the adventure." : playerInput || "Continue the story.";
 
@@ -114,12 +130,12 @@ const textAdventureFlow = async ({ action, genre, playerInput, history }: z.infe
         const output = await queryCloudflare(messages, true);
         return GameResponseSchema.parse(output);
     } catch(e) {
+        const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
         console.error("Error in textAdventureFlow:", e);
-        return {
-            narrative: "The connection to the story world flickers and dies. An error has occurred. Please try starting a new adventure.",
-            promptSuggestions: ["Restart"],
-            gameOver: true
-        };
+        // Instead of returning a valid game over state, throw an error
+        // that can be caught by the client to display a proper error message.
+        // This makes the UI behavior more predictable.
+        throw new Error(`The story could not be continued. AI failed with: ${errorMessage}`);
     }
 };
 export { textAdventureFlow };

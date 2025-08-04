@@ -43,6 +43,7 @@ export function TextAdventureApp() {
     setError(null);
     setSelectedWord(null);
 
+    let currentHistory = storyHistory;
     const isUserAction = action === 'continue' && prompt;
     if (isUserAction) {
         const userActionPart: StoryPart = {
@@ -50,11 +51,13 @@ export function TextAdventureApp() {
           sender: 'user',
           text: prompt,
         };
-        setStoryHistory(prev => [...prev, userActionPart]);
+        currentHistory = [...storyHistory, userActionPart];
+        setStoryHistory(currentHistory);
     }
     
     if (action === 'start') {
         setStoryHistory([]);
+        currentHistory = [];
     }
 
     try {
@@ -62,7 +65,7 @@ export function TextAdventureApp() {
         action,
         genre: gameGenre,
         playerInput: prompt,
-        history: action === 'start' ? [] : storyHistory.filter(p => p.sender === 'ai').map(p => ({ narrative: p.text, newWord: p.vocabularyWord, gameOver: p.gameOver, promptSuggestions: p.suggestions || [] }))
+        history: currentHistory
       });
       
       const aiResponsePart: StoryPart = {
@@ -80,11 +83,16 @@ export function TextAdventureApp() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(errorMessage);
-      setGameState('error');
+      toast({
+        variant: "destructive",
+        title: "Story Generation Error",
+        description: errorMessage,
+      });
+      // Don't set game state to error, let the user see the message and retry
     } finally {
       setLoading(prev => ({ ...prev, story: false }));
     }
-  }, [gameGenre, storyHistory]);
+  }, [gameGenre, storyHistory, toast]);
 
   const handleWordClick = useCallback(async (word: string) => {
     if (!word) return;
