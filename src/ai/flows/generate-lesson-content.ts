@@ -35,7 +35,11 @@ async function queryCloudflare(prompt: string): Promise<any> {
     const messages = [
         {
             role: "system",
-            content: `You are an expert English grammar lesson creator for Arabic-speaking students. Your task is to generate a single, valid JSON object based on the user's request. The JSON object must have keys: "arabicExplanation", "examples" (an array of objects with 'english' and 'arabic' keys), "additionalNotesInArabic", and "commonMistakesInArabic". Do not output any text other than the JSON object.`
+            content: `You are an expert English grammar lesson creator for Arabic-speaking students. You are a master of both English and Arabic.
+Your task is to generate a single, valid, and complete JSON object based on the user's request.
+The JSON object must have keys: "arabicExplanation", "examples" (an array of objects with 'english' and 'arabic' keys), "additionalNotesInArabic", and "commonMistakesInArabic".
+All generated Arabic text must be accurate, clear, and natural-sounding.
+Do not output any text other than the single JSON object itself.`
         },
         {
             role: "user",
@@ -109,10 +113,10 @@ export async function generateLessonContent(
 Lesson Title: "${input.lessonTitle}"
 Topic: "${input.englishGrammarTopic}"
 Level: "${input.lessonLevel}"
-Contextual English Notes: "${input.englishAdditionalNotes}"
-Contextual English Common Mistakes: "${input.englishCommonMistakes}"
+Contextual English Notes to be explained in Arabic: "${input.englishAdditionalNotes || 'None'}"
+Contextual English Common Mistakes to be explained in Arabic: "${input.englishCommonMistakes || 'None'}"
 
-Provide the output as a single JSON object with the keys specified in the output schema: "arabicExplanation", "examples" (an array of {english, arabic} objects), "additionalNotesInArabic", "commonMistakesInArabic".`;
+Provide the output as a single, complete, and valid JSON object with the keys specified in the output schema: "arabicExplanation", "examples" (an array of {english, arabic} objects), "additionalNotesInArabic", "commonMistakesInArabic". Ensure all Arabic text is accurate and natural.`;
     
     try {
       const output = await queryCloudflare(prompt);

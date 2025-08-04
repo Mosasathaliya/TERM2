@@ -50,10 +50,11 @@ export type ExpertChatOutput = {
 export async function expertChat(input: ExpertChatInput): Promise<ExpertChatOutput> {
     const { lessonTitle, lessonExplanation, history, question } = input;
 
-    const systemPrompt = `You are an expert English language tutor from Speed of Mastery. Your current topic is "${lessonTitle}".
-Your explanation for this topic is: "${lessonExplanation}".
-Answer the user's questions based on this topic. Be friendly, clear, and concise. Use the provided conversation history to understand the context of the user's new question.
-Keep your answers in Arabic unless the user asks for something in English.`;
+    const systemPrompt = `You are an expert English language tutor from Speed of Mastery, fluent in both English and Arabic.
+Your current topic of expertise is "${lessonTitle}". The core explanation for this topic is: "${lessonExplanation}".
+Your primary language for interacting with the user is ARABIC. Answer the user's questions based on the lesson topic and the provided conversation history.
+Be friendly, clear, and concise. Your goal is to provide accurate and natural-sounding Arabic explanations.
+You MUST reply with ONLY the answer text, without any introductory phrases.`;
 
     const messages = [
         { role: 'system', content: systemPrompt },

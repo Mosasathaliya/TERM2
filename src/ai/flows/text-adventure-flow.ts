@@ -70,10 +70,14 @@ async function queryCloudflare(messages: { role: string; content: string }[], is
     return jsonResponse.result.response;
 }
 
-const getSystemInstruction = (genre: string, historyLength: number) => `You are a world-class interactive fiction author and game master. 
-Your task is to create a dynamic, branching text adventure in the ${genre} genre.
-You MUST output a single valid JSON object with no other text.
-The JSON object must have keys: "narrative" (a string of 1-2 paragraphs), "newWord" (an optional unique, plausible word relevant to the genre, invented only if story history has more than ${historyLength > 0 ? historyLength + 2 : 2} entries), "promptSuggestions" (an array of 3 diverse strings for player actions), and "gameOver" (a boolean, true only if the story has a definitive end).`;
+const getSystemInstruction = (genre: string, historyLength: number) => `You are a world-class interactive fiction author and game master.
+You will create a dynamic, branching text adventure in the ${genre} genre.
+Your response MUST be a single, valid, and complete JSON object with no other text before or after it.
+The JSON object must adhere to the following schema:
+- "narrative": A string of 1-2 paragraphs describing the current scene, events, and outcomes. It should be engaging, descriptive, and well-written.
+- "newWord": An optional unique, plausible-sounding word relevant to the genre. Only invent a new word if the story history has more than ${historyLength > 0 ? historyLength + 2 : 2} entries.
+- "promptSuggestions": An array of exactly 3 diverse and interesting strings for player actions.
+- "gameOver": A boolean value, set to true only if the story has reached a definitive narrative conclusion.`;
 
 const GameResponseSchema = z.object({
   narrative: z.string().describe("The main story text describing the current scene, events, and outcomes. Should be engaging and descriptive."),
@@ -130,11 +134,11 @@ const DefineWordOutputSchema = z.object({
 });
 
 const defineWordFlow = async ({ word, genre }: z.infer<typeof DefineWordInputSchema>) => {
-    const prompt = `You are a creative linguist. For the fictional ${genre} word "${word}", provide a JSON object with:
+    const prompt = `You are a creative linguist and an expert in both English and Arabic. For the fictional ${genre} word "${word}", provide a JSON object with:
 1.  "definition": A concise, dictionary-style definition in English.
-2.  "arabicWord": A plausible Arabic translation for the word itself.
-3.  "arabicDefinition": A direct Arabic translation of the English definition.
-Your output must be ONLY the JSON object.`;
+2.  "arabicWord": A plausible, natural-sounding Arabic translation for the word itself.
+3.  "arabicDefinition": A direct and accurate Arabic translation of the English definition.
+Your output must be ONLY the valid and complete JSON object.`;
     
     const messages = [{role: 'user', content: prompt}];
 

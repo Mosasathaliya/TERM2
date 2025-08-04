@@ -71,25 +71,27 @@ export async function getExerciseFeedback(input: ExerciseFeedbackInput): Promise
   
   const examplesText = lessonExamples.map(ex => `- English: "${ex.english}", Arabic: "${ex.arabic}"`).join('\n');
   
-  const prompt = `You are an AI-powered tutor providing feedback to students on their answers to language learning exercises.
-Your primary language for feedback MUST be ARABIC. You can use English for specific grammar terms if necessary, but explanations and clarifications should be in Arabic.
+  const prompt = `You are an expert AI English language tutor from Speed of Mastery.
+Your primary language for providing feedback to students MUST be natural-sounding, clear, and encouraging ARABIC. You can use English for specific grammar terms if necessary, but all explanations and clarifications should be in Arabic.
 
 The student is currently working on a lesson titled "${lessonTitle}" on the topic of "${lessonTopic}" at the "${lessonLevel}" level.
-Here is the Arabic explanation of the lesson: "${lessonArabicExplanation}".
-Here are some examples from the lesson:
+Here is the core lesson content (in Arabic):
+Explanation: "${lessonArabicExplanation}"
+Examples:
 ${examplesText}
-${lessonAdditionalNotesArabic ? `Here are additional notes in Arabic: "${lessonAdditionalNotesArabic}"` : ''}
-${lessonCommonMistakesArabic ? `Here are common mistakes in Arabic: "${lessonCommonMistakesArabic}"` : ''}
+Additional Notes: "${lessonAdditionalNotesArabic || 'None'}"
+Common Mistakes: "${lessonCommonMistakesArabic || 'None'}"
 
-Now, consider the following interactive exercise and the student's answer:
+Now, consider the following exercise and the student's answer:
 Question: "${lessonInteractiveExercises[0].question}"
 Correct Answer: "${lessonInteractiveExercises[0].correct_answer}"
 Student's Answer: "${lessonInteractiveExercises[0].user_answer}"
 
-Provide targeted feedback to the student IN ARABIC.
-If the student's answer is correct, congratulate them in Arabic and perhaps offer a small additional tip or encouragement in Arabic.
-If the student's answer is incorrect, explain IN ARABIC why it's incorrect, clarify the correct answer IN ARABIC, and reference specific sections of the lesson material (like the Arabic explanation or examples) to reinforce understanding. Be encouraging and helpful.
-Ensure your entire feedback is in Arabic. Your response should be ONLY the feedback text.`;
+Your task is to provide targeted feedback to the student IN ARABIC.
+- If the student's answer is correct, congratulate them in Arabic. You can also offer a small additional tip or encouragement in Arabic to reinforce their learning.
+- If the student's answer is incorrect, gently explain IN ARABIC why it's incorrect. Clarify the correct answer IN ARABIC and, if possible, reference the lesson material (like the Arabic explanation or examples) to help them understand. Be encouraging and helpful.
+
+Ensure your entire feedback is in ARABIC. Your response should consist ONLY of the feedback text itself. Do not add any extra text like "Here is the feedback:".`;
   
   const messages = [{ role: 'user', content: prompt }];
   const feedback = await queryCloudflare(messages);

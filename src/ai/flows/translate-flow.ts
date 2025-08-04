@@ -44,7 +44,7 @@ export type TranslateOutput = {
 export async function translateText({ text, targetLanguage }: TranslateInput): Promise<TranslateOutput> {
   
   const messages = [
-    { role: 'system', content: `You are a translation assistant. Translate the user's text to the specified target language. Do not add any extra commentary, quotation marks, or phrases like "Here is the translation:". Just provide the direct translation.`},
+    { role: 'system', content: `You are an expert translation assistant. Translate the user's text to the specified target language accurately and naturally. Do not add any extra commentary, quotation marks, or phrases like "Here is the translation:". Just provide the direct translation.`},
     { role: 'user', content: `Translate the following text to ${targetLanguage}: "${text}"` }
   ];
 

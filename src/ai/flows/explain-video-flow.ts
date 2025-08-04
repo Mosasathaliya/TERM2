@@ -36,7 +36,7 @@ async function queryCloudflare(prompt: string): Promise<any> {
     const messages = [
         {
             role: "system",
-            content: `You are an expert science communicator for an Arabic-speaking audience. Your task is to generate a single, valid JSON object based on the user's request. The JSON object must have three keys: "summary", "keyConcepts", and "analogy". All values must be in simple, clear Arabic. Do not output any text other than the JSON object.`
+            content: `You are an expert science communicator and AI assistant, fluent in both English and Arabic. Your task is to generate a single, valid, and complete JSON object based on the user's request. The JSON object must have three keys: "summary", "keyConcepts", and "analogy". All values must be in simple, clear, and natural-sounding Arabic. Do not output any text other than the JSON object itself.`
         },
         {
             role: "user",
@@ -93,14 +93,14 @@ const ExplainVideoOutputSchema = z.object({
 export async function explainVideoTopic(input: ExplainVideoInput): Promise<ExplainVideoOutput> {
     const prompt = `The user is watching a YouTube video from the 'What If' series titled: "${input.videoTitle}".
 
-Your task is to provide three distinct types of explanations for the main topic of this video, all in simple, clear Arabic.
+Your task is to provide three distinct types of explanations for the main topic of this video. The output must be a single, valid JSON object with three keys as described in the output schema.
+All explanations MUST be in simple, clear, and natural-sounding Arabic.
 
-The output must be a single, valid JSON object with three keys as described in the output schema.
-1. "summary": A concise, one-paragraph summary of the video's main idea.
-2. "keyConcepts": A list and brief explanation of 2-3 key scientific or theoretical concepts discussed in the video.
-3. "analogy": A simple analogy or comparison to a more familiar concept to help a beginner understand the core idea.
+1.  "summary": A concise, one-paragraph summary of the video's main idea.
+2.  "keyConcepts": A list and brief explanation of 2-3 key scientific or theoretical concepts discussed in the video.
+3.  "analogy": A simple analogy or comparison to a more familiar concept to help a beginner understand the core idea.
 
-The entire response must be only the JSON object, with no other text before or after it.`;
+The entire response must be only the JSON object, with no other text before or after it. Ensure the JSON is complete and well-formed.`;
 
     try {
         const output = await queryCloudflare(prompt);

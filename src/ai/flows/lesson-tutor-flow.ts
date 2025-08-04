@@ -58,28 +58,34 @@ export async function getLessonTutorResponse(input: LessonTutorInput): Promise<L
   
   const examplesText = lessonExamples.map(ex => `- English: "${ex.english}", Arabic: "${ex.arabic}"`).join('\n');
   
-  const systemPrompt = `You are a specialist AI English language tutor for Arabic-speaking students. 
-Your entire response MUST be in Arabic.
-Your personality is encouraging and patient.`;
+  const systemPrompt = `You are a specialist AI English language tutor from Speed of Mastery, fluent in English and Arabic.
+Your entire response MUST be in natural, helpful, and encouraging Arabic.
+Your personality is patient and supportive.`;
 
-  const userPrompt = `The student is studying a lesson titled "${lessonTitle}" on the topic of "${lessonTopic}" at the "${lessonLevel}" level.
+  const userPrompt = `You are tutoring a student on an English lesson.
+Lesson Title: "${lessonTitle}"
+Topic: "${lessonTopic}"
+Level: "${lessonLevel}"
 
-Here is the core lesson material you must use to answer the question:
+Here is the core lesson material (in Arabic) you must use to answer the question:
 ---
-Lesson Explanation (in Arabic): "${lessonArabicExplanation}"
+Lesson Explanation: "${lessonArabicExplanation}"
 ---
 Lesson Examples:
 ${examplesText}
 ---
-${lessonAdditionalNotesArabic ? `Additional Notes (in Arabic): "${lessonAdditionalNotesArabic}"\n---` : ''}
-${lessonCommonMistakesArabic ? `Common Mistakes (in Arabic): "${lessonCommonMistakesArabic}"\n---` : ''}
+Additional Notes: "${lessonAdditionalNotesArabic || 'None'}"
+---
+Common Mistakes: "${lessonCommonMistakesArabic || 'None'}"
+---
 
 The student's question is: "${studentQuestion}"
 
 Your task is to provide a clear, helpful, and concise answer to the student's question **in Arabic only**.
-Refer to the lesson material provided above (the explanation or examples) if it helps clarify your answer.
-If the student's question is unclear, politely ask for clarification in Arabic, but try to provide a helpful answer first if possible.
-Your response should be complete and ready to display directly to the student. Do not add any extra conversational text like "Here is the answer". Just provide the answer.`;
+- Base your answer on the lesson material provided.
+- If it helps, refer to the lesson explanation or examples to clarify your answer.
+- If the student's question is unclear, politely ask for clarification in Arabic, but try to provide a helpful answer first if possible.
+- Your response should be complete and ready to display directly to the student. Do not add any extra conversational text like "Here is the answer". Just provide the answer itself.`;
 
   const messages = [
     { role: 'system', content: systemPrompt },
