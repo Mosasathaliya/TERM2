@@ -99,19 +99,20 @@ export function TenseTeacherApp() {
       try {
         const result = await textToSpeech({ text, language: 'ar' });
         if (result && result.media) {
-            if (!audioRef.current) {
-                audioRef.current = new Audio();
-            }
-            audioRef.current.src = result.media;
+            audioRef.current = new Audio(result.media);
             audioRef.current.play();
             audioRef.current.onended = () => setActiveAudio(null);
+            audioRef.current.onerror = () => {
+                toast({ variant: "destructive", title: "Error playing audio." });
+                setActiveAudio(null);
+            }
         } else {
-             toast({ variant: "destructive", title: "فشل تشغيل الصوت" });
+             toast({ variant: "destructive", title: "Failed to generate audio." });
              setActiveAudio(null);
         }
       } catch (error) {
           console.error("TTS Error:", error);
-          toast({ variant: "destructive", title: "خطأ في تشغيل الصوت" });
+          toast({ variant: "destructive", title: "Error generating audio." });
           setActiveAudio(null);
       }
   };
