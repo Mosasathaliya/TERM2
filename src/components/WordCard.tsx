@@ -26,30 +26,55 @@ interface WordCardProps {
 
 export function WordCard({ word, isLoading = false }: WordCardProps) {
   const { toast } = useToast();
-  const [audioLoading, setAudioLoading] = React.useState<Record<string, boolean>>({});
+  const [activeAudioId, setActiveAudioId] = React.useState<string | null>(null);
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   const handleSpeak = async (text: string, lang: 'en' | 'ar', id: string) => {
-    if (audioLoading[id] || !text) return;
+    if (activeAudioId || !text) return;
 
-    setAudioLoading(prev => ({...prev, [id]: true}));
+    // Stop any previously playing audio, just in case
+    if (audioRef.current) {
+        audioRef.current.pause();
+    }
+
+    setActiveAudioId(id);
     try {
         const result = await textToSpeech({text, language: lang});
         if (result && result.media) {
             const audio = new Audio(result.media);
+            audioRef.current = audio;
+
             audio.play().catch(e => {
               console.error("Audio playback error:", e);
               toast({
                   title: "Audio Playback Error",
-                  description: "Could not play audio. Your browser might be blocking it.",
+                  description: "Your browser might be blocking automated audio playback.",
                   variant: "destructive",
               });
+              setActiveAudioId(null); // Reset on error
             });
+            
+            // Listen for when the audio finishes playing
+            audio.onended = () => {
+                setActiveAudioId(null);
+            };
+            // Also handle errors during playback
+            audio.onerror = () => {
+                toast({
+                    title: "Audio Error",
+                    description: "An error occurred while trying to play the audio.",
+                    variant: "destructive",
+                });
+                setActiveAudioId(null);
+            };
+
         } else {
             toast({
                 title: "Text-to-Speech Error",
                 description: "Could not generate audio for the selected text.",
                 variant: "destructive",
             });
+            setActiveAudioId(null); // Reset on failure
         }
     } catch (error) {
         console.error("TTS Error:", error);
@@ -58,14 +83,18 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
             description: "An unexpected error occurred while generating audio.",
             variant: "destructive",
         });
-    } finally {
-        // A short delay helps give the audio time to start playing before the loading state is removed.
-        setTimeout(() => {
-           setAudioLoading(prev => ({...prev, [id]: false}));
-        }, 300);
+        setActiveAudioId(null); // Reset on error
     }
   };
 
+  React.useEffect(() => {
+    // Cleanup function to stop audio when the component unmounts
+    return () => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+        }
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -126,9 +155,9 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
             aria-label={`Listen to ${word.english}`}
             title="Listen to pronunciation"
             className="text-primary hover:text-primary/80"
-            disabled={audioLoading['word']}
+            disabled={!!activeAudioId}
         >
-            <Volume2 className={`h-6 w-6 ${audioLoading['word'] ? 'animate-pulse' : ''}`} />
+            <Volume2 className={`h-6 w-6 ${activeAudioId === 'word' ? 'animate-pulse' : ''}`} />
         </Button>
       </CardHeader>
       <CardContent className="space-y-4 pt-4">
@@ -152,9 +181,9 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
                     aria-label="Listen to English definition"
                     title="Listen to definition"
                     className="text-primary hover:text-primary/80 h-5 w-5 p-0"
-                    disabled={audioLoading['definition']}
+                    disabled={!!activeAudioId}
                 >
-                    <Volume2 className={`h-4 w-4 ${audioLoading['definition'] ? 'animate-pulse' : ''}`} />
+                    <Volume2 className={`h-4 w-4 ${activeAudioId === 'definition' ? 'animate-pulse' : ''}`} />
                 </Button>
              </h3>
              <p className="text-base leading-relaxed">{word.definition}</p>
@@ -169,9 +198,9 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
                     aria-label="Listen to English example sentence"
                     title="Listen to example"
                     className="text-primary hover:text-primary/80 h-5 w-5 p-0"
-                    disabled={audioLoading['example']}
+                    disabled={!!activeAudioId}
                 >
-                    <Volume2 className={`h-4 w-4 ${audioLoading['example'] ? 'animate-pulse' : ''}`} />
+                    <Volume2 className={`h-4 w-4 ${activeAudioId === 'example' ? 'animate-pulse' : ''}`} />
                 </Button>
              </h3>
              <p className="text-base italic text-foreground/80">"{word.example}"</p>
