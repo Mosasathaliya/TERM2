@@ -19,10 +19,10 @@ const WordSchema = z.object({
   arabicExample: z.string(),
 });
 
+export type VocabularyQuizInput = z.infer<typeof VocabularyQuizInputSchema>;
 const VocabularyQuizInputSchema = z.object({
   words: z.array(WordSchema).describe('The list of words the user has just studied.'),
 });
-export type VocabularyQuizInput = z.infer<typeof VocabularyQuizInputSchema>;
 
 const QuizQuestionSchema = z.object({
   question: z.string().describe('The quiz question, asking for a definition or a synonym.'),
@@ -30,10 +30,10 @@ const QuizQuestionSchema = z.object({
   correct_answer: z.string().describe('The correct English word from the options.'),
 });
 
+export type VocabularyQuizOutput = z.infer<typeof VocabularyQuizOutputSchema>;
 const VocabularyQuizOutputSchema = z.object({
   questions: z.array(QuizQuestionSchema).length(5).describe('An array of exactly 5 quiz questions.'),
 });
-export type VocabularyQuizOutput = z.infer<typeof VocabularyQuizOutputSchema>;
 
 async function queryHuggingFace(payload: object) {
     const response = await fetch(MODEL_ENDPOINT, {

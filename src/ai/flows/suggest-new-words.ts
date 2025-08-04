@@ -10,14 +10,15 @@ import { z } from 'zod';
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
 const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
 
+export type SuggestNewWordsInput = z.infer<typeof SuggestNewWordsInputSchema>;
 const SuggestNewWordsInputSchema = z.object({
   category: z
     .string()
     .describe('The category of words to suggest (e.g., Emotional, Professional, Intellectual).'),
   numberOfWords: z.number().default(5).describe('The number of words to generate'),
 });
-export type SuggestNewWordsInput = z.infer<typeof SuggestNewWordsInputSchema>;
 
+export type SuggestNewWordsOutput = z.infer<typeof SuggestNewWordsOutputSchema>;
 const SuggestNewWordsOutputSchema = z.array(
   z.object({
     english: z.string().describe('The English word.'),
@@ -28,7 +29,6 @@ const SuggestNewWordsOutputSchema = z.array(
     arabicExample: z.string().describe('An example sentence using the word in Arabic.'),
   })
 );
-export type SuggestNewWordsOutput = z.infer<typeof SuggestNewWordsOutputSchema>;
 
 
 async function queryHuggingFace(payload: object) {

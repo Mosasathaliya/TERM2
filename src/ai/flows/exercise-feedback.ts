@@ -12,6 +12,7 @@ import { z } from 'zod';
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
 const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
 
+export type ExerciseFeedbackInput = z.infer<typeof ExerciseFeedbackInputSchema>;
 const ExerciseFeedbackInputSchema = z.object({
   lessonTitle: z.string().describe('The title of the lesson.'),
   lessonTopic: z.string().describe('The topic of the lesson.'),
@@ -40,13 +41,10 @@ const ExerciseFeedbackInputSchema = z.object({
   lessonCommonMistakesArabic: z.string().optional().describe('Common mistakes students make in the lesson in Arabic.'),
 });
 
-export type ExerciseFeedbackInput = z.infer<typeof ExerciseFeedbackInputSchema>;
-
+export type ExerciseFeedbackOutput = z.infer<typeof ExerciseFeedbackOutputSchema>;
 const ExerciseFeedbackOutputSchema = z.object({
   feedback: z.string().describe('AI-powered feedback on the user\'s answer, referencing specific sections of the lesson material. This feedback should be primarily in Arabic.'),
 });
-
-export type ExerciseFeedbackOutput = z.infer<typeof ExerciseFeedbackOutputSchema>;
 
 async function queryHuggingFace(payload: object) {
     const response = await fetch(MODEL_ENDPOINT, {

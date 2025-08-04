@@ -10,16 +10,16 @@ const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
 const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
 
 
+export type TranslateInput = z.infer<typeof TranslateInputSchema>;
 const TranslateInputSchema = z.object({
   text: z.string().describe('The text to be translated.'),
   targetLanguage: z.string().describe('The target language for translation (e.g., "Arabic").'),
 });
-export type TranslateInput = z.infer<typeof TranslateInputSchema>;
 
+export type TranslateOutput = z.infer<typeof TranslateOutputSchema>;
 const TranslateOutputSchema = z.object({
     translation: z.string().describe('The translated text.'),
 });
-export type TranslateOutput = z.infer<typeof TranslateOutputSchema>;
 
 
 async function queryHuggingFace(payload: object) {

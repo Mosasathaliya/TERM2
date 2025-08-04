@@ -15,17 +15,17 @@ const ConversationEntrySchema = z.object({
   message: z.string(),
 });
 
+export type SaraVoiceCallInput = z.infer<typeof SaraVoiceCallInputSchema>;
 const SaraVoiceCallInputSchema = z.object({
   englishGrammarConcept: z.string().describe('The English grammar concept or question from the user.'),
-  userLanguageProficiency: z.string().describe('The user\u0027s proficiency level in English.'),
+  userLanguageProficiency: z.string().describe('The user\'s proficiency level in English.'),
   conversationHistory: z.array(ConversationEntrySchema).optional().default([]).describe('The history of the conversation so far.'),
 });
-export type SaraVoiceCallInput = z.infer<typeof SaraVoiceCallInputSchema>;
 
+export type SaraVoiceCallOutput = z.infer<typeof SaraVoiceCallOutputSchema>;
 const SaraVoiceCallOutputSchema = z.object({
   explanation: z.string().describe('The explanation in Arabic, tailored to the user\'s proficiency.'),
 });
-export type SaraVoiceCallOutput = z.infer<typeof SaraVoiceCallOutputSchema>;
 
 async function queryHuggingFace(payload: object) {
     const response = await fetch(MODEL_ENDPOINT, {

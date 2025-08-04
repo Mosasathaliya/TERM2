@@ -14,18 +14,18 @@ const MessageSchema = z.object({
   content: z.string(),
 });
 
+export type ExpertChatInput = z.infer<typeof ExpertChatInputSchema>;
 const ExpertChatInputSchema = z.object({
   lessonTitle: z.string().describe('The title of the lesson being discussed.'),
   lessonExplanation: z.string().describe('The core explanation of the lesson topic.'),
   history: z.array(MessageSchema).describe('The previous conversation history.'),
   question: z.string().describe("The user's new question about the lesson."),
 });
-export type ExpertChatInput = z.infer<typeof ExpertChatInputSchema>;
 
+export type ExpertChatOutput = z.infer<typeof ExpertChatOutputSchema>;
 const ExpertChatOutputSchema = z.object({
   answer: z.string().describe("The AI expert's answer to the question."),
 });
-export type ExpertChatOutput = z.infer<typeof ExpertChatOutputSchema>;
 
 async function queryHuggingFace(payload: object) {
     const response = await fetch(MODEL_ENDPOINT, {

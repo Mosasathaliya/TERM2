@@ -8,17 +8,17 @@ import { z } from 'zod';
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
 const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
 
+export type ExplainVideoInput = z.infer<typeof ExplainVideoInputSchema>;
 const ExplainVideoInputSchema = z.object({
   videoTitle: z.string().describe('The title of the YouTube video to be explained.'),
 });
-export type ExplainVideoInput = z.infer<typeof ExplainVideoInputSchema>;
 
+export type ExplainVideoOutput = z.infer<typeof ExplainVideoOutputSchema>;
 const ExplainVideoOutputSchema = z.object({
   summary: z.string().describe('A concise summary of the video topic in simple Arabic.'),
   keyConcepts: z.string().describe('A list of key concepts from the video, explained simply in Arabic.'),
   analogy: z.string().describe('An analogy or simple comparison to help understand the topic, in Arabic.'),
 });
-export type ExplainVideoOutput = z.infer<typeof ExplainVideoOutputSchema>;
 
 
 async function queryHuggingFace(payload: object) {

@@ -10,10 +10,10 @@ import { z } from 'zod';
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
 const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
 
+export type StoryQuizInput = z.infer<typeof StoryQuizInputSchema>;
 const StoryQuizInputSchema = z.object({
   storyContent: z.string().describe('The content of the story to generate a quiz from.'),
 });
-export type StoryQuizInput = z.infer<typeof StoryQuizInputSchema>;
 
 const QuizQuestionSchema = z.object({
   question: z.string().describe('The quiz question about the story.'),
@@ -21,10 +21,10 @@ const QuizQuestionSchema = z.object({
   correct_answer: z.string().describe('The correct answer from the options.'),
 });
 
+export type StoryQuizOutput = z.infer<typeof StoryQuizOutputSchema>;
 const StoryQuizOutputSchema = z.object({
   questions: z.array(QuizQuestionSchema).length(5).describe('An array of exactly 5 quiz questions based on the story.'),
 });
-export type StoryQuizOutput = z.infer<typeof StoryQuizOutputSchema>;
 
 async function queryHuggingFace(payload: object) {
     const response = await fetch(MODEL_ENDPOINT, {

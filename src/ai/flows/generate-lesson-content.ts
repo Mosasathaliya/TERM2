@@ -9,6 +9,7 @@ import { z } from 'zod';
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
 const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
 
+export type GenerateLessonContentInput = z.infer<typeof GenerateLessonContentInputSchema>;
 const GenerateLessonContentInputSchema = z.object({
   lessonTitle: z.string().describe('The title of the lesson (e.g., "Present Simple Tense").'),
   englishGrammarTopic: z.string().describe('The specific English grammar topic to be explained (e.g., "Forming questions with Present Simple").'),
@@ -16,7 +17,6 @@ const GenerateLessonContentInputSchema = z.object({
   englishAdditionalNotes: z.string().optional().describe('Optional existing English additional notes to provide context to the AI for generating Arabic notes.'),
   englishCommonMistakes: z.string().optional().describe('Optional existing English common mistakes to provide context to the AI for generating Arabic common mistakes.'),
 });
-export type GenerateLessonContentInput = z.infer<typeof GenerateLessonContentInputSchema>;
 
 const ExampleSchema = z.object({
     english: z.string().describe('An English example sentence demonstrating the grammar topic.'),
@@ -25,13 +25,13 @@ const ExampleSchema = z.object({
     imageUrl: z.string().optional(),
 });
 
+export type GenerateLessonContentOutput = z.infer<typeof GenerateLessonContentOutputSchema>;
 const GenerateLessonContentOutputSchema = z.object({
   arabicExplanation: z.string().describe('A clear and comprehensive explanation of the English grammar topic, written entirely in Arabic, suitable for the specified student level.'),
   examples: z.array(ExampleSchema).describe('3-5 clear English example sentences illustrating the grammar topic, each with its Arabic translation.'),
   additionalNotesInArabic: z.string().optional().describe('Helpful additional notes related to the grammar topic, written entirely in Arabic, suitable for the student level. This should be a paragraph or two.'),
   commonMistakesInArabic: z.string().optional().describe('Common mistakes Arabic-speaking students make related to this grammar topic, explained entirely in Arabic with examples if appropriate. This should be a paragraph or two.'),
 });
-export type GenerateLessonContentOutput = z.infer<typeof GenerateLessonContentOutputSchema>;
 
 
 async function queryHuggingFace(payload: object) {

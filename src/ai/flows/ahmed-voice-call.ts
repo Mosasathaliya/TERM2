@@ -16,16 +16,16 @@ const ConversationEntrySchema = z.object({
   message: z.string(),
 });
 
+export type AhmedVoiceCallInput = z.infer<typeof AhmedVoiceCallInputSchema>;
 const AhmedVoiceCallInputSchema = z.object({
   englishGrammarConcept: z.string().describe('The English grammar concept or question from the user.'),
   conversationHistory: z.array(ConversationEntrySchema).optional().default([]).describe('The history of the conversation so far.'),
 });
-export type AhmedVoiceCallInput = z.infer<typeof AhmedVoiceCallInputSchema>;
 
+export type AhmedVoiceCallOutput = z.infer<typeof AhmedVoiceCallOutputSchema>;
 const AhmedVoiceCallOutputSchema = z.object({
   explanation: z.string().describe("The explanation in Arabic."),
 });
-export type AhmedVoiceCallOutput = z.infer<typeof AhmedVoiceCallOutputSchema>;
 
 async function queryHuggingFace(payload: object) {
     const response = await fetch(MODEL_ENDPOINT, {
