@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -40,8 +41,18 @@ async function queryCloudflare(prompt: string): Promise<any> {
     }
     
     const jsonResponse = await response.json();
-    // The response from the model when using `raw:true` is a string that needs to be parsed
-    return JSON.parse(jsonResponse.result.response);
+    try {
+        const responseText = jsonResponse.result.response;
+        const jsonStart = responseText.indexOf('{');
+        const jsonEnd = responseText.lastIndexOf('}');
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+            return JSON.parse(responseText.substring(jsonStart, jsonEnd + 1));
+        }
+        throw new Error("No valid JSON object found in response");
+    } catch (e) {
+        console.error("Failed to parse JSON from Cloudflare AI:", jsonResponse.result.response, e);
+        throw new Error("Failed to parse JSON from AI response.");
+    }
 }
 
 export async function generateQuiz(): Promise<GenerateQuizOutput> {

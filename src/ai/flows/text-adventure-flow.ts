@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Flows for the text adventure game using Cloudflare Workers AI.
@@ -30,7 +31,6 @@ async function queryCloudflare(messages: { role: string; content: string }[], is
 
     if (isJsonMode) {
       try {
-        // Find the start and end of the JSON object in the response
         const responseText = jsonResponse.result.response;
         const jsonStart = responseText.indexOf('{');
         const jsonEnd = responseText.lastIndexOf('}');
