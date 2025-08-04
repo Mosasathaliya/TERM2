@@ -2,106 +2,69 @@
 'use server';
 
 /**
- * @fileOverview A Genkit flow for converting text to speech with a specified voice.
+ * @fileOverview A flow for converting text to speech with a specified voice, using the Hugging Face Inference API.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import wav from 'wav';
 
-// Define the list of available high-quality voices
-const PREBUILT_VOICES = [
-  'algenib', 'antares', 'sirius', 'alnilam', 'gacrux',
-  'achernar', 'achird', 'algieba', 'rasalgethi', 'schedar', 'vindemiatrix'
-] as const;
+const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
+// Using a model that supports Arabic for TTS
+const TTS_MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/facebook/mms-tts-ara";
 
-
-// Helper function to convert PCM buffer to Base64 WAV
-async function toWav(
-  pcmData: Buffer,
-  channels = 1,
-  rate = 24000,
-  sampleWidth = 2
-): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const writer = new wav.Writer({
-      channels,
-      sampleRate: rate,
-      bitDepth: sampleWidth * 8,
-    });
-
-    const bufs: any[] = [];
-    writer.on('error', reject);
-    writer.on('data', function (d) {
-      bufs.push(d);
-    });
-    writer.on('end', function () {
-      resolve(Buffer.concat(bufs).toString('base64'));
-    });
-
-    writer.write(pcmData);
-    writer.end();
-  });
-}
-
-// Define the schema for the flow's input, now including a voice parameter
+// Define the schema for the flow's input. The 'voice' parameter is not used with this model, but kept for signature consistency.
 const TextToSpeechInputSchema = z.object({
   text: z.string().describe('The text to convert to speech.'),
-  voice: z.enum(PREBUILT_VOICES).default('algenib').describe('The prebuilt voice to use.'),
+  voice: z.string().optional().describe('The voice to use (not applicable for this model).'),
 });
 export type TextToSpeechInput = z.infer<typeof TextToSpeechInputSchema>;
-
 
 // Define the schema for the flow's output
 const TextToSpeechOutputSchema = z.object({
   media: z.string().describe("The generated audio as a Base64 encoded WAV data URI."),
 });
 
-// Define the Genkit flow
-const ttsFlow = ai.defineFlow(
-  {
-    name: 'ttsFlow',
-    inputSchema: TextToSpeechInputSchema,
-    outputSchema: TextToSpeechOutputSchema,
-  },
-  async ({ text, voice }) => {
-    const { media } = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-preview-tts',
-      config: {
-        responseModalities: ['AUDIO'],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: voice }, // Use the specified voice
-          },
-        },
-      },
-      prompt: text,
-    });
 
-    if (!media) {
-      throw new Error('No media was returned from the text-to-speech model.');
-    }
-    
-    // The returned data is raw PCM, so we need to convert it to a WAV file format
-    const audioBuffer = Buffer.from(
-      media.url.substring(media.url.indexOf(',') + 1),
-      'base64'
+async function queryHuggingFaceTTS(text: string): Promise<Blob> {
+    const response = await fetch(
+        TTS_MODEL_ENDPOINT,
+        {
+            headers: { Authorization: `Bearer ${HUGGING_FACE_API_KEY}` },
+            method: "POST",
+            body: JSON.stringify({ inputs: text }),
+        }
     );
-    
-    const wavBase64 = await toWav(audioBuffer);
 
-    return {
-      media: 'data:audio/wav;base64,' + wavBase64,
-    };
-  }
-);
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face TTS API error:", errorText);
+        throw new Error(`Hugging Face TTS API request failed: ${response.statusText}`);
+    }
+
+    // The API returns the audio data directly as a blob
+    const result = await response.blob();
+    return result;
+}
+
+// Helper to convert Blob to base64 data URI
+async function blobToDataURI(blob: Blob): Promise<string> {
+    const arrayBuffer = await blob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64 = buffer.toString('base64');
+    // The MMS model returns audio/flac, but let's assume we can treat it as generic audio
+    return `data:${blob.type};base64,${base64}`;
+}
 
 
 // Exported wrapper function to be called from the client
 export async function textToSpeech(input: TextToSpeechInput): Promise<{ media: string } | null> {
+  if (!HUGGING_FACE_API_KEY) {
+    throw new Error("Hugging Face API key is not configured.");
+  }
   try {
-    const result = await ttsFlow(input);
-    return result;
+    const audioBlob = await queryHuggingFaceTTS(input.text);
+    const dataUri = await blobToDataURI(audioBlob);
+    return { media: dataUri };
   } catch (error) {
     console.error("Error in textToSpeech flow:", error);
     return null;

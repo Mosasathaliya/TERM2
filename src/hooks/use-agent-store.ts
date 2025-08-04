@@ -10,10 +10,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-// Define the valid, high-quality voices for gemini-2.5-flash-preview-tts
+// The MMS TTS model from Hugging Face doesn't have named voices, so we simplify this.
 const VALID_VOICES = [
-  'algenib', 'antares', 'sirius', 'alnilam', 'gacrux',
-  'achernar', 'achird', 'algieba', 'rasalgethi', 'schedar', 'vindemiatrix'
+  'default', // Arabic voice from facebook/mms-tts-ara
+  'algenib', 'antares', 'sirius', // Kept for compatibility but not used by the new TTS flow.
 ] as const;
 
 // Define the structure for a single AI agent
@@ -44,25 +44,25 @@ interface AgentState {
 
 const STORAGE_VERSION = 2; // Increment this to force a state reset
 
-// Define the default list of agents with valid voices
+// Define the default list of agents
 const defaultAgents: Agent[] = [
   {
     name: 'Botty',
     personality: 'The best teacher in English who listens to users and corrects them if they make mistakes or struggle to speak. It is very conversational and will bring topics to speak about.',
     bodyColor: '#9333ea', // purple-600
-    voice: 'algenib',
+    voice: 'default',
   },
   {
     name: 'Captain Jack',
     personality: 'A witty and adventurous pirate captain with a love for treasure and a good joke.',
     bodyColor: '#ca8a04', // yellow-600
-    voice: 'antares',
+    voice: 'default',
   },
   {
     name: 'Professor Axiom',
     personality: 'A brilliant, slightly eccentric professor of theoretical physics who explains things with elaborate analogies.',
     bodyColor: '#1d4ed8', // blue-700
-    voice: 'sirius',
+    voice: 'default',
   },
 ];
 

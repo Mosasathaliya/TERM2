@@ -4,7 +4,7 @@
 /**
  * @fileoverview Custom hook to manage the entire voice chat lifecycle.
  * It integrates audio processing, AI interactions (STT, persona, TTS),
- * and state management.
+ * and state management, all using Hugging Face models.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -54,7 +54,6 @@ export function useVoiceChat() {
       
       if (responseText) {
           const modelMessage: Message = { role: 'model', content: responseText };
-          // Update history with both user message and model response, and trim it.
           setHistory(prev => [...prev, userMessage, modelMessage].slice(-MAX_HISTORY_MESSAGES));
           
           const ttsResult = await textToSpeech({ text: responseText, voice: currentAgent.voice });
@@ -68,7 +67,6 @@ export function useVoiceChat() {
                setIsTalking(false);
           }
       } else {
-           // If there's no response text, just add the user's message to history and trim.
            setHistory(prev => [...prev, userMessage].slice(-MAX_HISTORY_MESSAGES));
            setIsTalking(false);
       }
@@ -185,7 +183,7 @@ export function useVoiceChat() {
     return () => {
       audioEl.removeEventListener('ended', handleAudioEnd);
     };
-  }, [isTalking]); // Rerun this effect if isTalking changes to ensure the handler has the correct scope
+  }, [isTalking]); 
 
   return {
     isConnected,

@@ -1,11 +1,12 @@
 
 'use server';
 /**
- * @fileOverview A Genkit flow to generate explanations for a YouTube video topic.
+ * @fileOverview A flow to generate explanations for a YouTube video topic, using Hugging Face.
  */
+import { z } from 'zod';
 
-import {ai} from '@/ai/genkit';
-import {z} from 'zod';
+const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
+const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
 
 const ExplainVideoInputSchema = z.object({
   videoTitle: z.string().describe('The title of the YouTube video to be explained.'),
@@ -19,14 +20,27 @@ const ExplainVideoOutputSchema = z.object({
 });
 export type ExplainVideoOutput = z.infer<typeof ExplainVideoOutputSchema>;
 
-const explainVideoFlow = ai.defineFlow(
-  {
-    name: 'explainVideoFlow',
-    inputSchema: ExplainVideoInputSchema,
-    outputSchema: ExplainVideoOutputSchema,
-  },
-  async ({ videoTitle }) => {
-    const prompt = `You are an expert science communicator for an Arabic-speaking audience. The user is watching a YouTube video from the 'What If' series titled: "${videoTitle}".
+
+async function queryHuggingFace(payload: object) {
+    const response = await fetch(MODEL_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${HUGGING_FACE_API_KEY}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face API error:", errorText);
+        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+function formatPrompt(videoTitle: string) {
+    const systemPrompt = `You are an expert science communicator for an Arabic-speaking audience. The user is watching a YouTube video from the 'What If' series titled: "${videoTitle}".
 
 Your task is to provide three distinct types of explanations for the main topic of this video, all in simple, clear Arabic.
 
@@ -34,26 +48,52 @@ Your task is to provide three distinct types of explanations for the main topic 
 2.  **Key Concepts (keyConcepts)**: List and briefly explain 2-3 key scientific or theoretical concepts discussed in the video.
 3.  **Analogy (analogy)**: Create a simple analogy or comparison to a more familiar concept to help a beginner understand the core idea.
 
-Ensure all three explanations are in simple Arabic and are easy to understand. Respond only with the JSON object.`;
+Ensure all three explanations are in simple Arabic and are easy to understand.
+You MUST respond with only a valid JSON object in the format:
+{
+  "summary": "...",
+  "keyConcepts": "...",
+  "analogy": "..."
+}
+Do not include any other text or markdown formatting like \`\`\`json.`;
 
-    const { output } = await ai.generate({
-      model: 'googleai/gemini-2.5-flash',
-      prompt: prompt,
-      output: {
-        format: 'json',
-        schema: ExplainVideoOutputSchema,
-      },
-    });
+    return `<|system|>\n${systemPrompt}<|end|>\n<|user|>\nExplain the video "${videoTitle}".<|end|>\n<|assistant|>`;
+}
 
-    if (!output) {
-      throw new Error('AI failed to generate video explanation.');
-    }
-    return output;
-  }
-);
 
 export async function explainVideoTopic(
   input: ExplainVideoInput
 ): Promise<ExplainVideoOutput> {
-  return explainVideoFlow(input);
+  if (!HUGGING_FACE_API_KEY) {
+    throw new Error("Hugging Face API key is not configured.");
+  }
+  
+  const huggingFacePayload = {
+      inputs: formatPrompt(input.videoTitle),
+      parameters: {
+          max_new_tokens: 1024,
+          return_full_text: false,
+      },
+  };
+
+  try {
+      const result = await queryHuggingFace(huggingFacePayload);
+      const responseText = result[0]?.generated_text;
+      
+      if (!responseText) {
+          throw new Error("AI did not return any text.");
+      }
+      
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+          throw new Error("AI response did not contain a valid JSON object.");
+      }
+      
+      const parsedJson = JSON.parse(jsonMatch[0]);
+      return ExplainVideoOutputSchema.parse(parsedJson);
+
+  } catch (error) {
+      console.error("Explain video topic error:", error);
+      throw new Error("Failed to generate video explanation.");
+  }
 }

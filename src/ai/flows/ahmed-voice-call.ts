@@ -3,14 +3,13 @@
 
 /**
  * @fileOverview This flow allows users to call Ahmed, an AI teacher specializing in Arabic explanations of English grammar.
- *
- * - ahmedVoiceCall - A function to initiate a voice call with Ahmed.
- * - AhmedVoiceCallInput - The input type for the ahmedVoiceCall function.
- * - AhmedVoiceCallOutput - The return type for the ahmedVoiceCall function.
+ * It now uses the Hugging Face Inference API.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'zod';
+import { z } from 'zod';
+
+const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
+const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
 
 const ConversationEntrySchema = z.object({
   speaker: z.enum(['User', 'Ahmed']),
@@ -28,41 +27,61 @@ const AhmedVoiceCallOutputSchema = z.object({
 });
 export type AhmedVoiceCallOutput = z.infer<typeof AhmedVoiceCallOutputSchema>;
 
-export async function ahmedVoiceCall(input: AhmedVoiceCallInput): Promise<AhmedVoiceCallOutput> {
-  return ahmedVoiceCallFlow(input);
+async function queryHuggingFace(payload: object) {
+    const response = await fetch(MODEL_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${HUGGING_FACE_API_KEY}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face API error:", errorText);
+        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+    }
+    return response.json();
 }
 
-const prompt = ai.definePrompt({
-  name: 'ahmedVoiceCallPrompt',
-  model: 'googleai/gemini-2.5-flash',
-  input: {schema: AhmedVoiceCallInputSchema},
-  output: {schema: AhmedVoiceCallOutputSchema},
-  prompt: `You are Ahmed, an AI teacher from Speed of Mastery. You are a friendly and helpful male expert specializing in explaining English grammar concepts in Arabic.
+function formatPrompt(input: AhmedVoiceCallInput) {
+    let prompt = `You are Ahmed, an AI teacher from Speed of Mastery. You are a friendly and helpful male expert specializing in explaining English grammar concepts in Arabic.
 Your goal is to provide clear, simple explanations with useful examples. Always address the user directly.
 
-{{#if conversationHistory.length}}
-You are in a conversation. Here is the history:
-{{#each conversationHistory}}
-- {{this.speaker}}: {{this.message}}
-{{/each}}
----
-The user's latest message is: "{{englishGrammarConcept}}".
-Based on the conversation, provide a relevant and helpful response in Arabic.
-{{else}}
-The user is starting a new conversation. Their first question is about: "{{englishGrammarConcept}}"
-Provide a clear and simple explanation of this concept in Arabic. Use simple English sentences with Arabic translations as examples.
-{{/if}}
-`,
-});
+You MUST reply with only the explanation text, without any introductory phrases like "Here is the explanation:".`;
 
-const ahmedVoiceCallFlow = ai.defineFlow(
-  {
-    name: 'ahmedVoiceCallFlow',
-    inputSchema: AhmedVoiceCallInputSchema,
-    outputSchema: AhmedVoiceCallOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
-  }
-);
+    if (input.conversationHistory && input.conversationHistory.length > 0) {
+        prompt += "\n\nYou are in a conversation. Here is the history:\n";
+        prompt += input.conversationHistory.map(entry => `- ${entry.speaker}: ${entry.message}`).join('\n');
+        prompt += `\n---\nThe user's latest message is: "${input.englishGrammarConcept}".\nBased on the conversation, provide a relevant and helpful response in Arabic.`;
+    } else {
+        prompt += `\n\nThe user is starting a new conversation. Their first question is about: "${input.englishGrammarConcept}"
+Provide a clear and simple explanation of this concept in Arabic. Use simple English sentences with Arabic translations as examples.`;
+    }
+
+    return `<|system|>\n${prompt}<|end|>\n<|user|>\n${input.englishGrammarConcept}<|end|>\n<|assistant|>`;
+}
+
+export async function ahmedVoiceCall(input: AhmedVoiceCallInput): Promise<AhmedVoiceCallOutput> {
+    if (!HUGGING_FACE_API_KEY) {
+        throw new Error("Hugging Face API key is not configured.");
+    }
+    
+    const huggingFacePayload = {
+        inputs: formatPrompt(input),
+        parameters: {
+            max_new_tokens: 512,
+            return_full_text: false,
+        },
+    };
+
+    try {
+        const result = await queryHuggingFace(huggingFacePayload);
+        const explanation = result[0]?.generated_text || "عذراً، لم أتمكن من إنشاء رد.";
+        return { explanation };
+    } catch (error) {
+        console.error("Ahmed Voice Call error:", error);
+        return { explanation: "عذراً، حدث خطأ أثناء معالجة طلبك." };
+    }
+}

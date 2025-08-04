@@ -2,13 +2,16 @@
 'use server';
 
 /**
- * @fileOverview Defines a consolidated Genkit flow for the entire voice chat pipeline.
- * This flow handles speech-to-text, persona contextualization, and response generation
- * in a more optimized sequence.
+ * @fileoverview Defines a consolidated pipeline for voice chat using Hugging Face models.
+ * This flow handles speech-to-text, persona contextualization, and response generation.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'zod';
+import { z } from 'zod';
+
+const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
+const STT_MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/openai/whisper-large-v3";
+const LLM_MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
+
 
 // Define a schema for a single chat message, which will be used for history
 const MessageSchema = z.object({
@@ -35,25 +38,77 @@ const VoiceChatOutputSchema = z.object({
 export type VoiceChatOutput = z.infer<typeof VoiceChatOutputSchema>;
 
 
-// Define the consolidated Genkit flow
-const voiceChatPipelineFlow = ai.defineFlow(
-  {
-    name: 'voiceChatPipelineFlow',
-    inputSchema: VoiceChatInputSchema,
-    outputSchema: VoiceChatOutputSchema,
-  },
-  async ({ audioDataUri, personality, userName, userInfo, history }) => {
-    // Step 1: Transcribe audio to text
-    const { text: transcribedText } = await ai.generate({
-      model: 'googleai/gemini-1.5-flash',
-      prompt: [
-        {text: 'Transcribe the following audio to text.'},
-        {media: {url: audioDataUri}},
-      ],
+// Helper to convert data URI to Blob
+function dataUriToBlob(dataUri: string) {
+    const byteString = atob(dataUri.split(',')[1]);
+    const mimeString = dataUri.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
+}
+
+async function transcribeAudio(dataUri: string): Promise<string> {
+    const audioBlob = dataUriToBlob(dataUri);
+    const response = await fetch(STT_MODEL_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${HUGGING_FACE_API_KEY}` },
+        body: audioBlob,
     });
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face STT error:", errorText);
+        throw new Error(`STT request failed: ${response.statusText}`);
+    }
+    const result = await response.json();
+    return result.text || "";
+}
+
+async function generateResponse(systemPrompt: string, history: Message[], newUserText: string): Promise<string> {
+    const historyString = history.map(msg => {
+        return msg.role === 'user' ? `<|user|>\n${msg.content}<|end|>` : `<|assistant|>\n${msg.content}<|end|>`;
+    }).join('\n');
+    
+    const prompt = `<|system|>\n${systemPrompt}<|end|>\n${historyString}\n<|user|>\n${newUserText}<|end|>\n<|assistant|>`;
+
+    const response = await fetch(LLM_MODEL_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${HUGGING_FACE_API_KEY}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            inputs: prompt,
+            parameters: { max_new_tokens: 512, return_full_text: false },
+        }),
+    });
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face LLM error:", errorText);
+        throw new Error(`LLM request failed: ${response.statusText}`);
+    }
+    const result = await response.json();
+    return result[0]?.generated_text || "Sorry, I couldn't generate a response.";
+}
+
+/**
+ * An exported async function that runs the voice chat pipeline.
+ * This is the function that will be called from the application's frontend.
+ * @param input - The voice chat input data.
+ * @returns A promise that resolves to the AI's final text response and the transcription.
+ */
+export async function runVoiceChatPipeline(
+  input: VoiceChatInput
+): Promise<VoiceChatOutput> {
+    const { audioDataUri, personality, userName, userInfo, history } = input;
+
+    // Step 1: Transcribe audio to text
+    const transcribedText = await transcribeAudio(audioDataUri);
 
     if (!transcribedText || !transcribedText.trim()) {
-      return { response: "", transcribedText: "" }; // Return empty if transcription is empty
+      return { response: "", transcribedText: "" };
     }
     
     // Step 2: Construct the system prompt for the AI's persona
@@ -66,19 +121,9 @@ const voiceChatPipelineFlow = ai.defineFlow(
     }
     systemPrompt += ` Keep your responses concise and conversational.`
 
-    // Step 3: Add the new user message to the history for the LLM call
-    const llmHistory: Message[] = [...history, { role: 'user', content: transcribedText }];
-
-    // Step 4: Generate the personalized response using the full context
-    const response = await ai.generate({
-        model: 'googleai/gemini-2.5-flash',
-        system: systemPrompt,
-        // The prompt is the last user message, but history provides the full context
-        prompt: transcribedText,
-        history: history, // Send the history *before* the current user message
-    });
+    // Step 3: Generate the personalized response
+    const responseText = await generateResponse(systemPrompt, history, transcribedText);
     
-    const responseText = response.text;
     if (!responseText) {
       return { response: "I'm sorry, I don't have a response for that.", transcribedText: transcribedText };
     }
@@ -87,18 +132,4 @@ const voiceChatPipelineFlow = ai.defineFlow(
       response: responseText,
       transcribedText: transcribedText,
     };
-  }
-);
-
-
-/**
- * An exported async function that wraps the Genkit flow.
- * This is the function that will be called from the application's frontend.
- * @param input - The voice chat input data.
- * @returns A promise that resolves to the AI's final text response and the transcription.
- */
-export async function runVoiceChatPipeline(
-  input: VoiceChatInput
-): Promise<VoiceChatOutput> {
-  return voiceChatPipelineFlow(input);
 }

@@ -4,14 +4,13 @@
 /**
  * @fileOverview Provides AI-powered feedback on user responses to interactive exercises,
  * referencing specific sections of the lesson material.
- *
- * - getExerciseFeedback - A function that provides feedback on exercise answers.
- * - ExerciseFeedbackInput - The input type for the getExerciseFeedback function.
- * - ExerciseFeedbackOutput - The return type for the getExerciseFeedback function.
+ * Now using Hugging Face.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'zod';
+import { z } from 'zod';
+
+const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
+const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
 
 const ExerciseFeedbackInputSchema = z.object({
   lessonTitle: z.string().describe('The title of the lesson.'),
@@ -37,7 +36,6 @@ const ExerciseFeedbackInputSchema = z.object({
   ).describe('Interactive exercises in the lesson.'),
   lessonAdditionalNotes: z.string().optional().describe('Additional notes for the lesson.'),
   lessonCommonMistakes: z.string().optional().describe('Common mistakes students make in the lesson.'),
-  // Adding Arabic notes and mistakes to provide fuller context to the AI if available
   lessonAdditionalNotesArabic: z.string().optional().describe('Additional notes for the lesson in Arabic.'),
   lessonCommonMistakesArabic: z.string().optional().describe('Common mistakes students make in the lesson in Arabic.'),
 });
@@ -50,60 +48,69 @@ const ExerciseFeedbackOutputSchema = z.object({
 
 export type ExerciseFeedbackOutput = z.infer<typeof ExerciseFeedbackOutputSchema>;
 
-export async function getExerciseFeedback(input: ExerciseFeedbackInput): Promise<ExerciseFeedbackOutput> {
-  return exerciseFeedbackFlow(input);
+async function queryHuggingFace(payload: object) {
+    const response = await fetch(MODEL_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${HUGGING_FACE_API_KEY}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face API error:", errorText);
+        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+    }
+    return response.json();
 }
 
-const prompt = ai.definePrompt({
-  name: 'exerciseFeedbackPrompt',
-  model: 'googleai/gemini-2.5-flash',
-  input: {schema: ExerciseFeedbackInputSchema},
-  output: {schema: ExerciseFeedbackOutputSchema},
-  prompt: `You are an AI-powered tutor providing feedback to students on their answers to language learning exercises.
+function formatPrompt(input: ExerciseFeedbackInput) {
+    const exercise = input.lessonInteractiveExercises[0];
+    let prompt = `You are an AI-powered tutor providing feedback to students on their answers to language learning exercises.
 Your primary language for feedback MUST be ARABIC. You can use English for specific grammar terms if necessary, but explanations and clarifications should be in Arabic.
 
-The student is currently working on a lesson titled "{{lessonTitle}}" on the topic of "{{lessonTopic}}" at the "{{lessonLevel}}" level.
-Here is the Arabic explanation of the lesson: "{{lessonArabicExplanation}}".
+The student is currently working on a lesson titled "${input.lessonTitle}" on the topic of "${input.lessonTopic}" at the "${input.lessonLevel}" level.
+Here is the Arabic explanation of the lesson: "${input.lessonArabicExplanation}".
 Here are some examples from the lesson:
-{{#each lessonExamples}}
-- English: "{{this.english}}", Arabic: "{{this.arabic}}"
-{{/each}}
-{{#if lessonAdditionalNotesArabic}}
-Here are additional notes in Arabic: "{{lessonAdditionalNotesArabic}}"
-{{else if lessonAdditionalNotes}}
-Here are additional notes (in English, translate if needed for context): "{{lessonAdditionalNotes}}"
-{{/if}}
-{{#if lessonCommonMistakesArabic}}
-Here are common mistakes in Arabic: "{{lessonCommonMistakesArabic}}"
-{{else if lessonCommonMistakes}}
-Here are common mistakes (in English, translate if needed for context): "{{lessonCommonMistakes}}"
-{{/if}}
+${input.lessonExamples.map(ex => `- English: "${ex.english}", Arabic: "${ex.arabic}"`).join('\n')}
+${input.lessonAdditionalNotesArabic ? `Here are additional notes in Arabic: "${input.lessonAdditionalNotesArabic}"` : ''}
+${input.lessonCommonMistakesArabic ? `Here are common mistakes in Arabic: "${input.lessonCommonMistakesArabic}"` : ''}
 
 Now, consider the following interactive exercise and the student's answer:
-{{#each lessonInteractiveExercises}}
-Question: "{{this.question}}"
-{{#if this.choices}}
-Choices: {{#each this.choices}}"{{this}}" {{/each}}
-{{/if}}
-Correct Answer: "{{this.correct_answer}}"
-Your Answer: "{{this.user_answer}}"
-{{/each}}
+Question: "${exercise.question}"
+Correct Answer: "${exercise.correct_answer}"
+Student's Answer: "${exercise.user_answer}"
 
 Provide targeted feedback to the student IN ARABIC.
 If the student's answer is correct, congratulate them in Arabic and perhaps offer a small additional tip or encouragement in Arabic.
 If the student's answer is incorrect, explain IN ARABIC why it's incorrect, clarify the correct answer IN ARABIC, and reference specific sections of the lesson material (like the Arabic explanation or examples) to reinforce understanding. Be encouraging and helpful.
-Ensure your entire feedback is in Arabic.
-`,
-});
+Ensure your entire feedback is in Arabic. Your response should be ONLY the feedback text.`;
+    
+    return `<|system|>\n${prompt}<|end|>\n<|user|>\nMy answer was "${exercise.user_answer}". Give me feedback.<|end|>\n<|assistant|>`;
+}
 
-const exerciseFeedbackFlow = ai.defineFlow(
-  {
-    name: 'exerciseFeedbackFlow',
-    inputSchema: ExerciseFeedbackInputSchema,
-    outputSchema: ExerciseFeedbackOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
-  }
-);
+
+export async function getExerciseFeedback(input: ExerciseFeedbackInput): Promise<ExerciseFeedbackOutput> {
+    if (!HUGGING_FACE_API_KEY) {
+        throw new Error("Hugging Face API key is not configured.");
+    }
+    
+    const huggingFacePayload = {
+        inputs: formatPrompt(input),
+        parameters: {
+            max_new_tokens: 512,
+            return_full_text: false,
+        },
+    };
+
+    try {
+        const result = await queryHuggingFace(huggingFacePayload);
+        const feedback = result[0]?.generated_text || "عذراً، لم أتمكن من إنشاء رد.";
+        return { feedback };
+    } catch (error) {
+        console.error("Exercise Feedback error:", error);
+        return { feedback: "عذراً، حدث خطأ أثناء معالجة طلبك." };
+    }
+}

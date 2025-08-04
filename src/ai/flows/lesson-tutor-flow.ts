@@ -1,16 +1,15 @@
 
 'use server';
 /**
- * @fileOverview Provides AI-powered tutoring assistance for specific lesson content.
- *
- * - getLessonTutorResponse - A function that provides an AI response to a student's question about a lesson.
- * - LessonTutorInput - The input type for the getLessonTutorResponse function.
- * - LessonTutorOutput - The return type for the getLessonTutorResponse function.
+ * @fileOverview Provides AI-powered tutoring assistance for specific lesson content, using Hugging Face.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'zod';
+import { z } from 'zod';
 import type { LessonExample } from '@/types/lesson';
+
+const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
+const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
+
 
 const LessonTutorInputSchema = z.object({
   studentQuestion: z.string().describe('The question asked by the student.'),
@@ -38,59 +37,69 @@ const LessonTutorOutputSchema = z.object({
 
 export type LessonTutorOutput = z.infer<typeof LessonTutorOutputSchema>;
 
-export async function getLessonTutorResponse(input: LessonTutorInput): Promise<LessonTutorOutput> {
-  return lessonTutorFlow(input);
+async function queryHuggingFace(payload: object) {
+    const response = await fetch(MODEL_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${HUGGING_FACE_API_KEY}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face API error:", errorText);
+        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+    }
+    return response.json();
 }
 
-const tutorPrompt = ai.definePrompt({
-  name: 'lessonTutorPrompt',
-  model: 'googleai/gemini-2.5-flash',
-  input: {schema: LessonTutorInputSchema},
-  output: {schema: LessonTutorOutputSchema},
-  prompt: `You are a specialist AI English language tutor for Arabic-speaking students. 
+function formatPrompt(input: LessonTutorInput) {
+    let prompt = `You are a specialist AI English language tutor for Arabic-speaking students. 
 Your entire response MUST be in Arabic.
 Your personality is encouraging and patient.
 
-The student is studying a lesson titled "{{lessonTitle}}" on the topic of "{{lessonTopic}}" at the "{{lessonLevel}}" level.
+The student is studying a lesson titled "${input.lessonTitle}" on the topic of "${input.lessonTopic}" at the "${input.lessonLevel}" level.
 
 Here is the core lesson material you must use to answer the question:
 ---
-Lesson Explanation (in Arabic): "{{lessonArabicExplanation}}"
+Lesson Explanation (in Arabic): "${input.lessonArabicExplanation}"
 ---
 Lesson Examples:
-{{#each lessonExamples}}
-- English: "{{this.english}}", Arabic: "{{this.arabic}}"
-{{/each}}
+${input.lessonExamples.map(ex => `- English: "${ex.english}", Arabic: "${ex.arabic}"`).join('\n')}
 ---
-{{#if lessonAdditionalNotesArabic}}
-Additional Notes (in Arabic): "{{lessonAdditionalNotesArabic}}"
----
-{{/if}}
-{{#if lessonCommonMistakesArabic}}
-Common Mistakes (in Arabic): "{{lessonCommonMistakesArabic}}"
----
-{{/if}}
-
-The student's question is: "{{studentQuestion}}"
+${input.lessonAdditionalNotesArabic ? `Additional Notes (in Arabic): "${input.lessonAdditionalNotesArabic}"\n---` : ''}
+${input.lessonCommonMistakesArabic ? `Common Mistakes (in Arabic): "${input.lessonCommonMistakesArabic}"\n---` : ''}
 
 Your task is to provide a clear, helpful, and concise answer to the student's question **in Arabic only**.
 Refer to the lesson material provided above (the explanation or examples) if it helps clarify your answer.
 If the student's question is unclear, politely ask for clarification in Arabic, but try to provide a helpful answer first if possible.
-Your response should be complete and ready to display directly to the student.
-`,
-});
+Your response should be complete and ready to display directly to the student. Do not add any extra conversational text like "Here is the answer". Just provide the answer.`;
+    
+    return `<|system|>\n${prompt}<|end|>\n<|user|>\n${input.studentQuestion}<|end|>\n<|assistant|>`;
+}
 
-const lessonTutorFlow = ai.defineFlow(
-  {
-    name: 'lessonTutorFlow',
-    inputSchema: LessonTutorInputSchema,
-    outputSchema: LessonTutorOutputSchema,
-  },
-  async (input) => {
-    const {output} = await tutorPrompt(input);
-    if (!output) {
-      throw new Error('AI tutor failed to generate a response.');
+
+export async function getLessonTutorResponse(input: LessonTutorInput): Promise<LessonTutorOutput> {
+    if (!HUGGING_FACE_API_KEY) {
+        throw new Error("Hugging Face API key is not configured.");
     }
-    return output;
-  }
-);
+    
+    const huggingFacePayload = {
+        inputs: formatPrompt(input),
+        parameters: {
+            max_new_tokens: 512,
+            return_full_text: false,
+        },
+    };
+
+    try {
+        const result = await queryHuggingFace(huggingFacePayload);
+        const aiTutorResponse = result[0]?.generated_text || "عذراً، لم أتمكن من إنشاء رد.";
+        return { aiTutorResponse };
+    } catch (error) {
+        console.error("Lesson Tutor error:", error);
+        return { aiTutorResponse: "عذراً، حدث خطأ أثناء معالجة طلبك." };
+    }
+}
