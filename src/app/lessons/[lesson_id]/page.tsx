@@ -5,8 +5,8 @@ import type { Lesson } from '@/types/lesson';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { generateLessonContent } from '@/ai/flows/generate-lesson-content';
 import LessonClientComponent from '@/components/lesson/LessonClientComponent';
+import { translateText } from '@/ai/flows/translate-flow';
 
 interface LessonPageProps {
   params: {
@@ -28,32 +28,42 @@ async function getLessonData(lessonId: string): Promise<Lesson | null> {
 
   let lesson: Lesson = JSON.parse(JSON.stringify(baseLessonData)); // Deep copy
 
-  if (lesson.meta?.englishGrammarTopic) {
-    try {
-      const aiContent = await generateLessonContent({
-        lessonTitle: lesson.title,
-        englishGrammarTopic: lesson.meta.englishGrammarTopic,
-        lessonLevel: lesson.level,
-        englishAdditionalNotes: lesson.additional_notes, 
-        englishCommonMistakes: lesson.common_mistakes, 
-      });
-      
-      lesson.arabic_explanation = aiContent.arabicExplanation;
-      lesson.examples = aiContent.examples.map(ex => ({
-        english: ex.english,
-        arabic: ex.arabic,
-        imagePrompt: ex.imagePrompt,
-      }));
-      lesson.additional_notes_arabic = aiContent.additionalNotesInArabic;
-      lesson.common_mistakes_arabic = aiContent.commonMistakesInArabic;
-    } catch (error) {
-      console.error("Failed to generate AI content for lesson:", lessonId, error);
-      const topic = lesson.meta.englishGrammarTopic || "this topic";
-      lesson.arabic_explanation = `عذرًا، لم نتمكن من تحميل الشرح التفصيلي لهذا الدرس (${topic}) في الوقت الحالي. يرجى المحاولة مرة أخرى لاحقًا.`;
-      lesson.examples = [{ english: "Error loading examples.", arabic: "خطأ في تحميل الأمثلة." }];
-      lesson.additional_notes_arabic = "عذرا، لم نتمكن من تحميل الملاحظات الإضافية باللغة العربية حاليا.";
-      lesson.common_mistakes_arabic = "عذرا، لم نتمكن من تحميل الأخطاء الشائعة باللغة العربية حاليا.";
-    }
+  // Instead of generating content, we will translate the existing English content.
+  try {
+    const [
+      translatedExplanation,
+      translatedExamples,
+      translatedNotes,
+      translatedMistakes
+    ] = await Promise.all([
+      translateText({ text: lesson.arabic_explanation, targetLanguage: 'ar', sourceLanguage: 'en' }), // Placeholder is in English
+      Promise.all(lesson.examples.map(async (ex) => {
+        const [translatedEnglish, translatedArabic] = await Promise.all([
+          translateText({ text: ex.english, targetLanguage: 'ar', sourceLanguage: 'en' }),
+          translateText({ text: ex.arabic, targetLanguage: 'ar', sourceLanguage: 'en' }) // Original 'arabic' field is also a placeholder
+        ]);
+        return {
+          english: ex.english,
+          arabic: translatedArabic.translation, // The primary translation we need
+          imagePrompt: ex.imagePrompt
+        };
+      })),
+      lesson.additional_notes ? translateText({ text: lesson.additional_notes, targetLanguage: 'ar', sourceLanguage: 'en' }) : Promise.resolve(null),
+      lesson.common_mistakes ? translateText({ text: lesson.common_mistakes, targetLanguage: 'ar', sourceLanguage: 'en' }) : Promise.resolve(null)
+    ]);
+    
+    lesson.arabic_explanation = translatedExplanation.translation;
+    lesson.examples = translatedExamples;
+    lesson.additional_notes_arabic = translatedNotes?.translation;
+    lesson.common_mistakes_arabic = translatedMistakes?.translation;
+
+  } catch (error) {
+    console.error("Failed to translate lesson content:", lessonId, error);
+    const topic = lesson.meta?.englishGrammarTopic || "this topic";
+    lesson.arabic_explanation = `عذرًا، لم نتمكن من تحميل الشرح التفصيلي لهذا الدرس (${topic}) في الوقت الحالي. يرجى المحاولة مرة أخرى لاحقًا.`;
+    lesson.examples = [{ english: "Error loading examples.", arabic: "خطأ في تحميل الأمثلة." }];
+    lesson.additional_notes_arabic = "عذرا، لم نتمكن من تحميل الملاحظات الإضافية باللغة العربية حاليا.";
+    lesson.common_mistakes_arabic = "عذرا، لم نتمكن من تحميل الأخطاء الشائعة باللغة العربية حاليا.";
   }
   
   return lesson;
@@ -66,7 +76,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   if (!lesson) {
     return (
       <div className="container mx-auto max-w-3xl py-8 px-4 text-center">
-        <h1 className="text-3xl font-bold mb-4 text-destructive">Lesson Not Found</h1>
+        <h1 className="text-3xl font-bold text-destructive">Lesson Not Found</h1>
         <p className="text-muted-foreground mb-6">Sorry, we couldn't find the lesson you were looking for.</p>
         <Button asChild>
           <Link href="/">
