@@ -19,7 +19,7 @@ const WordSchema = z.object({
   arabicExample: z.string(),
 });
 
-export const VocabularyQuizInputSchema = z.object({
+const VocabularyQuizInputSchema = z.object({
   words: z.array(WordSchema).describe('The list of words the user has just studied.'),
 });
 export type VocabularyQuizInput = z.infer<typeof VocabularyQuizInputSchema>;
@@ -30,7 +30,7 @@ const QuizQuestionSchema = z.object({
   correct_answer: z.string().describe('The correct English word from the options.'),
 });
 
-export const VocabularyQuizOutputSchema = z.object({
+const VocabularyQuizOutputSchema = z.object({
   questions: z.array(QuizQuestionSchema).length(5).describe('An array of exactly 5 quiz questions.'),
 });
 export type VocabularyQuizOutput = z.infer<typeof VocabularyQuizOutputSchema>;

@@ -14,7 +14,7 @@ const MessageSchema = z.object({
   content: z.string(),
 });
 
-export const ExpertChatInputSchema = z.object({
+const ExpertChatInputSchema = z.object({
   lessonTitle: z.string().describe('The title of the lesson being discussed.'),
   lessonExplanation: z.string().describe('The core explanation of the lesson topic.'),
   history: z.array(MessageSchema).describe('The previous conversation history.'),
@@ -22,7 +22,7 @@ export const ExpertChatInputSchema = z.object({
 });
 export type ExpertChatInput = z.infer<typeof ExpertChatInputSchema>;
 
-export const ExpertChatOutputSchema = z.object({
+const ExpertChatOutputSchema = z.object({
   answer: z.string().describe("The AI expert's answer to the question."),
 });
 export type ExpertChatOutput = z.infer<typeof ExpertChatOutputSchema>;
@@ -45,7 +45,7 @@ async function queryHuggingFace(payload: object) {
     return response.json();
 }
 
-function formatPrompt(systemPrompt: string, history: Message[], question: string) {
+function formatPrompt(systemPrompt: string, history: z.infer<typeof MessageSchema>[], question: string) {
     const historyString = history.map(msg => {
         if (msg.role === 'user') {
             return `<|user|>\n${msg.content}<|end|>`;
