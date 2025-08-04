@@ -4,6 +4,7 @@
  * @fileOverview Flows for the text adventure game using Cloudflare Workers AI.
  */
 import { z } from 'zod';
+import { generateImage } from './image-generation-flow';
 
 const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
@@ -166,13 +167,7 @@ const GenerateImageInputSchema = z.object({
 const generateImageForWordFlow = async ({ word, definition, genre }: z.infer<typeof GenerateImageInputSchema>) => {
     const prompt = `A vivid, atmospheric, digital painting of "${word}", a concept from a ${genre} world which means: "${definition}". Focus on creating an iconic, visually striking image. Avoid text and borders.`;
     
-    // NOTE: This flow requires an image generation model, but the user provided a text model.
-    // We will call the text model and return a placeholder.
-    console.warn("Image generation called, but text model is configured. Returning placeholder.");
-    
-    // To make this work, one would integrate an image generation API here.
-    // For now, we return a placeholder from placehold.co to avoid errors.
-    const placeholderUrl = `https://placehold.co/512x512/1E1E1E/FFFFFF.png?text=${encodeURIComponent(word)}`;
-    return { imageUrl: placeholderUrl };
+    const result = await generateImage({ prompt });
+    return { imageUrl: result.imageUrl };
 };
 export { generateImageForWordFlow as generateImageForWord };

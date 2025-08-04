@@ -1,9 +1,9 @@
 'use server';
 /**
  * @fileOverview A flow for generating a branded certificate background image.
- * This is currently a placeholder as the app is configured with a text-only model.
  */
 import { z } from 'zod';
+import { generateImage } from './image-generation-flow';
 
 const CertificateImageInputSchema = z.object({
   userName: z.string().describe('The name of the user receiving the certificate.'),
@@ -20,19 +20,12 @@ const CertificateImageOutputSchema = z.object({
 export type CertificateImageOutput = z.infer<typeof CertificateImageOutputSchema>;
 
 /**
- * This flow is designed to generate a certificate background image.
- * NOTE: The current AI configuration uses a text-only model.
- * This function will return a placeholder image. To enable real image
- * generation, you would need to integrate an image generation API here.
+ * This flow generates an abstract background image for a certificate.
  */
 export async function generateCertificateImage(
   input: CertificateImageInput
 ): Promise<CertificateImageOutput> {
-    console.warn("Image generation called, but a text-only model is configured. Returning a placeholder.");
-    
-    // Create a placeholder URL using an external service
-    const placeholderText = 'Certificate for ' + input.userName;
-    const imageUrl = `https://placehold.co/800x600/1C3D5A/FFFFFF.png?text=${encodeURIComponent(placeholderText)}`;
-    
-    return { imageUrl };
+    const prompt = `An abstract, elegant, and professional background for an award certificate. Use flowing lines and a sophisticated color palette of green, gold, and white. Minimalist and clean.`;
+    const result = await generateImage({ prompt });
+    return { imageUrl: result.imageUrl };
 }
