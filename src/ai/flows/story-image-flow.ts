@@ -1,15 +1,11 @@
 
 'use server';
 /**
- * @fileOverview A flow for generating an image based on a story's content using the Hugging Face Inference API.
+ * @fileOverview A flow for generating an image based on a story's content.
  */
 
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-
-const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
-// Using the recommended fast and efficient SDXL-Turbo model
-const IMAGE_MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/stabilityai/sdxl-turbo";
-
 
 const StoryImageInputSchema = z.object({
   story: z.string().describe('The text of the story to illustrate.'),
@@ -25,53 +21,17 @@ const StoryImageOutputSchema = z.object({
 });
 export type StoryImageOutput = z.infer<typeof StoryImageOutputSchema>;
 
-
-async function queryHuggingFaceImage(prompt: string): Promise<Blob> {
-    if (!HUGGING_FACE_API_KEY) {
-        throw new Error("Hugging Face API key not configured.");
-    }
-    const response = await fetch(
-        IMAGE_MODEL_ENDPOINT,
-        {
-            headers: { Authorization: `Bearer ${HUGGING_FACE_API_KEY}` },
-            method: "POST",
-            body: JSON.stringify({ inputs: prompt }),
-        }
-    );
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Hugging Face Image API error:", errorText);
-        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
-    }
-
-    const result = await response.blob();
-    return result;
-}
-
-// Helper to convert Blob to base64 data URI
-async function blobToDataURI(blob: Blob): Promise<string> {
-    const arrayBuffer = await blob.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const base64 = buffer.toString('base64');
-    return `data:${blob.type};base64,${base64}`;
-}
-
-
-// This is the main function that will be called from the client.
-// It's no longer a Genkit flow but a standard server action.
+// This flow is designed to generate an image based on a story's content.
 export async function generateStoryImage(
   input: StoryImageInput
 ): Promise<StoryImageOutput> {
-  const prompt = `A simple, colorful, and friendly illustration for the story: "${input.story}"`;
-  
-  try {
-    const imageBlob = await queryHuggingFaceImage(prompt);
-    const imageUrl = await blobToDataURI(imageBlob);
-    return { imageUrl };
-  } catch (error) {
-    console.error("Image generation failed:", error);
-    // In case of an error, we can return a placeholder or re-throw
-    throw new Error("Image generation failed.");
-  }
+  const { media } = await ai.generate({
+    model: 'googleai/gemini-2.0-flash-preview-image-generation',
+    prompt: `A simple, colorful, and friendly illustration for the story: "${input.story}"`,
+    config: {
+      responseModalities: ['IMAGE', 'TEXT'],
+    },
+  });
+  const imageUrl = media.url;
+  return { imageUrl };
 }

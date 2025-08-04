@@ -1,15 +1,12 @@
 
 'use server';
 /**
- * @fileOverview Provides AI-powered tutoring assistance for specific lesson content, using Hugging Face.
+ * @fileOverview Provides AI-powered tutoring assistance for specific lesson content.
  */
 
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import type { LessonExample } from '@/types/lesson';
-
-const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
-const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta";
-
 
 export type LessonTutorInput = z.infer<typeof LessonTutorInputSchema>;
 const LessonTutorInputSchema = z.object({
@@ -35,25 +32,14 @@ const LessonTutorOutputSchema = z.object({
   aiTutorResponse: z.string().describe('The AI tutor\'s response to the student\'s question, in Arabic.'),
 });
 
-async function queryHuggingFace(payload: object) {
-    const response = await fetch(MODEL_ENDPOINT, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${HUGGING_FACE_API_KEY}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-    });
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Hugging Face API error:", errorText);
-        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
-    }
-    return response.json();
-}
-
-function formatPrompt(input: LessonTutorInput) {
+export const getLessonTutorResponse = ai.defineFlow(
+  {
+    name: 'getLessonTutorResponse',
+    inputSchema: LessonTutorInputSchema,
+    outputSchema: LessonTutorOutputSchema,
+  },
+  async (input) => {
     let prompt = `You are a specialist AI English language tutor for Arabic-speaking students. 
 Your entire response MUST be in Arabic.
 Your personality is encouraging and patient.
@@ -70,34 +56,18 @@ ${input.lessonExamples.map(ex => `- English: "${ex.english}", Arabic: "${ex.arab
 ${input.lessonAdditionalNotesArabic ? `Additional Notes (in Arabic): "${input.lessonAdditionalNotesArabic}"\n---` : ''}
 ${input.lessonCommonMistakesArabic ? `Common Mistakes (in Arabic): "${input.lessonCommonMistakesArabic}"\n---` : ''}
 
+The student's question is: "${input.studentQuestion}"
+
 Your task is to provide a clear, helpful, and concise answer to the student's question **in Arabic only**.
 Refer to the lesson material provided above (the explanation or examples) if it helps clarify your answer.
 If the student's question is unclear, politely ask for clarification in Arabic, but try to provide a helpful answer first if possible.
 Your response should be complete and ready to display directly to the student. Do not add any extra conversational text like "Here is the answer". Just provide the answer.`;
     
-    return `<|system|>\n${prompt}<|end|>\n<|user|>\n${input.studentQuestion}<|end|>\n<|assistant|>`;
-}
-
-
-export async function getLessonTutorResponse(input: LessonTutorInput): Promise<LessonTutorOutput> {
-    if (!HUGGING_FACE_API_KEY) {
-        throw new Error("Hugging Face API key is not configured.");
-    }
+    const { response } = await ai.generate({
+      model: 'gemini-1.5-flash',
+      prompt,
+    });
     
-    const huggingFacePayload = {
-        inputs: formatPrompt(input),
-        parameters: {
-            max_new_tokens: 512,
-            return_full_text: false,
-        },
-    };
-
-    try {
-        const result = await queryHuggingFace(huggingFacePayload);
-        const aiTutorResponse = result[0]?.generated_text || "عذراً، لم أتمكن من إنشاء رد.";
-        return { aiTutorResponse };
-    } catch (error) {
-        console.error("Lesson Tutor error:", error);
-        return { aiTutorResponse: "عذراً، حدث خطأ أثناء معالجة طلبك." };
-    }
-}
+    return { aiTutorResponse: response.text };
+  }
+);

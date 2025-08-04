@@ -4,13 +4,10 @@
 /**
  * @fileOverview Provides AI-powered feedback on user responses to interactive exercises,
  * referencing specific sections of the lesson material.
- * Now using Hugging Face.
  */
 
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-
-const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
-const MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta";
 
 export type ExerciseFeedbackInput = z.infer<typeof ExerciseFeedbackInputSchema>;
 const ExerciseFeedbackInputSchema = z.object({
@@ -46,25 +43,13 @@ const ExerciseFeedbackOutputSchema = z.object({
   feedback: z.string().describe('AI-powered feedback on the user\'s answer, referencing specific sections of the lesson material. This feedback should be primarily in Arabic.'),
 });
 
-async function queryHuggingFace(payload: object) {
-    const response = await fetch(MODEL_ENDPOINT, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${HUGGING_FACE_API_KEY}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Hugging Face API error:", errorText);
-        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
-    }
-    return response.json();
-}
-
-function formatPrompt(input: ExerciseFeedbackInput) {
+export const getExerciseFeedback = ai.defineFlow(
+  {
+    name: 'getExerciseFeedback',
+    inputSchema: ExerciseFeedbackInputSchema,
+    outputSchema: ExerciseFeedbackOutputSchema,
+  },
+  async (input) => {
     const exercise = input.lessonInteractiveExercises[0];
     let prompt = `You are an AI-powered tutor providing feedback to students on their answers to language learning exercises.
 Your primary language for feedback MUST be ARABIC. You can use English for specific grammar terms if necessary, but explanations and clarifications should be in Arabic.
@@ -86,29 +71,11 @@ If the student's answer is correct, congratulate them in Arabic and perhaps offe
 If the student's answer is incorrect, explain IN ARABIC why it's incorrect, clarify the correct answer IN ARABIC, and reference specific sections of the lesson material (like the Arabic explanation or examples) to reinforce understanding. Be encouraging and helpful.
 Ensure your entire feedback is in Arabic. Your response should be ONLY the feedback text.`;
     
-    return `<|system|>\n${prompt}<|end|>\n<|user|>\nMy answer was "${exercise.user_answer}". Give me feedback.<|end|>\n<|assistant|>`;
-}
-
-
-export async function getExerciseFeedback(input: ExerciseFeedbackInput): Promise<ExerciseFeedbackOutput> {
-    if (!HUGGING_FACE_API_KEY) {
-        throw new Error("Hugging Face API key is not configured.");
-    }
+    const { response } = await ai.generate({
+      model: 'gemini-1.5-flash',
+      prompt,
+    });
     
-    const huggingFacePayload = {
-        inputs: formatPrompt(input),
-        parameters: {
-            max_new_tokens: 512,
-            return_full_text: false,
-        },
-    };
-
-    try {
-        const result = await queryHuggingFace(huggingFacePayload);
-        const feedback = result[0]?.generated_text || "عذراً، لم أتمكن من إنشاء رد.";
-        return { feedback };
-    } catch (error) {
-        console.error("Exercise Feedback error:", error);
-        return { feedback: "عذراً، حدث خطأ أثناء معالجة طلبك." };
-    }
-}
+    return { feedback: response.text };
+  }
+);
