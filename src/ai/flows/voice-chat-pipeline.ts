@@ -36,7 +36,7 @@ async function transcribeAudio(dataUri: string): Promise<string> {
     const API_URL = "https://api-inference.huggingface.co/models/openai/whisper-large-v3";
     const audioBlob = await (await fetch(dataUri)).blob();
     const response = await fetch(API_URL, {
-        headers: { "Authorization": `Bearer ${process.env.HUGGING_FACE_API_KEY}` },
+        headers: { "Authorization": `Bearer ${process.env.NEXT_PUBLIC_HUGGING_FACE_API_KEY}` },
         method: "POST",
         body: audioBlob,
     });
@@ -58,7 +58,7 @@ async function generateResponse(systemPrompt: string, history: Message[], newUse
     
     const response = await fetch(API_URL, {
         headers: {
-            "Authorization": `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
+            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_HUGGING_FACE_API_KEY}`,
             "Content-Type": "application/json"
         },
         method: "POST",

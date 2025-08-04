@@ -31,10 +31,10 @@ const GenerateLessonContentOutputSchema = z.object({
 
 
 async function queryHuggingFace(data: any) {
-    const API_URL = "https://api-inference.huggingface.co/models/gpt2";
+    const API_URL = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct";
     const response = await fetch(API_URL, {
         headers: {
-            "Authorization": `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
+            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_HUGGING_FACE_API_KEY}`,
             "Content-Type": "application/json"
         },
         method: "POST",
