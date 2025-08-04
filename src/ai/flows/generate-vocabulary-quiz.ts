@@ -1,10 +1,46 @@
 'use server';
 
 /**
- * @fileOverview An AI agent for generating a vocabulary quiz based on a list of words.
+ * @fileOverview An AI agent for generating a vocabulary quiz based on a list of words using Cloudflare Workers AI.
  */
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+
+const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
+const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
+const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
+
+async function queryCloudflare(prompt: string): Promise<any> {
+    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
+    
+    const messages = [
+        {
+            role: "system",
+            content: `You are an expert quiz master. Your task is to generate a JSON object representing a vocabulary quiz. The JSON object must have a key "questions" which is an array of exactly 5 multiple-choice question objects. Each question object must have keys "question" (the definition or synonym), "options" (an array of 4 English words), and "correct_answer". Do not output any text other than the JSON object.`
+        },
+        {
+            role: "user",
+            content: prompt,
+        }
+    ];
+    
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages, raw: true }),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Cloudflare AI API error:", errorText);
+        throw new Error(`Cloudflare AI API request failed: ${response.statusText}`);
+    }
+    
+    const jsonResponse = await response.json();
+    return JSON.parse(jsonResponse.result.response);
+}
 
 const WordSchema = z.object({
   english: z.string(),
@@ -31,12 +67,10 @@ const VocabularyQuizOutputSchema = z.object({
 });
 export type VocabularyQuizOutput = z.infer<typeof VocabularyQuizOutputSchema>;
 
-const vocabQuizPrompt = ai.definePrompt(
-  {
-    name: 'vocabQuizPrompt',
-    input: { schema: VocabularyQuizInputSchema },
-    output: { schema: VocabularyQuizOutputSchema },
-    prompt: `You are a quiz master. Based on the following list of vocabulary words, create a quiz with exactly 5 multiple-choice questions.
+export async function generateVocabularyQuiz({ words }: VocabularyQuizInput): Promise<VocabularyQuizOutput> {
+  const wordList = words.map(w => `- ${w.english}: ${w.definition}`).join('\n');
+
+  const prompt = `Based on the following list of vocabulary words, create a quiz with exactly 5 multiple-choice questions.
 
 Each question should test the user's knowledge of one of the words. The question should be a definition or a synonym phrase.
 The options should be four English words, one of which is the correct answer. The correct answer must be one of the words from the provided list. The other three options should be plausible but incorrect distractors.
@@ -44,25 +78,9 @@ The options should be four English words, one of which is the correct answer. Th
 Your output must be a single JSON object with a "questions" key, which holds an array of 5 question objects.
 
 Word List:
-{{#each words}}- {{english}}: {{definition}}
-{{/each}}
-`,
-  }
-);
+${wordList}
+`;
 
-
-const generateVocabularyQuizFlow = ai.defineFlow(
-  {
-    name: 'generateVocabularyQuizFlow',
-    inputSchema: VocabularyQuizInputSchema,
-    outputSchema: VocabularyQuizOutputSchema,
-  },
-  async ({ words }) => {
-    const { output } = await vocabQuizPrompt({ words });
-    return output!;
-  }
-);
-
-export async function generateVocabularyQuiz({ words }: VocabularyQuizInput): Promise<VocabularyQuizOutput> {
-  return generateVocabularyQuizFlow({ words });
+  const output = await queryCloudflare(prompt);
+  return output;
 }

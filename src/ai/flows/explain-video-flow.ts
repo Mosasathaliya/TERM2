@@ -1,9 +1,57 @@
 'use server';
 /**
- * @fileOverview A flow to generate explanations for a YouTube video topic.
+ * @fileOverview A flow to generate explanations for a YouTube video topic using Cloudflare Workers AI.
  */
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+
+const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
+const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
+const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
+
+async function queryCloudflare(prompt: string): Promise<any> {
+    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
+    
+    const messages = [
+        {
+            role: "system",
+            content: `You are an expert science communicator for an Arabic-speaking audience. Your task is to generate a single, valid JSON object based on the user's request. The JSON object must have three keys: "summary", "keyConcepts", and "analogy". All values must be in simple, clear Arabic. Do not output any text other than the JSON object.`
+        },
+        {
+            role: "user",
+            content: prompt,
+        }
+    ];
+    
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages, raw: true }),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Cloudflare AI API error:", errorText);
+        throw new Error(`Cloudflare AI API request failed: ${response.statusText}`);
+    }
+    
+    const jsonResponse = await response.json();
+     try {
+        const responseText = jsonResponse.result.response;
+        const jsonStart = responseText.indexOf('{');
+        const jsonEnd = responseText.lastIndexOf('}');
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+            return JSON.parse(responseText.substring(jsonStart, jsonEnd + 1));
+        }
+        throw new Error("No valid JSON object found in response");
+      } catch (e) {
+        console.error("Failed to parse JSON from Cloudflare AI:", jsonResponse.result.response, e);
+        throw new Error("Failed to parse JSON from AI response.");
+      }
+}
+
 
 export type ExplainVideoInput = z.infer<typeof ExplainVideoInputSchema>;
 const ExplainVideoInputSchema = z.object({
@@ -17,12 +65,8 @@ const ExplainVideoOutputSchema = z.object({
   analogy: z.string().describe('An analogy or simple comparison to help understand the topic, in Arabic.'),
 });
 
-const explainVideoPrompt = ai.definePrompt(
-  {
-    name: 'explainVideoPrompt',
-    input: { schema: ExplainVideoInputSchema },
-    output: { schema: ExplainVideoOutputSchema },
-    prompt: `You are an expert science communicator for an Arabic-speaking audience. The user is watching a YouTube video from the 'What If' series titled: "{{videoTitle}}".
+export async function explainVideoTopic(input: ExplainVideoInput): Promise<ExplainVideoOutput> {
+    const prompt = `The user is watching a YouTube video from the 'What If' series titled: "${input.videoTitle}".
 
 Your task is to provide three distinct types of explanations for the main topic of this video, all in simple, clear Arabic.
 
@@ -31,23 +75,8 @@ The output must be a single, valid JSON object with three keys as described in t
 2. "keyConcepts": A list and brief explanation of 2-3 key scientific or theoretical concepts discussed in the video.
 3. "analogy": A simple analogy or comparison to a more familiar concept to help a beginner understand the core idea.
 
-The entire response must be only the JSON object, with no other text before or after it.`,
-  }
-);
+The entire response must be only the JSON object, with no other text before or after it.`;
 
-
-const explainVideoFlow = ai.defineFlow(
-  {
-    name: 'explainVideoFlow',
-    inputSchema: ExplainVideoInputSchema,
-    outputSchema: ExplainVideoOutputSchema,
-  },
-  async ({ videoTitle }) => {
-    const { output } = await explainVideoPrompt({ videoTitle });
-    return output!;
-  }
-);
-
-export async function explainVideoTopic(input: ExplainVideoInput): Promise<ExplainVideoOutput> {
-    return explainVideoFlow(input);
+    const output = await queryCloudflare(prompt);
+    return ExplainVideoOutputSchema.parse(output);
 }

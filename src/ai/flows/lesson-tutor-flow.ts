@@ -1,9 +1,34 @@
 'use server';
 /**
- * @fileOverview Provides AI-powered tutoring assistance for specific lesson content.
+ * @fileOverview Provides AI-powered tutoring assistance for specific lesson content using Cloudflare Workers AI.
  */
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+
+const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
+const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
+const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
+
+async function queryCloudflare(messages: { role: string; content: string }[]): Promise<any> {
+    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
+    
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages }),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Cloudflare AI API error:", errorText);
+        throw new Error(`Cloudflare AI API request failed: ${response.statusText}`);
+    }
+    
+    const jsonResponse = await response.json();
+    return jsonResponse.result.response;
+}
 
 export type LessonTutorInput = z.infer<typeof LessonTutorInputSchema>;
 const LessonTutorInputSchema = z.object({
@@ -24,55 +49,44 @@ const LessonTutorInputSchema = z.object({
   lessonCommonMistakesArabic: z.string().optional().describe('Common mistakes students make in the lesson in Arabic.'),
 });
 
-export type LessonTutorOutput = z.infer<typeof LessonTutorOutputSchema>;
-const LessonTutorOutputSchema = z.object({
-  aiTutorResponse: z.string().describe('The AI tutor\'s response to the student\'s question, in Arabic.'),
-});
+export type LessonTutorOutput = {
+  aiTutorResponse: string;
+};
 
-const lessonTutorPrompt = ai.definePrompt(
-    {
-      name: 'lessonTutorPrompt',
-      input: { schema: LessonTutorInputSchema },
-      output: { schema: LessonTutorOutputSchema },
-      prompt: `You are a specialist AI English language tutor for Arabic-speaking students. 
+export async function getLessonTutorResponse(input: LessonTutorInput): Promise<LessonTutorOutput> {
+  const { studentQuestion, lessonTitle, lessonTopic, lessonLevel, lessonArabicExplanation, lessonExamples, lessonAdditionalNotesArabic, lessonCommonMistakesArabic } = input;
+  
+  const examplesText = lessonExamples.map(ex => `- English: "${ex.english}", Arabic: "${ex.arabic}"`).join('\n');
+  
+  const systemPrompt = `You are a specialist AI English language tutor for Arabic-speaking students. 
 Your entire response MUST be in Arabic.
-Your personality is encouraging and patient.
+Your personality is encouraging and patient.`;
 
-The student is studying a lesson titled "{{lessonTitle}}" on the topic of "{{lessonTopic}}" at the "{{lessonLevel}}" level.
+  const userPrompt = `The student is studying a lesson titled "${lessonTitle}" on the topic of "${lessonTopic}" at the "${lessonLevel}" level.
 
 Here is the core lesson material you must use to answer the question:
 ---
-Lesson Explanation (in Arabic): "{{lessonArabicExplanation}}"
+Lesson Explanation (in Arabic): "${lessonArabicExplanation}"
 ---
 Lesson Examples:
-{{#each lessonExamples}}- English: "{{english}}", Arabic: "{{arabic}}"
-{{/each}}
+${examplesText}
 ---
-{{#if lessonAdditionalNotesArabic}}Additional Notes (in Arabic): "{{lessonAdditionalNotesArabic}}"\n---{{/if}}
-{{#if lessonCommonMistakesArabic}}Common Mistakes (in Arabic): "{{lessonCommonMistakesArabic}}"\n---{{/if}}
+${lessonAdditionalNotesArabic ? `Additional Notes (in Arabic): "${lessonAdditionalNotesArabic}"\n---` : ''}
+${lessonCommonMistakesArabic ? `Common Mistakes (in Arabic): "${lessonCommonMistakesArabic}"\n---` : ''}
 
-The student's question is: "{{studentQuestion}}"
+The student's question is: "${studentQuestion}"
 
 Your task is to provide a clear, helpful, and concise answer to the student's question **in Arabic only**.
 Refer to the lesson material provided above (the explanation or examples) if it helps clarify your answer.
 If the student's question is unclear, politely ask for clarification in Arabic, but try to provide a helpful answer first if possible.
-Your response should be complete and ready to display directly to the student. Do not add any extra conversational text like "Here is the answer". Just provide the answer.`,
-    }
-  );
+Your response should be complete and ready to display directly to the student. Do not add any extra conversational text like "Here is the answer". Just provide the answer.`;
 
-const lessonTutorFlow = ai.defineFlow(
-  {
-    name: 'lessonTutorFlow',
-    inputSchema: LessonTutorInputSchema,
-    outputSchema: LessonTutorOutputSchema,
-  },
-  async (input) => {
-    const { output } = await lessonTutorPrompt(input);
-    return output!;
-  }
-);
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ];
 
+  const aiTutorResponse = await queryCloudflare(messages);
 
-export async function getLessonTutorResponse(input: LessonTutorInput): Promise<LessonTutorOutput> {
-  return lessonTutorFlow(input);
+  return { aiTutorResponse };
 }

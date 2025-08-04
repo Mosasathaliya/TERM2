@@ -1,12 +1,37 @@
 'use server';
 /**
- * @fileOverview A conversational flow for a lesson-specific expert AI.
+ * @fileOverview A conversational flow for a lesson-specific expert AI using Cloudflare Workers AI.
  */
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
+const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
+const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
+const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
+
+async function queryCloudflare(messages: { role: string; content: string }[]): Promise<any> {
+    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
+    
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages }),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Cloudflare AI API error:", errorText);
+        throw new Error(`Cloudflare AI API request failed: ${response.statusText}`);
+    }
+    
+    const jsonResponse = await response.json();
+    return jsonResponse.result.response;
+}
+
 const MessageSchema = z.object({
-  role: z.enum(['user', 'model']),
+  role: z.enum(['user', 'model', 'system']),
   content: z.string(),
 });
 
@@ -18,43 +43,25 @@ const ExpertChatInputSchema = z.object({
 });
 export type ExpertChatInput = z.infer<typeof ExpertChatInputSchema>;
 
-const ExpertChatOutputSchema = z.object({
-  answer: z.string().describe("The AI expert's answer to the question."),
-});
-export type ExpertChatOutput = z.infer<typeof ExpertChatOutputSchema>;
-
-
-const expertChatPrompt = ai.definePrompt({
-    name: 'expertChatPrompt',
-    input: { schema: ExpertChatInputSchema },
-    output: { schema: ExpertChatOutputSchema },
-    prompt: `You are an expert English language tutor from Speed of Mastery. Your current topic is "{{lessonTitle}}".
-Your explanation for this topic is: "{{lessonExplanation}}".
-Answer the user's questions based on this topic. Be friendly, clear, and concise. Use the provided conversation history to understand the context of the user's new question.
-Keep your answers in Arabic unless the user asks for something in English.
-
-Conversation History:
-{{#each history}}
-{{role}}: {{content}}
-{{/each}}
-
-User's new question: {{question}}
-`,
-});
-
-const expertChatFlow = ai.defineFlow(
-    {
-        name: 'expertChatFlow',
-        inputSchema: ExpertChatInputSchema,
-        outputSchema: ExpertChatOutputSchema,
-    },
-    async (input) => {
-        const { output } = await expertChatPrompt(input);
-        return output!;
-    }
-);
-
+export type ExpertChatOutput = {
+    answer: string;
+};
 
 export async function expertChat(input: ExpertChatInput): Promise<ExpertChatOutput> {
-    return expertChatFlow(input);
+    const { lessonTitle, lessonExplanation, history, question } = input;
+
+    const systemPrompt = `You are an expert English language tutor from Speed of Mastery. Your current topic is "${lessonTitle}".
+Your explanation for this topic is: "${lessonExplanation}".
+Answer the user's questions based on this topic. Be friendly, clear, and concise. Use the provided conversation history to understand the context of the user's new question.
+Keep your answers in Arabic unless the user asks for something in English.`;
+
+    const messages = [
+        { role: 'system', content: systemPrompt },
+        ...history.map(h => ({ role: h.role === 'model' ? 'assistant' : 'user', content: h.content })),
+        { role: 'user', content: question },
+    ];
+
+    const responseText = await queryCloudflare(messages as any);
+    
+    return { answer: responseText };
 }

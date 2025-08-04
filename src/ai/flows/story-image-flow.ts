@@ -1,8 +1,8 @@
 'use server';
 /**
  * @fileOverview A flow for generating an image based on a story's content.
+ * This flow is currently a placeholder as the configured AI model is text-only.
  */
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const StoryImageInputSchema = z.object({
@@ -19,28 +19,20 @@ const StoryImageOutputSchema = z.object({
 });
 export type StoryImageOutput = z.infer<typeof StoryImageOutputSchema>;
 
-const storyImageFlow = ai.defineFlow(
-  {
-    name: 'storyImageFlow',
-    inputSchema: StoryImageInputSchema,
-    outputSchema: StoryImageOutputSchema,
-  },
-  async (input) => {
-    const { media } = await ai.generate({
-        model: 'googleai/gemini-2.0-flash-preview-image-generation',
-        prompt: `A simple, colorful, and friendly illustration for the story: "${input.story}"`,
-        config: {
-            responseModalities: ['TEXT', 'IMAGE'],
-        },
-    });
-
-    return { imageUrl: media!.url };
-  }
-);
-
-// This flow is designed to generate an image based on a story's content.
+/**
+ * This flow is designed to generate an image based on a story's content.
+ * NOTE: The current AI configuration uses a text-only model.
+ * This function will return a placeholder image. To enable real image
+ * generation, you would need to integrate an image generation API here.
+ */
 export async function generateStoryImage(
   input: StoryImageInput
 ): Promise<StoryImageOutput> {
-  return storyImageFlow(input);
+  console.warn("Image generation called, but a text-only model is configured. Returning a placeholder.");
+  
+  // Create a placeholder URL using an external service
+  const placeholderText = encodeURIComponent(input.story.substring(0, 50) + '...');
+  const imageUrl = `https://placehold.co/600x400/1E1E1E/FFFFFF.png?text=${placeholderText}`;
+  
+  return { imageUrl };
 }

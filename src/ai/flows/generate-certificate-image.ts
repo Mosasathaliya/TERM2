@@ -1,8 +1,8 @@
 'use server';
 /**
  * @fileOverview A flow for generating a branded certificate background image.
+ * This is currently a placeholder as the app is configured with a text-only model.
  */
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const CertificateImageInputSchema = z.object({
@@ -19,30 +19,20 @@ const CertificateImageOutputSchema = z.object({
 });
 export type CertificateImageOutput = z.infer<typeof CertificateImageOutputSchema>;
 
-const certificateImageFlow = ai.defineFlow(
-  {
-    name: 'certificateImageFlow',
-    inputSchema: CertificateImageInputSchema,
-    outputSchema: CertificateImageOutputSchema,
-  },
-  async (input) => {
-    const prompt = `A professional and prestigious certificate background for 'Speed of Mastery'. Use a color palette of deep navy blue and light sky blue. The design must be clean, elegant, and modern. Include a subtle, elegant watermark of a geometric brain icon in the center. On the bottom right, include a circular seal element that looks like a modern, official stamp. The seal should be light blue and contain abstract, clean lines, but no text.`;
-    
-    const { media } = await ai.generate({
-        model: 'googleai/gemini-2.0-flash-preview-image-generation',
-        prompt: prompt,
-        config: {
-            responseModalities: ['TEXT', 'IMAGE'],
-        },
-    });
-
-    return { imageUrl: media!.url };
-  }
-);
-
-
+/**
+ * This flow is designed to generate a certificate background image.
+ * NOTE: The current AI configuration uses a text-only model.
+ * This function will return a placeholder image. To enable real image
+ * generation, you would need to integrate an image generation API here.
+ */
 export async function generateCertificateImage(
   input: CertificateImageInput
 ): Promise<CertificateImageOutput> {
-  return certificateImageFlow(input);
+    console.warn("Image generation called, but a text-only model is configured. Returning a placeholder.");
+    
+    // Create a placeholder URL using an external service
+    const placeholderText = 'Certificate for ' + input.userName;
+    const imageUrl = `https://placehold.co/800x600/1C3D5A/FFFFFF.png?text=${encodeURIComponent(placeholderText)}`;
+    
+    return { imageUrl };
 }

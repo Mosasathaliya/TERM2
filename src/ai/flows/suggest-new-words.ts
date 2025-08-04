@@ -1,10 +1,47 @@
 'use server';
 
 /**
- * @fileOverview An AI agent for suggesting new vocabulary words based on a given category.
+ * @fileOverview An AI agent for suggesting new vocabulary words based on a given category using Cloudflare Workers AI.
  */
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+
+const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
+const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
+const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
+
+async function queryCloudflare(prompt: string, numberOfWords: number): Promise<any> {
+    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
+    
+    const messages = [
+        {
+            role: "system",
+            content: `You are a vocabulary expert. Your task is to generate a JSON array of word objects. Each object must have keys "english", "arabic", "definition", "arabicDefinition", "example", and "arabicExample". The array should contain exactly ${numberOfWords} objects. Do not output any text other than the JSON array.`
+        },
+        {
+            role: "user",
+            content: prompt,
+        }
+    ];
+    
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages, raw: true }),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Cloudflare AI API error:", errorText);
+        throw new Error(`Cloudflare AI API request failed: ${response.statusText}`);
+    }
+    
+    const jsonResponse = await response.json();
+    return JSON.parse(jsonResponse.result.response);
+}
+
 
 const SuggestNewWordsInputSchema = z.object({
   category: z
@@ -26,27 +63,9 @@ const SuggestNewWordsOutputSchema = z.array(
 );
 export type SuggestNewWordsOutput = z.infer<typeof SuggestNewWordsOutputSchema>;
 
-const suggestWordsPrompt = ai.definePrompt(
-  {
-    name: 'suggestWordsPrompt',
-    input: { schema: SuggestNewWordsInputSchema },
-    output: { schema: SuggestNewWordsOutputSchema },
-    prompt: `You are a vocabulary expert. Suggest {{numberOfWords}} new English words related to the category '{{category}}'. Provide the output as a single JSON array of objects. Each object must have the keys specified in the output schema.`,
-  }
-);
-
-const suggestNewWordsFlow = ai.defineFlow(
-  {
-    name: 'suggestNewWordsFlow',
-    inputSchema: SuggestNewWordsInputSchema,
-    outputSchema: SuggestNewWordsOutputSchema,
-  },
-  async ({ category, numberOfWords }) => {
-    const { output } = await suggestWordsPrompt({ category, numberOfWords });
-    return output!;
-  }
-);
-
 export async function suggestNewWords(input: SuggestNewWordsInput): Promise<SuggestNewWordsOutput> {
-  return suggestNewWordsFlow(input);
+  const { category, numberOfWords } = input;
+  const prompt = `Suggest ${numberOfWords} new English words related to the category '${category}'.`;
+  const output = await queryCloudflare(prompt, numberOfWords);
+  return output;
 }

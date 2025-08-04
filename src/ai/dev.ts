@@ -2,21 +2,20 @@
 import { config } from 'dotenv';
 config();
 
-// We are now using direct Hugging Face API calls in our server actions,
-// so we don't need to import and register Genkit flows here in the same way.
-// The dev server will still run to enable other potential Genkit features.
+// AI text generation is now handled by direct Cloudflare API calls.
+// Genkit is still used for other features like Text-to-Speech (TTS) and Speech-to-Text (STT).
 
-// Keeping a few representative imports to show the structure, though they are not all active.
+// Keeping a few representative imports to show the structure.
 import '@/ai/flows/tts-flow.ts';
-import '@/ai/flows/chat-flow.ts'; // This is now a direct server action
-import '@/ai/flows/expert-chat-flow.ts'; // This is now a direct server action
-import '@/ai/flows/story-image-flow.ts'; // This is now a direct server action
-import '@/ai/flows/suggest-new-words.ts'; // This is now a direct server action
+import '@/ai/flows/chat-flow.ts';
+import '@/ai/flows/expert-chat-flow.ts';
+import '@/ai/flows/story-image-flow.ts';
+import '@/ai/flows/suggest-new-words.ts';
 import '@/ai/flows/translate-flow.ts';
 import '@/ai/flows/explain-video-flow.ts';
 import '@/ai/flows/generate-certificate-image.ts';
 import '@/ai/flows/generate-quiz-flow.ts';
-import '@/ai/flows/generate-vocabulary-quiz.ts'; // This is now a direct server action
+import '@/ai/flows/generate-vocabulary-quiz.ts';
 import '@/ai/flows/story-quiz-flow.ts';
 
 
