@@ -3,8 +3,7 @@
 
 /**
  * @fileoverview Custom hook to manage the entire voice chat lifecycle.
- * It integrates audio processing, AI interactions (STT, persona, TTS),
- * all using Cloudflare AI.
+ * It integrates audio processing and calls a server-side pipeline for AI interactions.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -13,7 +12,6 @@ import { useAgentStore } from './use-agent-store';
 import { textToSpeech } from '@/ai/flows/tts-flow';
 import type { Message } from '@/ai/flows/voice-chat-pipeline';
 import { runVoiceChatPipeline } from '@/ai/flows/voice-chat-pipeline';
-import { ai as genkitAi } from '@/ai/genkit'; // Using a different name to avoid conflicts
 
 const MAX_HISTORY_MESSAGES = 30; // 15 pairs of user/model messages
 
@@ -35,39 +33,26 @@ export function useVoiceChat() {
   
     setIsTalking(true);
     try {
-       // Step 1: Transcribe audio to text (using Genkit's STT)
-      const sttResult = await genkitAi.stt({
-        media: {
-            url: dataUri,
-        }
-      });
-      const transcribedText = sttResult.text;
-
-      if (!transcribedText || !transcribedText.trim()) {
-          setIsTalking(false);
-          return;
-      }
-      
-      const userMessage: Message = { role: 'user', content: transcribedText };
-      // Immediately update history with user's message
-      setHistory(prev => [...prev, userMessage].slice(-MAX_HISTORY_MESSAGES));
-
       const pipelineInput = {
-        audioDataUri: dataUri, // This is not used by the pipeline now, but kept for structure
+        audioDataUri: dataUri,
         personality: currentAgent.personality,
         userName: userSettings.name,
         userInfo: userSettings.info,
-        history: [...history, userMessage], // Pass the most up-to-date history
-        transcribedText: transcribedText,
+        history: history,
       };
 
       const result = await runVoiceChatPipeline(pipelineInput);
-      const { response: responseText } = result;
+      // @ts-ignore - get transcribed text from the response
+      const { response: responseText, transcribedText } = result;
+
+      // Update history with both user's message and model's response
+       if (transcribedText) {
+          const userMessage: Message = { role: 'user', content: transcribedText };
+          const modelMessage: Message = { role: 'model', content: responseText };
+          setHistory(prev => [...prev, userMessage, modelMessage].slice(-MAX_HISTORY_MESSAGES));
+       }
       
       if (responseText) {
-          const modelMessage: Message = { role: 'model', content: responseText };
-          setHistory(prev => [...prev, modelMessage].slice(-MAX_HISTORY_MESSAGES));
-          
           const ttsResult = await textToSpeech({ text: responseText, language: 'en' });
           if (audioRef.current && ttsResult?.media) {
               audioRef.current.src = ttsResult.media;

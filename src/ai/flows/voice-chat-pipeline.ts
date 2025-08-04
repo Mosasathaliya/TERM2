@@ -1,10 +1,12 @@
 'use server';
 
 /**
- * @fileoverview Defines a consolidated pipeline for voice chat using Cloudflare AI for text generation.
- * This flow now expects transcribed text as input and only handles response generation.
+ * @fileoverview Defines a consolidated pipeline for voice chat.
+ * This flow takes audio data, transcribes it, gets a response from a text-generation
+ * model, and returns the text response.
  */
 import { z } from 'zod';
+import { ai as genkitAi } from '@/ai/genkit'; 
 
 const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
@@ -43,7 +45,7 @@ export type Message = z.infer<typeof MessageSchema>;
 
 // Input schema for the consolidated pipeline
 const VoiceChatInputSchema = z.object({
-  transcribedText: z.string().describe("The transcribed text from the user's audio."),
+  audioDataUri: z.string().describe("The user's audio speech as a data URI."),
   personality: z.string().describe("The agent's base personality."),
   userName: z.string().optional(),
   userInfo: z.string().optional(),
@@ -67,9 +69,24 @@ export type VoiceChatOutput = z.infer<typeof VoiceChatOutputSchema>;
 export async function runVoiceChatPipeline(
   input: VoiceChatInput
 ): Promise<VoiceChatOutput> {
-  const { transcribedText, personality, userName, userInfo, history } = input;
+  const { audioDataUri, personality, userName, userInfo, history } = input;
+  
+   // Step 1: Transcribe audio to text (using Genkit's STT)
+    const sttResult = await genkitAi.stt({
+        media: {
+            url: audioDataUri,
+        }
+    });
+    const transcribedText = sttResult.text;
+
+    if (!transcribedText || !transcribedText.trim()) {
+        return { response: "" }; // Return empty if transcription is empty
+    }
+
+    const userMessage: Message = { role: 'user', content: transcribedText };
+    const currentHistory = [...history, userMessage];
         
-  // Step 1: Construct the system prompt for the AI's persona
+  // Step 2: Construct the system prompt for the AI's persona
   let systemPrompt = `You are an AI with the following personality: ${personality}.`;
   if (userName) {
       systemPrompt += ` Address the user as ${userName}.`;
@@ -79,11 +96,10 @@ export async function runVoiceChatPipeline(
   }
   systemPrompt += ` Keep your responses concise and conversational.`
 
-  // Step 2: Generate the personalized response using Cloudflare
+  // Step 3: Generate the personalized response using Cloudflare
   const messagesForApi = [
     { role: 'system', content: systemPrompt },
-    ...history.map(msg => ({ role: msg.role === 'model' ? 'assistant' : 'user', content: msg.content })),
-    { role: 'user', content: transcribedText },
+    ...currentHistory.map(msg => ({ role: msg.role === 'model' ? 'assistant' : 'user', content: msg.content })),
   ];
 
   const responseText = await queryCloudflare(messagesForApi as any);
@@ -94,5 +110,8 @@ export async function runVoiceChatPipeline(
 
   return { 
       response: responseText,
+      // Pass back the user's transcribed text so the UI can update
+      // @ts-ignore
+      transcribedText: transcribedText
   };
 }
