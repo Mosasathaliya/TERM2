@@ -42,7 +42,6 @@ export function useVoiceChat() {
       };
 
       const result = await runVoiceChatPipeline(pipelineInput);
-      // @ts-ignore - get transcribed text from the response
       const { response: responseText, transcribedText } = result;
 
       // Update history with both user's message and model's response

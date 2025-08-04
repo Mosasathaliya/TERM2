@@ -1,20 +1,46 @@
+
 'use server';
 
 /**
  * @fileoverview Defines a consolidated pipeline for voice chat.
- * This flow takes audio data, transcribes it, gets a response from a text-generation
- * model, and returns the text response.
+ * This flow takes audio data, transcribes it using Cloudflare Whisper,
+ * gets a response from a text-generation model, and returns the text response.
  */
 import { z } from 'zod';
-import { ai as genkitAi } from '@/ai/genkit'; 
 
 const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
-const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
+const TEXT_MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
+const STT_MODEL_NAME = '@cf/openai/whisper';
+
+
+// Cloudflare Speech-to-Text (Whisper)
+async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
+    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${STT_MODEL_NAME}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+            'Content-Type': 'application/octet-stream', // Send as raw audio data
+        },
+        body: audioBuffer,
+    });
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Cloudflare STT API error:", errorText);
+        throw new Error(`Cloudflare STT API request failed: ${response.statusText}`);
+    }
+
+    const jsonResponse = await response.json();
+    return jsonResponse.result.text;
+}
+
 
 // Cloudflare text generation
 async function queryCloudflare(messages: { role: string; content: string }[]): Promise<any> {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
+    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${TEXT_MODEL_NAME}`;
     
     const response = await fetch(url, {
         method: 'POST',
@@ -56,6 +82,7 @@ export type VoiceChatInput = z.infer<typeof VoiceChatInputSchema>;
 // Output schema for the consolidated pipeline
 const VoiceChatOutputSchema = z.object({
   response: z.string().describe("The AI agent's final text response."),
+  transcribedText: z.string().optional().describe("The transcribed text from the user's audio."),
 });
 export type VoiceChatOutput = z.infer<typeof VoiceChatOutputSchema>;
 
@@ -71,16 +98,12 @@ export async function runVoiceChatPipeline(
 ): Promise<VoiceChatOutput> {
   const { audioDataUri, personality, userName, userInfo, history } = input;
   
-   // Step 1: Transcribe audio to text (using Genkit's STT)
-    const sttResult = await genkitAi.stt({
-        media: {
-            url: audioDataUri,
-        }
-    });
-    const transcribedText = sttResult.text;
+   // Step 1: Transcribe audio to text (using Cloudflare Whisper)
+    const audioBuffer = Buffer.from(audioDataUri.split(',')[1], 'base64');
+    const transcribedText = await transcribeAudio(audioBuffer);
 
     if (!transcribedText || !transcribedText.trim()) {
-        return { response: "" }; // Return empty if transcription is empty
+        return { response: "", transcribedText: "" }; // Return empty if transcription is empty
     }
 
     const userMessage: Message = { role: 'user', content: transcribedText };
@@ -111,7 +134,6 @@ export async function runVoiceChatPipeline(
   return { 
       response: responseText,
       // Pass back the user's transcribed text so the UI can update
-      // @ts-ignore
       transcribedText: transcribedText
   };
 }
