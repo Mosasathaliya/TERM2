@@ -40,7 +40,7 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
               console.error("Audio playback error:", e);
               toast({
                   title: "Audio Playback Error",
-                  description: "Could not play audio.",
+                  description: "Could not play audio. Your browser might be blocking it.",
                   variant: "destructive",
               });
             });
