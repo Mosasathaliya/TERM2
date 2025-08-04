@@ -1,11 +1,15 @@
 
 'use server';
 /**
- * @fileOverview A Genkit flow for generating an image based on a story's content.
+ * @fileOverview A flow for generating an image based on a story's content using the Hugging Face Inference API.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'zod';
+import { z } from 'zod';
+
+const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
+// Using the recommended fast and efficient SDXL-Turbo model
+const IMAGE_MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/stabilityai/sdxl-turbo";
+
 
 const StoryImageInputSchema = z.object({
   story: z.string().describe('The text of the story to illustrate.'),
@@ -21,39 +25,61 @@ const StoryImageOutputSchema = z.object({
 });
 export type StoryImageOutput = z.infer<typeof StoryImageOutputSchema>;
 
-const storyImageFlow = ai.defineFlow(
-  {
-    name: 'storyImageFlow',
-    inputSchema: StoryImageInputSchema,
-    outputSchema: StoryImageOutputSchema,
-  },
-  async ({story}) => {
-    // A simple, direct prompt for the image generation model.
-    const prompt = `A simple, colorful, and friendly illustration for the story: "${story}"`;
-    
-    // Generate the image using the correct model and required configuration.
-    const {media} = await ai.generate({
-      // This is the correct model for image generation in Genkit.
-      model: 'googleai/gemini-2.0-flash-preview-image-generation',
-      prompt: prompt,
-      config: {
-        // Both TEXT and IMAGE modalities are required for this model to work correctly.
-        responseModalities: ['TEXT', 'IMAGE'],
-      },
-    });
 
-    if (!media) {
-      throw new Error('Image generation failed. No media was returned.');
+async function queryHuggingFaceImage(prompt: string): Promise<Blob> {
+    if (!HUGGING_FACE_API_KEY) {
+        throw new Error("Hugging Face API key not configured.");
     }
-    
-    // The image data is returned as a data URI and can be used directly.
-    return { imageUrl: media.url };
-  }
-);
+    const response = await fetch(
+        IMAGE_MODEL_ENDPOINT,
+        {
+            headers: { Authorization: `Bearer ${HUGGING_FACE_API_KEY}` },
+            method: "POST",
+            body: JSON.stringify({ inputs: prompt }),
+        }
+    );
 
-// Export a wrapper function to be called from client-side components.
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Hugging Face Image API error:", errorText);
+        throw new Error(`Hugging Face API request failed: ${response.statusText}`);
+    }
+
+    const result = await response.blob();
+    return result;
+}
+
+// Helper to convert a Blob to a Base64 Data URI
+function blobToDataURI(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (typeof reader.result === 'string') {
+                resolve(reader.result);
+            } else {
+                reject(new Error('Failed to convert blob to Data URI'));
+            }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
+
+// This is the main function that will be called from the client.
+// It's no longer a Genkit flow but a standard server action.
 export async function generateStoryImage(
   input: StoryImageInput
 ): Promise<StoryImageOutput> {
-  return storyImageFlow(input);
+  const prompt = `A simple, colorful, and friendly illustration for the story: "${input.story}"`;
+  
+  try {
+    const imageBlob = await queryHuggingFaceImage(prompt);
+    const imageUrl = await blobToDataURI(imageBlob);
+    return { imageUrl };
+  } catch (error) {
+    console.error("Image generation failed:", error);
+    // In case of an error, we can return a placeholder or re-throw
+    throw new Error("Image generation failed.");
+  }
 }

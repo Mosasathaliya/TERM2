@@ -1,16 +1,12 @@
 
 import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
+// We are removing the googleAI plugin to use Hugging Face instead.
+// The API calls will be handled directly in the flows.
 
 export const ai = genkit({
   plugins: [
-    googleAI({
-      apiKey: process.env.GEMINI_API_KEY,
-      // You can specify supported models if needed, but it's often not necessary
-      // as Genkit can discover them. This single plugin instance
-      // will handle all Google AI models, including text and image generation.
-    }),
+    // No default plugin needed when making direct API calls.
   ],
   // You can set a default model for convenience
-  // model: 'googleai/gemini-2.0-flash', 
+  // model: 'huggingface/microsoft/phi-3-mini-instruct', 
 });
