@@ -49,20 +49,12 @@ async function queryHuggingFaceImage(prompt: string): Promise<Blob> {
     return result;
 }
 
-// Helper to convert a Blob to a Base64 Data URI
-function blobToDataURI(blob: Blob): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            if (typeof reader.result === 'string') {
-                resolve(reader.result);
-            } else {
-                reject(new Error('Failed to convert blob to Data URI'));
-            }
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
+// Helper to convert Blob to base64 data URI
+async function blobToDataURI(blob: Blob): Promise<string> {
+    const arrayBuffer = await blob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64 = buffer.toString('base64');
+    return `data:${blob.type};base64,${base64}`;
 }
 
 
