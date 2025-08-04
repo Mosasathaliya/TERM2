@@ -8,9 +8,9 @@ config();
 
 // Keeping a few representative imports to show the structure, though they are not all active.
 import '@/ai/flows/tts-flow.ts';
-// import '@/ai/flows/chat-flow.ts'; // This is now a direct server action
+import '@/ai/flows/chat-flow.ts'; // This is now a direct server action
 import '@/ai/flows/expert-chat-flow.ts';
-// import '@/ai/flows/story-image-flow.ts'; // This is now a direct server action
+import '@/ai/flows/story-image-flow.ts'; // This is now a direct server action
 import '@/ai/flows/suggest-new-words.ts';
 import '@/ai/flows/translate-flow.ts';
 import '@/ai/flows/explain-video-flow.ts';
