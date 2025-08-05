@@ -30,7 +30,7 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   const handleSpeak = async (text: string, lang: 'en' | 'ar', id: string) => {
-    // Add a guard clause to prevent calling the API with empty text
+    // 1. Add a strict guard clause to prevent calling the API with empty text
     if (!text || !text.trim()) {
       toast({
         title: "No text to speak",
@@ -49,38 +49,41 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
     setActiveAudioId(id);
     try {
         const result = await textToSpeech({text, language: lang});
-        if (result && result.media) {
-            const audio = new Audio(result.media);
-            audioRef.current = audio;
-
-            audio.play().catch(e => {
-              console.error("Audio playback error:", e);
-              toast({
-                  title: "Audio Playback Error",
-                  description: "Your browser might be blocking automated audio playback.",
-                  variant: "destructive",
-              });
-              setActiveAudioId(null);
-            });
-            
-            audio.onended = () => setActiveAudioId(null);
-            audio.onerror = () => {
-                toast({
-                    title: "Audio Error",
-                    description: "An error occurred while trying to play the audio.",
-                    variant: "destructive",
-                });
-                setActiveAudioId(null);
-            };
-
-        } else {
+        // 2. Explicitly check for a null or invalid result from the API flow
+        if (!result || !result.media) {
             toast({
                 title: "Text-to-Speech Error",
                 description: "Could not generate audio for the selected text.",
                 variant: "destructive",
             });
             setActiveAudioId(null);
+            return;
         }
+
+        const audio = new Audio(result.media);
+        audioRef.current = audio;
+
+        // 3. Add a specific catch block for browser playback errors
+        audio.play().catch(e => {
+          console.error("Audio playback error:", e);
+          toast({
+              title: "Audio Playback Error",
+              description: "Your browser might be blocking automated audio playback. Please interact with the page and try again.",
+              variant: "destructive",
+          });
+          setActiveAudioId(null);
+        });
+        
+        audio.onended = () => setActiveAudioId(null);
+        audio.onerror = () => {
+            toast({
+                title: "Audio Error",
+                description: "An error occurred while trying to play the audio.",
+                variant: "destructive",
+            });
+            setActiveAudioId(null);
+        };
+
     } catch (error) {
         console.error("TTS Error:", error);
         toast({
@@ -93,6 +96,7 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
   };
 
   React.useEffect(() => {
+    // Cleanup function to stop audio when the component unmounts
     return () => {
         if (audioRef.current) {
             audioRef.current.pause();

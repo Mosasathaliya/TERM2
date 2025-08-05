@@ -41,8 +41,10 @@ export async function textToSpeech(input: TextToSpeechInput): Promise<TextToSpee
     // The MeloTTS model returns the raw MP3 audio bytes directly.
     const audioBuffer = await response.arrayBuffer();
     
-    if (audioBuffer.byteLength < 100) { // Very small buffer probably indicates an error from the API
-        console.error("TTS Flow: Received an empty or very small audio buffer from the API.");
+    // A tiny buffer likely indicates an error response (which is often JSON) rather than valid MP3 data.
+    if (audioBuffer.byteLength < 100) { 
+        const errorText = new TextDecoder().decode(audioBuffer);
+        console.error(`TTS Flow: Received an empty or very small audio buffer from the API. Potential error: ${errorText}`);
         return null;
     }
 
@@ -53,7 +55,8 @@ export async function textToSpeech(input: TextToSpeechInput): Promise<TextToSpee
     };
 
   } catch (error) {
-    console.error("Error in textToSpeech flow:", error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    console.error(`Error in textToSpeech flow: ${errorMessage}`);
     return null;
   }
 }
