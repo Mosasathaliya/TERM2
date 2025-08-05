@@ -8,15 +8,49 @@ import { Button } from './ui/button';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { Loader2, XCircle, Award, RefreshCw } from 'lucide-react';
+import { Loader2, XCircle, Award, RefreshCw, CheckCircle, X, Check } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { useProgressStore } from '@/hooks/use-progress-store';
 import { useToast } from '@/hooks/use-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type QuizState = 'loading' | 'active' | 'finished';
+type AnswerStatus = 'correct' | 'incorrect' | null;
 
-const QUIZ_LENGTH = 100;
 const MAX_RETRIES = 2;
+
+function AnswerFeedback({ status }: { status: AnswerStatus }) {
+  if (status === null) return null;
+
+  const iconVariants = {
+    hidden: { scale: 0.5, opacity: 0 },
+    visible: { scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 300, damping: 20 } },
+    exit: { scale: 0.5, opacity: 0, transition: { duration: 0.2 } },
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+    >
+      <motion.div
+        variants={iconVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+      >
+        {status === 'correct' ? (
+          <CheckCircle className="h-32 w-32 text-green-500" />
+        ) : (
+          <XCircle className="h-32 w-32 text-destructive" />
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}
+
 
 export function QuizScreen() {
   const [quizState, setQuizState] = useState<QuizState>('loading');
@@ -24,6 +58,7 @@ export function QuizScreen() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [answerStatus, setAnswerStatus] = useState<AnswerStatus>(null);
   const { setFinalExamPassed } = useProgressStore();
   const { toast } = useToast();
   
@@ -37,7 +72,7 @@ export function QuizScreen() {
     try {
       const quizData = await generateQuiz();
       if (quizData && quizData.questions.length > 0) {
-        setQuestions(quizData.questions.slice(0, QUIZ_LENGTH));
+        setQuestions(quizData.questions);
         setQuizState('active');
       } else {
         if (retries > 0) {
@@ -81,43 +116,51 @@ export function QuizScreen() {
   }, [fetchQuiz]);
 
   const handleNextQuestion = () => {
-    if (selectedOption) {
+    if (selectedOption && questions[currentQuestionIndex]) {
+      const isCorrect = selectedOption === questions[currentQuestionIndex].correct_answer;
+      setAnswerStatus(isCorrect ? 'correct' : 'incorrect');
+
       const newAnswers = [...userAnswers, selectedOption];
       setUserAnswers(newAnswers);
-      setSelectedOption(null);
 
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex(prev => prev + 1);
-      } else {
-        const finalAnswers = [...newAnswers];
-        const finalScore = finalAnswers.reduce((acc, answer, index) => {
-            if (questions[index] && answer === questions[index].correct_answer) {
-                return acc + 1;
+      setTimeout(() => {
+          setAnswerStatus(null);
+          setSelectedOption(null);
+    
+          if (currentQuestionIndex < questions.length - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+          } else {
+            const finalAnswers = [...newAnswers];
+            const finalScore = finalAnswers.reduce((acc, answer, index) => {
+                if (questions[index] && answer === questions[index].correct_answer) {
+                    return acc + 1;
+                }
+                return acc;
+            }, 0);
+            
+            const passed = finalScore / questions.length >= 0.7;
+            setFinalExamPassed(passed);
+            
+            if (passed) {
+                toast({
+                    title: "Quiz Passed!",
+                    description: `You scored ${finalScore}/${questions.length}. You can now generate your certificate!`,
+                    className: "bg-green-100 dark:bg-green-900",
+                });
+            } else {
+                 toast({
+                    variant: "destructive",
+                    title: "Quiz Failed",
+                    description: `You scored ${finalScore}/${questions.length}. You need at least 70% to pass.`,
+                });
             }
-            return acc;
-        }, 0);
-        
-        const passed = finalScore / questions.length >= 0.7;
-        setFinalExamPassed(passed);
-        
-        if (passed) {
-            toast({
-                title: "Quiz Passed!",
-                description: `You scored ${finalScore}/${questions.length}. You can now generate your certificate!`,
-                className: "bg-green-100 dark:bg-green-900",
-            });
-        } else {
-             toast({
-                variant: "destructive",
-                title: "Quiz Failed",
-                description: `You scored ${finalScore}/${questions.length}. You need at least 70% to pass.`,
-            });
-        }
-        
-        setQuizState('finished');
-      }
+            
+            setQuizState('finished');
+          }
+      }, 1500); // Duration of the feedback animation
     }
   };
+
 
   const score = useMemo(() => {
     if (quizState !== 'finished') return 0;
@@ -130,6 +173,9 @@ export function QuizScreen() {
   }, [quizState, userAnswers, questions]);
 
   const getResultMessage = () => {
+      if (questions.length === 0) {
+        return { message: "Quiz Generation Failed", icon: <XCircle className="h-16 w-16 text-destructive" />, color: 'text-destructive' };
+      }
       const percentage = (score / (questions.length || 1)) * 100;
       if (percentage >= 70) return { message: `Congratulations! You Passed!`, icon: <Award className="h-16 w-16 text-amber-500" />, color: 'text-amber-500' };
       return { message: "Good effort! Keep studying and try again.", icon: <XCircle className="h-16 w-16 text-destructive" />, color: 'text-destructive' };
@@ -146,30 +192,19 @@ export function QuizScreen() {
   }
 
   if (quizState === 'finished') {
-    if (questions.length === 0) {
-        return (
-            <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                <XCircle className="h-16 w-16 text-destructive" />
-                <h2 className="text-3xl font-bold mt-4 text-destructive">Quiz Generation Failed</h2>
-                <p className="text-muted-foreground mt-2">
-                    We couldn't create the quiz at this moment. Please try again.
-                </p>
-                <Button onClick={() => fetchQuiz()} className="mt-8">
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Try Again
-                </Button>
-            </div>
-        );
-    }
     const result = getResultMessage();
     return (
         <div className="flex flex-col items-center justify-center h-full text-center p-4">
             <div className={result.color}>{result.icon}</div>
             <h2 className={`text-3xl font-bold mt-4 ${result.color}`}>{result.message}</h2>
-            <p className="text-2xl font-semibold mt-2">
-                Your Score: {score} / {questions.length}
-            </p>
-            <p className="text-muted-foreground">({((score / questions.length) * 100).toFixed(0)}%)</p>
+            {questions.length > 0 && (
+                <>
+                    <p className="text-2xl font-semibold mt-2">
+                        Your Score: {score} / {questions.length}
+                    </p>
+                    <p className="text-muted-foreground">({((score / questions.length) * 100).toFixed(0)}%)</p>
+                </>
+            )}
             <Button onClick={() => fetchQuiz()} className="mt-8">
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Take Another Quiz
@@ -181,15 +216,23 @@ export function QuizScreen() {
   const currentQuestion = questions[currentQuestionIndex];
 
   if (!currentQuestion) {
-    return null;
+    return (
+        <div className="flex flex-col items-center justify-center h-full text-center p-4">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <h2 className="text-2xl font-bold">Loading question...</h2>
+      </div>
+    );
   }
 
   return (
     <>
+      <AnimatePresence>
+        {answerStatus && <AnswerFeedback status={answerStatus} />}
+      </AnimatePresence>
       <div className="flex flex-col h-full p-4 md:p-6">
         <CardHeader>
           <CardTitle>Final Exam</CardTitle>
-          <CardDescription>Question {currentQuestionIndex + 1} of {questions.length}</CardDescription>
+          <CardDescription>Test your knowledge with {questions.length} questions from the library.</CardDescription>
           <Progress value={((currentQuestionIndex + 1) / questions.length) * 100} className="w-full mt-2" />
         </CardHeader>
         <CardContent className="flex-grow flex flex-col justify-center">
@@ -215,8 +258,8 @@ export function QuizScreen() {
           </RadioGroup>
         </CardContent>
         <CardFooter className="justify-end">
-          <Button onClick={handleNextQuestion} disabled={!selectedOption}>
-            {currentQuestionIndex === questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+          <Button onClick={handleNextQuestion} disabled={!selectedOption || answerStatus !== null}>
+            {answerStatus !== null ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (currentQuestionIndex === questions.length - 1 ? 'Finish Quiz' : 'Next Question')}
           </Button>
         </CardFooter>
       </div>

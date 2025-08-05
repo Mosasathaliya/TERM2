@@ -1355,7 +1355,7 @@ export function BookScreen() {
                                         <CardContent>
                                             <CardDescription className="text-center text-muted-foreground">
                                                 {allLessonsAndStoriesCompleted 
-                                                ? "أنشئ اختبارًا عشوائيًا بناءً على المواد التعليمية."
+                                                ? "Test your knowledge with questions from the library."
                                                 : `أكمل ${learningItems.length - (highestCompletedIndex + 1)} عنصرًا إضافيًا لفتح الاختبار النهائي.`
                                                 }
                                             </CardDescription>
