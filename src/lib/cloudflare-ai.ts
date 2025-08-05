@@ -33,11 +33,6 @@ export async function runAi({ model, inputs, stream = false }: RunAiOptions) {
   const isImageOrAudio = model.includes('stable-diffusion') || model.includes('melotts') || model.includes('whisper');
   const isTextGeneration = model.includes('llama');
 
-  const headers = {
-    'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-    'Content-Type': 'application/json',
-  };
-
   // For models that return binary data, we need a different approach than the gateway.
   // We will call them directly. This is a common pattern when using a gateway.
   if (isImageOrAudio) {
@@ -47,12 +42,15 @@ export async function runAi({ model, inputs, stream = false }: RunAiOptions) {
       }
       const directUrl = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${model}`;
       
-      let body: any = inputs;
+      let body: any;
+      const headers: HeadersInit = { 'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`};
+
       // Whisper model expects raw audio data, not JSON
-      if (model.includes('whisper') && 'audio' in inputs) {
+      if (model.includes('whisper') && 'audio' in inputs && (inputs.audio instanceof Buffer || inputs.audio instanceof Uint8Array)) {
           headers['Content-Type'] = 'application/octet-stream';
           body = inputs.audio; // Assuming inputs.audio is a Buffer
       } else {
+          headers['Content-Type'] = 'application/json';
           body = JSON.stringify(inputs);
       }
       
@@ -77,16 +75,22 @@ export async function runAi({ model, inputs, stream = false }: RunAiOptions) {
       ...inputs
   };
 
-  const gatewayPayload = [{
+  const gatewayPayload = {
       provider: "workers-ai",
       endpoint: model,
-      query: body
-  }];
+      query: body,
+      headers: { // The Authorization header goes inside the payload
+          "Authorization": `Bearer ${CLOUDFLARE_API_TOKEN}`
+      }
+  };
   
   const response = await fetch(CLOUDFLARE_AI_GATEWAY_URL, {
     method: 'POST',
-    headers: { ...headers, "x-gateway-mode": "single" }, // Use single mode to get a direct response
-    body: JSON.stringify(gatewayPayload[0]),
+    headers: { 
+        "Content-Type": "application/json",
+        "x-gateway-mode": "single" 
+    },
+    body: JSON.stringify(gatewayPayload),
   });
 
   if (!response.ok) {
