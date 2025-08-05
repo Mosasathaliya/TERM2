@@ -159,3 +159,5 @@ export const VocabularyPanel: React.FC<VocabularyPanelProps> = ({ selectedWord, 
     </div>
   );
 };
+
+    
