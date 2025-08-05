@@ -65,6 +65,10 @@ export async function searchWithAutoRAG(input: AutoRAGInput): Promise<AutoRAGOut
 
   } catch (error) {
     console.error("Error in AutoRAG flow:", error);
-    throw new Error("Failed to execute AutoRAG search.");
+    // Re-throw the original error for better debugging on the client side
+    if (error instanceof Error) {
+        throw new Error(`Failed to execute AutoRAG search: ${error.message}`);
+    }
+    throw new Error("Failed to execute AutoRAG search due to an unknown error.");
   }
 }
