@@ -37,7 +37,14 @@ export async function runAi({ model, inputs, stream = false }: RunAiOptions) {
     'Content-Type': 'application/json',
   };
 
-  const body = stream ? { ...inputs, stream: true } : inputs;
+  // The translation model expects a different payload structure.
+  // Other models wrap inputs in an "inputs" object, but the translation model does not.
+  const body = model === '@cf/meta/m2m100-1.2b' 
+    ? { ...inputs, stream }
+    : stream 
+      ? { ...inputs, stream: true } 
+      : inputs;
+
 
   const response = await fetch(url, {
     method: 'POST',
