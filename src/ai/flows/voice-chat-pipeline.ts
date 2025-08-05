@@ -16,7 +16,7 @@ async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
     const response = await fetch(url, {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN}`,
+            'Authorization': `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
             'Content-Type': 'application/octet-stream', // Send as raw audio data
         },
         body: audioBuffer,

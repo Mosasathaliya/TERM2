@@ -6,7 +6,7 @@
 import { z } from 'zod';
 
 const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
-const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
+const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const CLOUDFLARE_AUTORAG_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_AUTORAG_ID;
 
 const AutoRAGInputSchema = z.object({
