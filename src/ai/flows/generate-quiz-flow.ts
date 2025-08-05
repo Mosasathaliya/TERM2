@@ -36,7 +36,7 @@ async function queryCloudflareAsJson(prompt: string): Promise<any> {
     const messages = [
         {
             role: "system",
-            content: `You are an expert quiz creator. Your task is to generate a JSON object representing a quiz based on the provided learning material. The JSON object MUST have a key "questions" which is an array of exactly 20 unique multiple-choice question objects. Each question object must have keys "question", "options" (an array of 4 strings), and "correct_answer". Do not output any text other than the JSON object itself.`
+            content: `You are an expert quiz creator. Your task is to generate a JSON array of exactly 20 unique multiple-choice question objects based on the provided learning material. Each question object must have keys "question", "options" (an array of 4 strings), and "correct_answer". Do not output any text other than the JSON array itself.`
         },
         {
             role: "user",
@@ -48,15 +48,17 @@ async function queryCloudflareAsJson(prompt: string): Promise<any> {
     const jsonResponse = await response.json();
     try {
         const responseText = jsonResponse.result.response;
-        const jsonStart = responseText.indexOf('{');
-        const jsonEnd = responseText.lastIndexOf('}');
+        // Find the start and end of the JSON array
+        const jsonStart = responseText.indexOf('[');
+        const jsonEnd = responseText.lastIndexOf(']');
         if (jsonStart !== -1 && jsonEnd !== -1) {
              const jsonString = responseText.substring(jsonStart, jsonEnd + 1);
              if (isBalanced(jsonString)) {
-                return JSON.parse(jsonString);
+                // Wrap the array in a 'questions' object to match the expected output schema
+                return { questions: JSON.parse(jsonString) };
              }
         }
-        throw new Error("Incomplete or invalid JSON object found in response");
+        throw new Error("Incomplete or invalid JSON array found in response");
     } catch (e) {
         console.error("Failed to parse JSON from Cloudflare AI:", jsonResponse.result.response, e);
         throw new Error("Failed to parse JSON from AI response.");
