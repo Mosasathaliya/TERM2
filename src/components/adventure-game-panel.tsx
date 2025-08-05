@@ -154,7 +154,7 @@ export const GamePanel: React.FC<GamePanelProps> = ({ storyHistory, onSendAction
       </div>
 
       <div className="flex-shrink-0 pt-4 mt-auto">
-        {lastAiPart && lastAiPart.suggestions && !loading && (
+        {lastAiPart && lastAiPart.suggestions && !loading && !lastAiPart.gameOver && (
             <div className="flex flex-wrap gap-2 mb-3">
                 {lastAiPart.suggestions.map((s, i) => (
                     <button key={i} onClick={() => handleSuggestionClick(s)} className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-full text-sm transition-colors">
@@ -170,11 +170,11 @@ export const GamePanel: React.FC<GamePanelProps> = ({ storyHistory, onSendAction
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="What do you do next?"
             className="flex-grow bg-transparent text-white placeholder-gray-500 focus:outline-none px-2"
-            disabled={loading}
+            disabled={loading || lastAiPart?.gameOver}
           />
           <button
             type="submit"
-            disabled={loading || !inputValue.trim()}
+            disabled={loading || !inputValue.trim() || lastAiPart?.gameOver}
             className="p-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors flex-shrink-0"
           >
             <SendIcon className="w-5 h-5" />

@@ -45,6 +45,13 @@ export function TextAdventureApp() {
     setSelectedWord(null);
 
     let currentHistory = storyHistory;
+    if (action === 'start') {
+        setStoryHistory([]);
+        currentHistory = [];
+        setSceneImageUrl(null);
+        setGameState('playing'); // Move to playing state immediately for better UI feedback
+    }
+
     const isUserAction = action === 'continue' && prompt;
     if (isUserAction) {
         const userActionPart: StoryPart = {
@@ -56,12 +63,6 @@ export function TextAdventureApp() {
         setStoryHistory(currentHistory);
     }
     
-    if (action === 'start') {
-        setStoryHistory([]);
-        currentHistory = [];
-        setSceneImageUrl(null);
-    }
-
     try {
       const response = await textAdventureFlow({
         action,
@@ -83,12 +84,17 @@ export function TextAdventureApp() {
         setLoading(prev => ({ ...prev, scene: true }));
         generateImage({ prompt: response.imagePrompt })
             .then(result => setSceneImageUrl(result.imageUrl))
-            .catch(err => console.error("Scene image generation failed:", err))
+            .catch(err => {
+                console.error("Scene image generation failed:", err)
+                toast({ variant: 'destructive', title: 'Scene Image Failed', description: 'Could not generate the opening scene image.'})
+            })
             .finally(() => setLoading(prev => ({ ...prev, scene: false })));
       }
 
       setStoryHistory(prev => [...prev, aiResponsePart]);
-      setGameState(response.gameOver ? 'gameOver' : 'playing');
+      if (response.gameOver) {
+          setGameState('gameOver');
+      }
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
@@ -98,6 +104,7 @@ export function TextAdventureApp() {
         title: "Story Generation Error",
         description: errorMessage,
       });
+      setGameState('error'); // Go to an error state
     } finally {
       setLoading(prev => ({ ...prev, story: false }));
     }
@@ -152,30 +159,40 @@ export function TextAdventureApp() {
     }
   }, [toast]);
   
+  const handleRestart = () => {
+      setGameState('setup');
+      setError(null);
+      setStoryHistory([]);
+  }
+
   const GameSetup = () => (
       <div className="flex-grow flex flex-col items-center justify-center text-center p-4 bg-gray-900 text-white">
-         {gameState === 'gameOver' && <h2 className="text-4xl font-bold text-red-500 mb-4">انتهت اللعبة</h2>}
-        <p className="text-lg text-gray-300 mb-6">{gameState === 'setup' ? 'اختر نوعًا وابدأ مهمتك.' : 'شكرا للعب!'}</p>
-        <div className="mb-6 w-full max-w-xs">
-            <label htmlFor="genre-select" className="block text-sm font-medium text-gray-400 mb-2">اختر النوع</label>
-            <select 
-              id="genre-select"
-              value={gameGenre}
-              onChange={(e) => setGameGenre(e.target.value as GameGenre)}
-              className="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5"
-              disabled={loading.story}
-            >
-              {GAME_GENRES.map(genre => <option key={genre} value={genre}>{formatGenreName(genre)}</option>)}
-            </select>
-        </div>
+         {(gameState === 'gameOver' || gameState === 'error') && <h2 className="text-4xl font-bold text-red-500 mb-4">{gameState === 'gameOver' ? 'انتهت اللعبة' : 'حدث خطأ'}</h2>}
+        <p className="text-lg text-gray-300 mb-6">{gameState === 'setup' ? 'اختر نوعًا وابدأ مهمتك.' : gameState === 'gameOver' ? 'شكرا للعب!' : 'حدث خطأ ما. الرجاء المحاولة مرة أخرى.'}</p>
+        
+        {gameState !== 'error' && (
+             <div className="mb-6 w-full max-w-xs">
+                <label htmlFor="genre-select" className="block text-sm font-medium text-gray-400 mb-2">اختر النوع</label>
+                <select 
+                id="genre-select"
+                value={gameGenre}
+                onChange={(e) => setGameGenre(e.target.value as GameGenre)}
+                className="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5"
+                disabled={loading.story}
+                >
+                {GAME_GENRES.map(genre => <option key={genre} value={genre}>{formatGenreName(genre)}</option>)}
+                </select>
+            </div>
+        )}
+
         <button
-          onClick={() => handleAction('start')}
+          onClick={() => gameState === 'error' ? handleRestart() : handleAction('start')}
           disabled={loading.story}
           className="px-8 py-3 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed flex items-center justify-center"
         >
           {loading.story ? (
              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-          ) : (gameState === 'gameOver' ? 'العب مرة أخرى' : 'ابدأ المغامرة')}
+          ) : (gameState === 'setup' ? 'ابدأ المغامرة' : 'العب مرة أخرى')}
         </button>
       </div>
   );
@@ -184,7 +201,7 @@ export function TextAdventureApp() {
   return (
     <div className="flex h-full w-full bg-gray-900 font-sans">
       <main className="flex-1 flex flex-col p-4 md:p-6 h-full relative">
-        {gameState === 'setup' || gameState === 'gameOver' ? (
+        {gameState === 'setup' || gameState === 'gameOver' || gameState === 'error' ? (
           <GameSetup />
         ) : (
           <div className="flex-grow flex flex-col overflow-hidden h-full">
