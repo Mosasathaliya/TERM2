@@ -34,11 +34,20 @@ export function QuizScreen() {
     setSelectedOption(null);
     try {
       const quizData = await generateQuiz();
-      setQuestions(quizData.questions);
-      setQuizState('active');
+      if (quizData && quizData.questions.length > 0) {
+        setQuestions(quizData.questions);
+        setQuizState('active');
+      } else {
+        throw new Error("AI failed to generate quiz questions.");
+      }
     } catch (error) {
       console.error('Failed to generate quiz:', error);
-      setQuizState('finished'); // Or some error state
+      toast({
+          variant: "destructive",
+          title: "Quiz Generation Failed",
+          description: "There was a problem creating your quiz. Please try again.",
+      });
+      setQuizState('finished'); // Go to finished state to show error/retry
     }
   };
 
@@ -98,7 +107,7 @@ export function QuizScreen() {
   }, [quizState, userAnswers, questions]);
 
   const getResultMessage = () => {
-      const percentage = (score / QUIZ_LENGTH) * 100;
+      const percentage = (score / (questions.length || QUIZ_LENGTH)) * 100;
       if (percentage >= 70) return { message: `Congratulations! You Passed!`, icon: <Award className="h-16 w-16 text-amber-500" />, color: 'text-amber-500' };
       return { message: "Good effort! Keep studying and try again.", icon: <XCircle className="h-16 w-16 text-destructive" />, color: 'text-destructive' };
   };
@@ -115,14 +124,30 @@ export function QuizScreen() {
 
   if (quizState === 'finished') {
     const result = getResultMessage();
+    // Check if there were any questions to score, otherwise show a generation failed message
+    if (questions.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                <XCircle className="h-16 w-16 text-destructive" />
+                <h2 className="text-3xl font-bold mt-4 text-destructive">Quiz Generation Failed</h2>
+                <p className="text-muted-foreground mt-2">
+                    We couldn't create the quiz at this moment. Please try again.
+                </p>
+                <Button onClick={fetchQuiz} className="mt-8">
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Try Again
+                </Button>
+            </div>
+        );
+    }
     return (
         <div className="flex flex-col items-center justify-center h-full text-center p-4">
             <div className={result.color}>{result.icon}</div>
             <h2 className={`text-3xl font-bold mt-4 ${result.color}`}>{result.message}</h2>
             <p className="text-2xl font-semibold mt-2">
-                Your Score: {score} / {QUIZ_LENGTH}
+                Your Score: {score} / {questions.length}
             </p>
-            <p className="text-muted-foreground">({((score / QUIZ_LENGTH) * 100).toFixed(0)}%)</p>
+            <p className="text-muted-foreground">({((score / questions.length) * 100).toFixed(0)}%)</p>
             <Button onClick={fetchQuiz} className="mt-8">
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Take Another Quiz
