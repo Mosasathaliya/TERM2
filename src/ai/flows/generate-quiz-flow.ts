@@ -18,8 +18,8 @@ function getRandomItems<T>(array: T[], numItems: number): T[] {
 
 
 export async function generateQuiz(): Promise<GenerateQuizOutput> {
-  // 1. Select 20 random learning items
-  const selectedItems = getRandomItems(learningItems, 20);
+  // 1. Select 100 random learning items
+  const selectedItems = getRandomItems(learningItems, 100);
 
   try {
     // 2. Generate one question for each item in parallel

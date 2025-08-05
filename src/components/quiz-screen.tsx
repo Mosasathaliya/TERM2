@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 
 type QuizState = 'loading' | 'active' | 'finished';
 
-const QUIZ_LENGTH = 20;
+const QUIZ_LENGTH = 100;
 const MAX_RETRIES = 2;
 
 export function QuizScreen() {
