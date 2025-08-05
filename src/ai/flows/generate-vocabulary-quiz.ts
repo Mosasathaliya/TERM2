@@ -1,14 +1,10 @@
-
 'use server';
 
 /**
  * @fileOverview An AI agent for generating a vocabulary quiz based on a list of words using Cloudflare Workers AI.
  */
 import { z } from 'zod';
-
-const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
-const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
-const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
+import { runAi } from '@/lib/cloudflare-ai';
 
 function isBalanced(str: string) {
     const stack = [];
@@ -30,9 +26,7 @@ function isBalanced(str: string) {
     return stack.length === 0;
 }
 
-async function queryCloudflare(prompt: string): Promise<any> {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
-    
+async function queryCloudflareAsJson(prompt: string): Promise<any> {
     const messages = [
         {
             role: "system",
@@ -44,21 +38,7 @@ async function queryCloudflare(prompt: string): Promise<any> {
         }
     ];
     
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ messages, raw: true }),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Cloudflare AI API error:", errorText);
-        throw new Error(`Cloudflare AI API request failed: ${response.statusText}`);
-    }
-    
+    const response = await runAi({ model: '@cf/meta/llama-3-8b-instruct', inputs: { messages } });
     const jsonResponse = await response.json();
     try {
         const responseText = jsonResponse.result.response;
@@ -117,7 +97,7 @@ ${wordList}
 `;
     
     try {
-        const output = await queryCloudflare(prompt);
+        const output = await queryCloudflareAsJson(prompt);
         return output;
     } catch (error) {
         console.error("Failed to generate vocab quiz:", error);

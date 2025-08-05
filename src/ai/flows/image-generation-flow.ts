@@ -3,10 +3,7 @@
  * @fileOverview A centralized flow for generating an image using a specified model.
  */
 import { z } from 'zod';
-
-const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
-const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
-const MODEL_NAME = '@cf/black-forest-labs/flux-1-schnell';
+import { runAi } from '@/lib/cloudflare-ai';
 
 const ImageInputSchema = z.object({
   prompt: z.string().describe('The text description of the image to generate.'),
@@ -23,25 +20,11 @@ const ImageOutputSchema = z.object({
 export type ImageOutput = z.infer<typeof ImageOutputSchema>;
 
 export async function generateImage(input: ImageInput): Promise<ImageOutput> {
-  const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
-
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt: input.prompt,
-      }),
+    const response = await runAi({
+      model: '@cf/black-forest-labs/flux-1-schnell',
+      inputs: { prompt: input.prompt },
     });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Cloudflare Image API error:", errorText);
-        throw new Error(`Cloudflare Image API request failed: ${response.statusText}`);
-    }
 
     // The FLUX model returns the raw image bytes directly
     const imageBuffer = await response.arrayBuffer();

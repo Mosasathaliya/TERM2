@@ -1,19 +1,15 @@
-
 'use server';
 
 /**
  * @fileOverview A flow for converting text to speech using Cloudflare's MeloTTS model.
  */
 import { z } from 'zod';
-
-const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
-const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
-const MODEL_NAME = '@cf/myshell-ai/melotts';
+import { runAi } from '@/lib/cloudflare-ai';
 
 // Define the schema for the flow's input
 const TextToSpeechInputSchema = z.object({
   text: z.string().describe('The text to convert to speech.'),
-  language: z.enum(['en', 'ar']).default('en').describe("The language of the speech ('en' or 'ar')."),
+  language: z.enum(['en', 'ar']).default('en').describe("The speech language ('en' or 'ar')."),
 });
 export type TextToSpeechInput = z.infer<typeof TextToSpeechInputSchema>;
 
@@ -29,29 +25,16 @@ export async function textToSpeech(input: TextToSpeechInput): Promise<TextToSpee
     return null;
   }
 
-  const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
-
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text: input.text, // The model expects 'text', not 'prompt'.
+    const response = await runAi({
+      model: '@cf/myshell-ai/melotts',
+      inputs: {
+        text: input.text, // The API documentation uses 'text' now.
         lang: input.language,
-      }),
+      },
     });
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Cloudflare TTS API error:", errorText);
-        throw new Error(`Cloudflare TTS API request failed: ${response.statusText}`);
-    }
-
     // The MeloTTS model returns the raw MP3 audio bytes directly.
-    // We need to handle it as a binary buffer, not JSON.
     const audioBuffer = await response.arrayBuffer();
     const base64Audio = Buffer.from(audioBuffer).toString('base64');
     

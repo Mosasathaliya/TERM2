@@ -1,14 +1,10 @@
-
 'use server';
 /**
  * @fileOverview Flows for the text adventure game using Cloudflare Workers AI.
  */
 import { z } from 'zod';
 import { generateImage } from './image-generation-flow';
-
-const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
-const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
-const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
+import { runAi } from '@/lib/cloudflare-ai';
 
 function isBalanced(str: string) {
     const stack = [];
@@ -30,45 +26,25 @@ function isBalanced(str: string) {
     return stack.length === 0;
 }
 
-async function queryCloudflare(messages: { role: string; content: string }[], isJsonMode: boolean = false): Promise<any> {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
-    
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ messages, raw: isJsonMode }),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Cloudflare AI API error:", errorText);
-        throw new Error(`Cloudflare AI API request failed: ${response.statusText}`);
-    }
-    
+async function queryCloudflareAsJson(messages: { role: string; content: string }[]): Promise<any> {
+    const response = await runAi({ model: '@cf/meta/llama-3-8b-instruct', inputs: { messages } });
     const jsonResponse = await response.json();
 
-    if (isJsonMode) {
-      try {
-        const responseText = jsonResponse.result.response;
-        const jsonStart = responseText.indexOf('{');
-        const jsonEnd = responseText.lastIndexOf('}');
-        if (jsonStart !== -1 && jsonEnd !== -1) {
-            const jsonString = responseText.substring(jsonStart, jsonEnd + 1);
-             if (isBalanced(jsonString)) {
-                return JSON.parse(jsonString);
-             }
-        }
-        throw new Error("Incomplete or invalid JSON object found in response");
-      } catch (e) {
-        console.error("Failed to parse JSON from Cloudflare AI:", jsonResponse.result.response, e);
-        throw new Error("Failed to parse JSON from AI response.");
+    try {
+      const responseText = jsonResponse.result.response;
+      const jsonStart = responseText.indexOf('{');
+      const jsonEnd = responseText.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1) {
+          const jsonString = responseText.substring(jsonStart, jsonEnd + 1);
+           if (isBalanced(jsonString)) {
+              return JSON.parse(jsonString);
+           }
       }
+      throw new Error("Incomplete or invalid JSON object found in response");
+    } catch (e) {
+      console.error("Failed to parse JSON from Cloudflare AI:", jsonResponse.result.response, e);
+      throw new Error("Failed to parse JSON from AI response.");
     }
-
-    return jsonResponse.result.response;
 }
 
 const getSystemInstruction = (genre: string, historyLength: number) => `You are a world-class interactive fiction author and game master.
@@ -127,7 +103,7 @@ const textAdventureFlow = async ({ action, genre, playerInput, history }: z.infe
     ];
     
     try {
-        const output = await queryCloudflare(messages, true);
+        const output = await queryCloudflareAsJson(messages);
         return GameResponseSchema.parse(output);
     } catch(e) {
         const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
@@ -160,7 +136,7 @@ Your output must be ONLY the valid and complete JSON object.`;
     const messages = [{role: 'user', content: prompt}];
 
     try {
-        const output = await queryCloudflare(messages, true);
+        const output = await queryCloudflareAsJson(messages);
         return DefineWordOutputSchema.parse(output);
     } catch (e) {
          console.error("Error in defineWordFlow:", e);

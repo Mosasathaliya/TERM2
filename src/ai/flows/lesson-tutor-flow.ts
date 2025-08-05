@@ -3,32 +3,7 @@
  * @fileOverview Provides AI-powered tutoring assistance for specific lesson content using Cloudflare Workers AI.
  */
 import { z } from 'zod';
-
-const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
-const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
-const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
-
-async function queryCloudflare(messages: { role: string; content: string }[]): Promise<any> {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
-    
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ messages }),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Cloudflare AI API error:", errorText);
-        throw new Error(`Cloudflare AI API request failed: ${response.statusText}`);
-    }
-    
-    const jsonResponse = await response.json();
-    return jsonResponse.result.response;
-}
+import { runAi } from '@/lib/cloudflare-ai';
 
 export type LessonTutorInput = z.infer<typeof LessonTutorInputSchema>;
 const LessonTutorInputSchema = z.object({
@@ -65,7 +40,7 @@ Your personality is patient and supportive.`;
   const userPrompt = `You are tutoring a student on an English lesson.
 Lesson Title: "${lessonTitle}"
 Topic: "${lessonTopic}"
-Level: "${lessonLevel}"
+Level: "${level}"
 
 Here is the core lesson material (in Arabic) you must use to answer the question:
 ---
@@ -92,7 +67,9 @@ Your task is to provide a clear, helpful, and concise answer to the student's qu
     { role: 'user', content: userPrompt }
   ];
 
-  const aiTutorResponse = await queryCloudflare(messages);
+  const response = await runAi({ model: '@cf/meta/llama-3-8b-instruct', inputs: { messages } });
+  const jsonResponse = await response.json();
+  const aiTutorResponse = jsonResponse.result.response;
 
   return { aiTutorResponse };
 }

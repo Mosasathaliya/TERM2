@@ -1,41 +1,10 @@
-
 'use server';
 /**
  * @fileOverview This flow generates a detailed Arabic explanation for a specific English grammar topic.
  */
 import { z } from 'zod';
+import { runAi } from '@/lib/cloudflare-ai';
 
-const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
-const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
-const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
-
-
-async function queryCloudflare(prompt: string): Promise<any> {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
-    
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: 'You are an expert English grammar teacher who is fluent in both English and Arabic. Your task is to provide a clear, comprehensive, and natural-sounding explanation of a given English grammar topic entirely in Arabic.'},
-            { role: 'user', content: prompt }
-          ]
-        }),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Cloudflare AI API error:", errorText);
-        throw new Error(`Cloudflare AI API request failed: ${response.statusText}`);
-    }
-    
-    const jsonResponse = await response.json();
-    return jsonResponse.result.response;
-}
 
 export type GenerateExplanationInput = z.infer<typeof GenerateExplanationInputSchema>;
 const GenerateExplanationInputSchema = z.object({
@@ -55,7 +24,14 @@ The explanation should be clear, easy to understand, and suitable for a student 
 Use examples where appropriate to illustrate the concepts.
 Your response should ONLY be the Arabic explanation text, without any introductory phrases like "Here is the explanation:".`;
 
-  const explanation = await queryCloudflare(prompt);
+  const messages = [
+    { role: 'system', content: 'You are an expert English grammar teacher who is fluent in both English and Arabic. Your task is to provide a clear, comprehensive, and natural-sounding explanation of a given English grammar topic entirely in Arabic.'},
+    { role: 'user', content: prompt }
+  ];
+
+  const response = await runAi({ model: '@cf/meta/llama-3-8b-instruct', inputs: { messages } });
+  const jsonResponse = await response.json();
+  const explanation = jsonResponse.result.response;
   
   return { arabicExplanation: explanation };
 }

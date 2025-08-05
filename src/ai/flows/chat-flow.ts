@@ -5,38 +5,7 @@
 import { z } from 'zod';
 import { findMostRelevantLesson } from './reranker-flow';
 import { learningItems } from '@/lib/lessons';
-
-const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
-const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
-const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
-
-async function queryCloudflare(messages: { role: string; content: string }[], stream: boolean): Promise<any> {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
-    
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ messages, stream }),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Cloudflare AI API error:", errorText);
-        throw new Error(`Cloudflare AI API request failed: ${response.statusText}`);
-    }
-    
-    // If streaming, return the response body directly
-    if (stream) {
-        return response.body;
-    }
-    
-    const jsonResponse = await response.json();
-    return jsonResponse.result.response;
-}
-
+import { runAi } from '@/lib/cloudflare-ai';
 
 // A streamable flow that takes a history and a system prompt and returns a stream of the AI's response.
 export async function chatStream(prompt: string): Promise<ReadableStream<Uint8Array>> {
@@ -59,11 +28,8 @@ export async function chatStream(prompt: string): Promise<ReadableStream<Uint8Ar
   ];
 
   try {
-      const stream = await queryCloudflare(messages, true);
-      // The response from Cloudflare for streams is not directly a ReadableStream<Uint8Array>
-      // but something that can be iterated. We'll wrap it to be compatible.
-      // A simple pass-through is often sufficient if the client-side handles chunk decoding.
-      return stream;
+      const response = await runAi({ model: '@cf/meta/llama-3-8b-instruct', inputs: { messages }, stream: true });
+      return response.body!;
   } catch (error) {
       console.error("Error getting chat stream:", error);
       const errorStream = new ReadableStream({

@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -7,21 +6,17 @@
  * gets a response from a text-generation model, and returns the text response.
  */
 import { z } from 'zod';
-
-const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
-const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
-const TEXT_MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
-const STT_MODEL_NAME = '@cf/openai/whisper';
+import { runAi } from '@/lib/cloudflare-ai';
 
 
 // Cloudflare Speech-to-Text (Whisper)
 async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${STT_MODEL_NAME}`;
+    const url = `https://api.cloudflare.com/client/v4/accounts/${process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/openai/whisper`;
 
     const response = await fetch(url, {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN}`,
             'Content-Type': 'application/octet-stream', // Send as raw audio data
         },
         body: audioBuffer,
@@ -35,30 +30,6 @@ async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
 
     const jsonResponse = await response.json();
     return jsonResponse.result.text;
-}
-
-
-// Cloudflare text generation
-async function queryCloudflare(messages: { role: string; content: string }[]): Promise<any> {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${TEXT_MODEL_NAME}`;
-    
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ messages }),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Cloudflare AI API error:", errorText);
-        throw new Error(`Cloudflare AI API request failed: ${response.statusText}`);
-    }
-    
-    const jsonResponse = await response.json();
-    return jsonResponse.result.response;
 }
 
 
@@ -125,7 +96,10 @@ export async function runVoiceChatPipeline(
     ...currentHistory.map(msg => ({ role: msg.role === 'model' ? 'assistant' : 'user', content: msg.content })),
   ];
 
-  const responseText = await queryCloudflare(messagesForApi as any);
+  const response = await runAi({ model: '@cf/meta/llama-3-8b-instruct', inputs: { messages: messagesForApi } });
+  const jsonResponse = await response.json();
+  const responseText = jsonResponse.result.response;
+
 
   if (!responseText) {
       return { response: "I'm sorry, I don't have a response for that." };

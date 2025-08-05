@@ -4,33 +4,7 @@
  * @fileOverview Implements the Sara voice call flow using Cloudflare Workers AI.
  */
 import { z } from 'zod';
-
-const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
-const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
-const MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
-
-async function queryCloudflare(messages: { role: string; content: string }[]): Promise<any> {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
-    
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ messages }),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Cloudflare AI API error:", errorText);
-        throw new Error(`Cloudflare AI API request failed: ${response.statusText}`);
-    }
-    
-    const jsonResponse = await response.json();
-    return jsonResponse.result.response;
-}
-
+import { runAi } from '@/lib/cloudflare-ai';
 
 const ConversationEntrySchema = z.object({
   speaker: z.enum(['User', 'Sara']),
@@ -69,7 +43,9 @@ You MUST reply with ONLY the explanation text, without any introductory phrases 
     { role: 'user', content: englishGrammarConcept },
   ];
 
-  const explanation = await queryCloudflare(messages);
+  const response = await runAi({ model: '@cf/meta/llama-3-8b-instruct', inputs: { messages } });
+  const jsonResponse = await response.json();
+  const explanation = jsonResponse.result.response;
 
   return { explanation };
 }

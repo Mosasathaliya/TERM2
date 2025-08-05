@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -8,11 +7,7 @@
  */
 import { z } from 'zod';
 import { translateText } from './translate-flow';
-
-const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
-const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
-const GENERATIVE_MODEL_NAME = '@cf/meta/llama-3-8b-instruct';
-
+import { runAi } from '@/lib/cloudflare-ai';
 
 // Suggests a list of words
 const SuggestNewWordsInputSchema = z.object({
@@ -26,21 +21,8 @@ export type SuggestNewWordsInput = z.infer<typeof SuggestNewWordsInputSchema>;
 export async function suggestNewWords(input: SuggestNewWordsInput): Promise<string[]> {
   const { category, numberOfWords } = input;
   const prompt = `Suggest ${numberOfWords} unique and interesting English words related to the category '${category}'. Your response must be only a single string of comma-separated words. For example: "resilience, empathy, determination, innovation, integrity". Do not add any other text or formatting.`;
-
-  const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${GENERATIVE_MODEL_NAME}`;
-    
-  const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("Cloudflare AI API error:", errorText);
-    throw new Error(`Cloudflare AI API request failed: ${response.statusText}`);
-  }
   
+  const response = await runAi({ model: '@cf/meta/llama-3-8b-instruct', inputs: { messages: [{ role: 'user', content: prompt }] } });
   const jsonResponse = await response.json();
   const wordString = jsonResponse.result.response;
 
@@ -69,16 +51,7 @@ export type WordDetailsOutput = z.infer<typeof WordDetailsOutputSchema>;
 
 // Helper to query the generative model for a simple string response
 async function queryGenerativeAI(prompt: string): Promise<string> {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${GENERATIVE_MODEL_NAME}`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
-    });
-
-    if (!response.ok) {
-        throw new Error(`Cloudflare AI request failed: ${response.statusText}`);
-    }
+    const response = await runAi({ model: '@cf/meta/llama-3-8b-instruct', inputs: { messages: [{ role: 'user', content: prompt }] } });
     const jsonResponse = await response.json();
     return jsonResponse.result.response.trim().replace(/"/g, ''); // Clean up response
 }

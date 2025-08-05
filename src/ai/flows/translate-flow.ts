@@ -3,32 +3,8 @@
  * @fileOverview A flow for translating text using Cloudflare Workers AI and a dedicated translation model.
  */
 import { z } from 'zod';
+import { runAi } from '@/lib/cloudflare-ai';
 
-const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
-const CLOUDFLARE_API_TOKEN = process.env.NEXT_PUBLIC_CLOUDFLARE_API_TOKEN;
-const MODEL_NAME = '@cf/meta/m2m100-1.2b';
-
-async function queryCloudflare(text: string, source_lang: string, target_lang: string): Promise<any> {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL_NAME}`;
-    
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text, source_lang, target_lang }),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Cloudflare Translation API error:", errorText);
-        throw new Error(`Cloudflare Translation API request failed: ${response.statusText}`);
-    }
-    
-    const jsonResponse = await response.json();
-    return jsonResponse.result.translated_text;
-}
 
 export type TranslateInput = z.infer<typeof TranslateInputSchema>;
 const TranslateInputSchema = z.object({
@@ -43,6 +19,12 @@ export type TranslateOutput = {
 
 // Export a wrapper function to be called from client-side components.
 export async function translateText({ text, sourceLanguage = 'en', targetLanguage }: TranslateInput): Promise<TranslateOutput> {
-  const translation = await queryCloudflare(text, sourceLanguage, targetLanguage);
+  const response = await runAi({
+    model: '@cf/meta/m2m100-1.2b',
+    inputs: { text, source_lang: sourceLanguage, target_lang: targetLanguage },
+  });
+  
+  const jsonResponse = await response.json();
+  const translation = jsonResponse.result.translated_text;
   return { translation: translation.trim() };
 }

@@ -8,8 +8,8 @@
 
 import { useState, useRef, useCallback } from 'react';
 
-// Define the supported audio MIME types
-type MimeType = 'audio/webm;codecs=opus' | 'audio/ogg';
+// The whisper model works best with 'audio/webm' or 'audio/mp4'.
+type MimeType = 'audio/webm' | 'audio/mp4' | 'audio/ogg';
 
 interface AudioProcessor {
   isRecording: boolean;
@@ -20,7 +20,7 @@ interface AudioProcessor {
 // Hook signature
 export function useAudioProcessor(
   onAudioData: (dataUri: string) => void,
-  mimeType: MimeType = 'audio/webm;codecs=opus'
+  mimeType: MimeType = 'audio/webm'
 ): AudioProcessor {
   const [isRecording, setIsRecording] = useState(false);
   // Refs to hold the media stream and recorder instances
@@ -71,7 +71,7 @@ export function useAudioProcessor(
         // Reset refs
         mediaRecorderRef.current = null;
         mediaStreamRef.current = null;
-        // **FIX**: Clear the audio chunks buffer for the next recording
+        // Clear the audio chunks buffer for the next recording
         audioChunksRef.current = [];
       };
 
