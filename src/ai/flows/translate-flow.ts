@@ -27,17 +27,32 @@ export async function translateText({ text, sourceLanguage = 'en', targetLanguag
   const isBatch = Array.isArray(text);
   const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/meta/m2m100-1.2b`;
 
+  let body;
+  if (isBatch) {
+    // Correctly format the batch request using the "requests" key
+    body = {
+      requests: text.map(t => ({
+        text: t,
+        source_lang: sourceLanguage,
+        target_lang: targetLanguage
+      }))
+    };
+  } else {
+    // Format for a single text request
+    body = {
+      text: text,
+      source_lang: sourceLanguage,
+      target_lang: targetLanguage
+    };
+  }
+
   const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      text: text,
-      source_lang: sourceLanguage,
-      target_lang: targetLanguage,
-    }),
+    body: JSON.stringify(body),
   });
   
   if (!response.ok) {
@@ -48,16 +63,17 @@ export async function translateText({ text, sourceLanguage = 'en', targetLanguag
 
   const jsonResponse = await response.json();
   
-  if (jsonResponse.result && jsonResponse.result.translated_text) {
-    if (isBatch) {
-      const translations = Array.isArray(jsonResponse.result.translated_text)
-        ? jsonResponse.result.translated_text
-        : [jsonResponse.result.translated_text];
-      return { translation: translations.map(t => t.trim()) };
-    } else {
-      const translation = jsonResponse.result.translated_text;
-      return { translation: translation.trim() };
+  if (isBatch) {
+    // The batch response is an array of objects, each with a 'translated_text' key
+    if (jsonResponse.result && Array.isArray(jsonResponse.result)) {
+        const translations = jsonResponse.result.map((item: any) => item.translated_text.trim());
+        return { translation: translations };
     }
+  } else {
+      if (jsonResponse.result && jsonResponse.result.translated_text) {
+        const translation = jsonResponse.result.translated_text;
+        return { translation: translation.trim() };
+      }
   }
 
   console.error("Unexpected translation API response structure:", jsonResponse);
