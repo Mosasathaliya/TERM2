@@ -15,7 +15,11 @@ export async function chatStream(prompt: string): Promise<ReadableStream<Uint8Ar
   // 1. Find the most relevant lesson using the reranker
   const relevantLessonIndex = await findMostRelevantLesson(prompt, learningItems.map(item => item.title + ': ' + (item.type === 'lesson' ? item.explanation : item.content)));
 
-  let systemPrompt = "You are a helpful and friendly English learning assistant from Speed of Mastery. Answer the user's question clearly and concisely. If relevant, use the provided lesson context to inform your answer. Your main language must be English, but you can use Arabic for clarification if needed.";
+  let systemPrompt = `You are a helpful and friendly English learning assistant from Speed of Mastery. Your primary goal is to assist users with their English language questions.
+First, detect the language of the user's prompt.
+- If the user's prompt is in English, your entire response MUST be in English.
+- If the user's prompt is in Arabic, your entire response MUST be in Arabic.
+Answer the user's question clearly and concisely. If relevant, use the provided lesson context to inform your answer.`;
   
   if (relevantLessonIndex !== null) {
       const relevantLesson = learningItems[relevantLessonIndex];
