@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
@@ -617,7 +616,20 @@ function AiChat() {
         if (done) break;
         
         const decodedChunk = decoder.decode(value, { stream: true });
-        setResponse(prev => prev + decodedChunk);
+        // Handle the data: {} format
+        const lines = decodedChunk.split('\n\n');
+        for (const line of lines) {
+            if (line.startsWith('data: ')) {
+                try {
+                    const json = JSON.parse(line.substring(6));
+                    if (json.response) {
+                        setResponse(prev => prev + json.response);
+                    }
+                } catch (e) {
+                    console.error("Failed to parse stream chunk JSON:", line);
+                }
+            }
+        }
       }
     } catch (err) {
       console.error("AI chat error:", err);
@@ -704,8 +716,21 @@ function AiStoryMaker() {
                 const { done, value } = await reader.read();
                 if (done) break;
                 const decodedChunk = decoder.decode(value, { stream: true });
-                setStoryContent(prev => prev + decodedChunk);
-                fullStory += decodedChunk;
+                // Handle the data: {} format
+                const lines = decodedChunk.split('\n\n');
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const json = JSON.parse(line.substring(6));
+                            if (json.response) {
+                                fullStory += json.response;
+                                setStoryContent(prev => prev + json.response);
+                            }
+                        } catch (e) {
+                            console.error("Failed to parse story stream chunk JSON:", line);
+                        }
+                    }
+                }
             }
 
             const imageResult = await generateStoryImage({ story: fullStory });
