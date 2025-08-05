@@ -339,7 +339,7 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
       const cleanedWord = word.replace(/[^a-zA-Z]/g, ''); // Clean punctuation
       if (!cleanedWord) return;
 
-      playAudio(cleanedWord, `word-${cleanedWord}`, 'en');
+      playAudio(cleanedWord, 'en');
       setTranslation({ word: cleanedWord, text: 'جاري الترجمة...', isLoading: true });
 
       try {
@@ -372,7 +372,7 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
         }
     };
     
-    const playAudio = async (text: string, id?: string, lang: 'en' | 'ar' = 'en') => {
+    const playAudio = async (text: string, lang: 'en' | 'ar' = 'en') => {
         setIsLoadingAudio(true);
         try {
           const result = await textToSpeech({ prompt: text, lang: lang });
@@ -414,7 +414,7 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
                     <Button 
                         variant="ghost" 
                         size="icon" 
-                        onClick={() => playAudio(storyContent, 'story-audio', 'en')}
+                        onClick={() => playAudio(storyContent, 'en')}
                         disabled={isLoadingAudio}
                         aria-label="Listen to story"
                     >
