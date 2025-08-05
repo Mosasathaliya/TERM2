@@ -48,13 +48,14 @@ async function queryCloudflareAsJson(messages: { role: string; content: string }
 }
 
 const getSystemInstruction = (genre: string, historyLength: number) => `You are a world-class interactive fiction author and game master.
-You will create a dynamic, branching text adventure in the ${genre} genre.
+You will create a dynamic, branching text adventure IN ENGLISH for a language learner.
+The story genre is ${genre}.
 Your response MUST be a single, valid, and complete JSON object with no other text before or after it.
 The JSON object must adhere to the following schema:
-- "narrative": A string of 1-2 paragraphs describing the current scene, events, and outcomes. It should be engaging, descriptive, and well-written.
-- "imagePrompt": An optional, concise (5-10 words) and evocative text prompt for an image generation model, describing the key visual elements of the initial scene. THIS SHOULD ONLY BE INCLUDED FOR THE VERY FIRST NARRATIVE of the story (when history is empty).
-- "newWord": An optional unique, plausible-sounding word relevant to the genre. Only invent a new word if the story history has more than ${historyLength > 0 ? historyLength + 2 : 2} entries.
-- "promptSuggestions": An array of exactly 3 diverse and interesting strings for player actions.
+- "narrative": A string of 1-2 paragraphs IN ENGLISH describing the current scene, events, and outcomes. It should be engaging, descriptive, and well-written.
+- "imagePrompt": An optional, concise (5-10 words) and evocative text prompt IN ENGLISH for an image generation model, describing the key visual elements of the initial scene. THIS SHOULD ONLY BE INCLUDED FOR THE VERY FIRST NARRATIVE of the story (when history is empty).
+- "newWord": An optional unique, plausible-sounding ENGLISH word relevant to the genre. Only invent a new word if the story history has more than ${historyLength > 0 ? historyLength + 2 : 2} entries.
+- "promptSuggestions": An array of exactly 3 diverse and interesting strings IN ENGLISH for player actions.
 - "gameOver": A boolean value, set to true only if the story has reached a definitive narrative conclusion.`;
 
 const GameResponseSchema = z.object({
@@ -96,7 +97,7 @@ const textAdventureFlow = async ({ action, genre, playerInput, history }: z.infe
         return { role: 'user' as const, content: h.text };
     });
     
-    const userPrompt = action === 'start' ? "Start the adventure." : playerInput || "Continue the story.";
+    const userPrompt = action === 'start' ? "Start the adventure in English." : playerInput || "Continue the story in English.";
 
     const messages = [
         { role: 'system', content: systemInstruction },
@@ -125,7 +126,7 @@ const DefineWordInputSchema = z.object({
 const DefineWordOutputSchema = z.object({
   definition: z.string().describe("The English definition."),
   arabicWord: z.string().describe("The Arabic translation of the word."),
-  arabicDefinition: z.string().describe("The Arabic translation of the definition."),
+  arabicDefinition: z.string().describe("The Arabic translation of the English definition."),
 });
 
 const defineWordFlow = async ({ word, genre }: z.infer<typeof DefineWordInputSchema>) => {
