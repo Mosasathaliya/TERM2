@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -219,9 +220,6 @@ export function TextAdventureApp() {
           </div>
         )}
       </main>
-      <aside className="w-[30%] max-w-md hidden lg:flex flex-col bg-gray-800/50 border-l border-gray-700 h-full">
-        <VocabularyPanel selectedWord={selectedWord} loading={loading.vocab} />
-      </aside>
     </div>
   );
 }
