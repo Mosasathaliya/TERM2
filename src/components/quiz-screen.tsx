@@ -38,7 +38,12 @@ export function QuizScreen() {
         setQuestions(quizData.questions);
         setQuizState('active');
       } else {
-        throw new Error("AI failed to generate quiz questions.");
+        toast({
+            variant: "destructive",
+            title: "Quiz Generation Failed",
+            description: "The AI could not create questions. Please try again.",
+        });
+        setQuizState('finished'); // Go to finished state to show error/retry
       }
     } catch (error) {
       console.error('Failed to generate quiz:', error);
