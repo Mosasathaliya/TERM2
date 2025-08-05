@@ -130,7 +130,7 @@ export function QuizScreen() {
   }, [quizState, userAnswers, questions]);
 
   const getResultMessage = () => {
-      const percentage = (score / (questions.length || QUIZ_LENGTH)) * 100;
+      const percentage = (score / (questions.length || 1)) * 100;
       if (percentage >= 70) return { message: `Congratulations! You Passed!`, icon: <Award className="h-16 w-16 text-amber-500" />, color: 'text-amber-500' };
       return { message: "Good effort! Keep studying and try again.", icon: <XCircle className="h-16 w-16 text-destructive" />, color: 'text-destructive' };
   };

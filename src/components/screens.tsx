@@ -1355,7 +1355,7 @@ export function BookScreen() {
                                         <CardContent>
                                             <CardDescription className="text-center text-muted-foreground">
                                                 {allLessonsAndStoriesCompleted 
-                                                ? "أنشئ اختبارًا عشوائيًا من 100 سؤال بناءً على المواد التعليمية."
+                                                ? "أنشئ اختبارًا عشوائيًا بناءً على المواد التعليمية."
                                                 : `أكمل ${learningItems.length - (highestCompletedIndex + 1)} عنصرًا إضافيًا لفتح الاختبار النهائي.`
                                                 }
                                             </CardDescription>
@@ -1383,7 +1383,7 @@ export function BookScreen() {
                 <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
                     <DialogHeader className="p-4 border-b shrink-0">
                         <DialogTitle>AI Generated Quiz</DialogTitle>
-                        <DialogDescription>Test your knowledge with 100 questions from the library.</DialogDescription>
+                        <DialogDescription>Test your knowledge with questions from the library.</DialogDescription>
                     </DialogHeader>
                     <QuizScreen />
                 </DialogContent>
