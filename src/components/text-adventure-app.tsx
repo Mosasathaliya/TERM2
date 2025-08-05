@@ -168,7 +168,7 @@ export function TextAdventureApp() {
   const GameSetup = () => (
       <div className="flex-grow flex flex-col items-center justify-center text-center p-4 bg-gray-900 text-white">
          {(gameState === 'gameOver' || gameState === 'error') && <h2 className="text-4xl font-bold text-red-500 mb-4">{gameState === 'gameOver' ? 'انتهت اللعبة' : 'حدث خطأ'}</h2>}
-        <p className="text-lg text-gray-300 mb-6">{gameState === 'setup' ? 'اختر نوعًا وابدأ مهمتك.' : gameState === 'gameOver' ? 'شكرا للعب!' : 'حدث خطأ ما. الرجاء المحاولة مرة أخرى.'}</p>
+        <p className="text-lg text-gray-300 mb-6">{gameState === 'setup' ? 'اختر نوعًا وابدأ مهمتك.' : gameState === 'gameOver' ? 'شكرا للعب!' : error ? error : 'حدث خطأ ما. الرجاء المحاولة مرة أخرى.'}</p>
         
         {gameState !== 'error' && (
              <div className="mb-6 w-full max-w-xs">

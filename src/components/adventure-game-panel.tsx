@@ -26,7 +26,7 @@ const ClickableNarrative: React.FC<{
 }> = ({ text, specialWord, onSpecialWordClick, onRegularWordClick, translation }) => {
   return (
     <>
-      {text.split(/(\\s+)/).map((segment, index) => {
+      {text.split(/(\s+)/).map((segment, index) => {
         const word = segment.trim();
         const cleanedWord = word.replace(/[^a-zA-Z]/g, '');
 
