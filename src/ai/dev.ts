@@ -1,8 +1,7 @@
 import { config } from 'dotenv';
 config();
 
-// AI text generation is now handled by direct Cloudflare API calls.
-// Genkit is still used for other features like Text-to-Speech (TTS) and Speech-to-Text (STT).
+// AI features are handled by direct Cloudflare API calls.
 
 // Keeping a few representative imports to show the structure.
 import '@/ai/flows/tts-flow.ts';
