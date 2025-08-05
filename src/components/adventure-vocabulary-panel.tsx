@@ -139,19 +139,19 @@ export const VocabularyPanel: React.FC<VocabularyPanelProps> = ({ selectedWord, 
     }
     
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
+      <div className="flex flex-col items-center justify-center h-full text-center text-gray-500" dir="rtl">
         <SparklesIcon className="w-16 h-16 mb-4" />
-        <h3 className="font-semibold text-lg text-gray-400">Discover New Words</h3>
-        <p>Click on a highlighted word in the story to see its AI-generated definition and artwork here.</p>
+        <h3 className="font-semibold text-lg text-gray-400">اكتشف كلمات جديدة</h3>
+        <p>انقر على كلمة مميزة في القصة لترى تعريفها ورسمها الفني المولد بواسطة الذكاء الاصطناعي هنا.</p>
       </div>
     );
   };
 
   return (
     <div className="p-6 flex flex-col h-full text-gray-300">
-      <h2 className="text-xl font-bold text-white border-b border-gray-700 pb-3 mb-4 flex items-center gap-2">
+      <h2 className="text-xl font-bold text-white border-b border-gray-700 pb-3 mb-4 flex items-center gap-2 justify-end" dir="rtl">
         <BookOpenIcon className="w-6 h-6 text-purple-400" />
-        Vocabulary
+        المفردات
       </h2>
       <div className="flex-grow overflow-y-auto pr-2">
         {renderContent()}
