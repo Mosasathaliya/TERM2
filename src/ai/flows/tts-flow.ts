@@ -39,8 +39,8 @@ export async function textToSpeech(input: TextToSpeechInput): Promise<TextToSpee
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        prompt: text,
-        lang: language,
+        text: input.text, // The model expects 'text', not 'prompt'.
+        lang: input.language,
       }),
     });
 
@@ -50,6 +50,8 @@ export async function textToSpeech(input: TextToSpeechInput): Promise<TextToSpee
         throw new Error(`Cloudflare TTS API request failed: ${response.statusText}`);
     }
 
+    // The MeloTTS model returns the raw MP3 audio bytes directly.
+    // We need to handle it as a binary buffer, not JSON.
     const audioBuffer = await response.arrayBuffer();
     const base64Audio = Buffer.from(audioBuffer).toString('base64');
     
