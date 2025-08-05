@@ -133,6 +133,10 @@ export function QuizScreen() {
 
   const currentQuestion = questions[currentQuestionIndex];
 
+  if (!currentQuestion) {
+    return null; // Don't render anything if the question isn't loaded yet
+  }
+
   return (
     <div className="flex flex-col h-full p-4 md:p-6">
       <CardHeader>
