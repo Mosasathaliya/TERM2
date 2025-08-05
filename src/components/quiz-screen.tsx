@@ -18,6 +18,7 @@ type QuizState = 'loading' | 'active' | 'finished';
 type AnswerStatus = 'correct' | 'incorrect' | null;
 
 const MAX_RETRIES = 2;
+const MAX_ROUNDS = 4;
 
 function AnswerFeedback({ status }: { status: AnswerStatus }) {
   if (status === null) return null;
@@ -61,6 +62,7 @@ export function QuizScreen() {
   const [answerStatus, setAnswerStatus] = useState<AnswerStatus>(null);
   const { setFinalExamPassed } = useProgressStore();
   const { toast } = useToast();
+  const [quizRound, setQuizRound] = useState(1);
   
   const fetchQuiz = useCallback(async (retries = MAX_RETRIES) => {
     setQuizState('loading');
@@ -113,7 +115,7 @@ export function QuizScreen() {
 
   useEffect(() => {
     fetchQuiz();
-  }, [fetchQuiz]);
+  }, [fetchQuiz, quizRound]);
 
   const handleNextQuestion = () => {
     if (selectedOption && questions[currentQuestionIndex]) {
@@ -139,19 +141,25 @@ export function QuizScreen() {
             }, 0);
             
             const passed = finalScore / questions.length >= 0.7;
-            setFinalExamPassed(passed);
-            
-            if (passed) {
-                toast({
-                    title: "Quiz Passed!",
-                    description: `You scored ${finalScore}/${questions.length}. You can now generate your certificate!`,
+            // Only mark the final exam as passed if they pass the final round
+            if (passed && quizRound === MAX_ROUNDS) {
+                setFinalExamPassed(true);
+                 toast({
+                    title: "Final Exam Passed!",
+                    description: `Congratulations! You can now generate your certificate!`,
+                    className: "bg-green-100 dark:bg-green-900",
+                });
+            } else if (passed) {
+                 toast({
+                    title: `Round ${quizRound} Passed!`,
+                    description: `You scored ${finalScore}/${questions.length}. Get ready for the next round!`,
                     className: "bg-green-100 dark:bg-green-900",
                 });
             } else {
                  toast({
                     variant: "destructive",
-                    title: "Quiz Failed",
-                    description: `You scored ${finalScore}/${questions.length}. You need at least 70% to pass.`,
+                    title: `Round ${quizRound} Failed`,
+                    description: `You scored ${finalScore}/${questions.length}. You need at least 70% to pass. Try again!`,
                 });
             }
             
@@ -177,15 +185,21 @@ export function QuizScreen() {
         return { message: "Quiz Generation Failed", icon: <XCircle className="h-16 w-16 text-destructive" />, color: 'text-destructive' };
       }
       const percentage = (score / (questions.length || 1)) * 100;
-      if (percentage >= 70) return { message: `Congratulations! You Passed!`, icon: <Award className="h-16 w-16 text-amber-500" />, color: 'text-amber-500' };
+      if (percentage >= 70) return { message: `Congratulations! You Passed Round ${quizRound}!`, icon: <Award className="h-16 w-16 text-amber-500" />, color: 'text-amber-500' };
       return { message: "Good effort! Keep studying and try again.", icon: <XCircle className="h-16 w-16 text-destructive" />, color: 'text-destructive' };
+  };
+
+  const handleNextRound = () => {
+    if (quizRound < MAX_ROUNDS) {
+      setQuizRound(prev => prev + 1);
+    }
   };
 
   if (quizState === 'loading') {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-4">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <h2 className="text-2xl font-bold">Generating Your Quiz...</h2>
+        <h2 className="text-2xl font-bold">Generating Your Quiz (Round {quizRound})...</h2>
         <p className="text-muted-foreground">Our AI is preparing your questions. This may take a moment.</p>
       </div>
     );
@@ -193,6 +207,7 @@ export function QuizScreen() {
 
   if (quizState === 'finished') {
     const result = getResultMessage();
+    const passed = (score / (questions.length || 1)) * 100 >= 70;
     return (
         <div className="flex flex-col items-center justify-center h-full text-center p-4">
             <div className={result.color}>{result.icon}</div>
@@ -205,10 +220,14 @@ export function QuizScreen() {
                     <p className="text-muted-foreground">({((score / questions.length) * 100).toFixed(0)}%)</p>
                 </>
             )}
-            <Button onClick={() => fetchQuiz()} className="mt-8">
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Take Another Quiz
-            </Button>
+            {quizRound < MAX_ROUNDS ? (
+                 <Button onClick={handleNextRound} className="mt-8">
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    {passed ? `Start Round ${quizRound + 1}` : 'Try Round Again'}
+                </Button>
+            ) : (
+                 <p className="mt-8 text-lg font-semibold text-primary">You have completed the final exam!</p>
+            )}
         </div>
     );
   }
@@ -231,7 +250,7 @@ export function QuizScreen() {
       </AnimatePresence>
       <div className="flex flex-col h-full p-4 md:p-6">
         <CardHeader>
-          <CardTitle>Final Exam</CardTitle>
+          <CardTitle>Final Exam (Round {quizRound} of {MAX_ROUNDS})</CardTitle>
           <CardDescription>Test your knowledge with {questions.length} questions from the library.</CardDescription>
           <Progress value={((currentQuestionIndex + 1) / questions.length) * 100} className="w-full mt-2" />
         </CardHeader>
@@ -266,3 +285,4 @@ export function QuizScreen() {
     </>
   );
 }
+
