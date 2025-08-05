@@ -250,7 +250,7 @@ function ExplanationDialog({ videoTitle, isOpen, onOpenChange }: { videoTitle: s
     if (!text || audioLoading === id) return;
     setAudioLoading(id);
     try {
-      const result = await textToSpeech({ text, language: 'ar' });
+      const result = await textToSpeech({ prompt: text, lang: 'ar' });
       if (result?.media) {
         new Audio(result.media).play();
       }
@@ -459,7 +459,7 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
     if (!text || activeAudioId) return;
     setActiveAudioId(id);
     try {
-      const result = await textToSpeech({ text, language: lang });
+      const result = await textToSpeech({ prompt: text, lang: lang });
       if (result?.media) {
         if (!audioRef.current) {
           audioRef.current = new Audio();

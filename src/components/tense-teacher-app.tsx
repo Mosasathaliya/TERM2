@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -7,7 +8,7 @@ import * as z from 'zod';
 
 import { ahmedVoiceCall, type AhmedVoiceCallInput } from '@/ai/flows/ahmed-voice-call';
 import { saraVoiceCall, type SaraVoiceCallInput } from '@/ai/flows/sara-voice-call';
-import { textToSpeech, type TextToSpeechInput } from '@/ai/flows/tts-flow';
+import { textToSpeech } from '@/ai/flows/tts-flow';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -102,7 +103,7 @@ export function TenseTeacherApp() {
       setActiveAudio(entryId);
 
       try {
-        const result = await textToSpeech({ text, language: 'ar' });
+        const result = await textToSpeech({ prompt: text, lang: 'ar' });
         if (result && result.media) {
             const audio = new Audio(result.media);
             audioRef.current = audio;

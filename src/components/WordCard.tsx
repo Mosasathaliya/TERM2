@@ -48,7 +48,7 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
 
     setActiveAudioId(id);
     try {
-        const result = await textToSpeech({text, language: lang});
+        const result = await textToSpeech({prompt: text, lang: lang});
         // 2. Explicitly check for a null or invalid result from the API flow
         if (!result || !result.media) {
             toast({

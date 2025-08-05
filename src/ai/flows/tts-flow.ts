@@ -8,10 +8,10 @@
 import { z } from 'zod';
 import { runAi } from '@/lib/cloudflare-ai';
 
-// Define the schema for the flow's input
+// Define the schema for the flow's input, matching the API which expects 'prompt'.
 const TextToSpeechInputSchema = z.object({
-  text: z.string().describe('The text to convert to speech.'),
-  language: z.enum(['en', 'ar']).default('en').describe("The speech language ('en' or 'ar')."),
+  prompt: z.string().describe('The text to convert to speech.'),
+  lang: z.enum(['en', 'ar']).default('en').describe("The speech language ('en' or 'ar')."),
 });
 export type TextToSpeechInput = z.infer<typeof TextToSpeechInputSchema>;
 
@@ -21,21 +21,21 @@ export type TextToSpeechOutput = {
 
 // Exported wrapper function to be called from the client
 export async function textToSpeech(input: TextToSpeechInput): Promise<TextToSpeechOutput | null> {
-  const { text, language } = input;
+  const { prompt, lang } = input;
   
-  if (!text.trim()) {
-    console.warn("TTS Flow: Received empty text. Aborting.");
+  if (!prompt.trim()) {
+    console.warn("TTS Flow: Received empty prompt. Aborting.");
     return null;
   }
 
-  console.log(`TTS Flow: Attempting to generate audio for text: "${text}" in language: "${language}"`);
+  console.log(`TTS Flow: Attempting to generate audio for prompt: "${prompt}" in language: "${lang}"`);
 
   try {
     const response = await runAi({
       model: '@cf/myshell-ai/melotts',
       inputs: {
-        prompt: input.text,
-        lang: input.language,
+        prompt: prompt,
+        lang: lang,
       },
     });
 

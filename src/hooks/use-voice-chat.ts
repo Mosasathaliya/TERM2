@@ -52,7 +52,7 @@ export function useVoiceChat() {
        }
       
       if (responseText) {
-          const ttsResult = await textToSpeech({ text: responseText, language: 'en' });
+          const ttsResult = await textToSpeech({ prompt: responseText, lang: 'en' });
           if (audioRef.current && ttsResult?.media) {
               audioRef.current.src = ttsResult.media;
               audioRef.current.play().catch(e => {

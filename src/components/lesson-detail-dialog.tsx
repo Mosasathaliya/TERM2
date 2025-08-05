@@ -210,7 +210,7 @@ function Chatbot({ lesson }: { lesson: Lesson }) {
         try {
             // Simple check for Arabic characters
             const isArabic = /[\u0600-\u06FF]/.test(text);
-            const result = await textToSpeech({ text, language: isArabic ? 'ar' : 'en' });
+            const result = await textToSpeech({ prompt: text, lang: isArabic ? 'ar' : 'en' });
             if (result && result.media) {
                 const audio = new Audio(result.media);
                 audio.play();
@@ -375,7 +375,7 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
     const playAudio = async (text: string, id?: string, lang: 'en' | 'ar' = 'en') => {
         setIsLoadingAudio(true);
         try {
-          const result = await textToSpeech({ text, language: lang });
+          const result = await textToSpeech({ prompt: text, lang: lang });
           if (result && result.media) {
             const audio = new Audio(result.media);
             audio.play();
@@ -533,7 +533,7 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
     
     setAudioStates(prev => ({ ...prev, [id]: { loading: true, dataUrl: null } }));
     try {
-      const result = await textToSpeech({text, language: lang});
+      const result = await textToSpeech({prompt: text, lang: lang});
       if (result && result.media) {
         setAudioStates(prev => ({ ...prev, [id]: { loading: false, dataUrl: result.media } }));
         const audio = new Audio(result.media);

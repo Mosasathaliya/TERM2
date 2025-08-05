@@ -131,7 +131,7 @@ export function TextAdventureApp() {
     if (!cleanedWord) return;
 
     // Pronounce the word
-    textToSpeech({text: cleanedWord}).catch(err => console.error("TTS error:", err));
+    textToSpeech({prompt: cleanedWord, lang: 'en'}).catch(err => console.error("TTS error:", err));
 
     // Translate the word
     setTranslation({ word: word, text: 'جاري الترجمة...', isLoading: true });

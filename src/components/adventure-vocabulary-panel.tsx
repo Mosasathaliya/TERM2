@@ -28,7 +28,7 @@ export const VocabularyPanel: React.FC<VocabularyPanelProps> = ({ selectedWord, 
 
     setActiveAudioId(id);
     try {
-        const result = await textToSpeech({ text, language: lang });
+        const result = await textToSpeech({ prompt: text, lang: lang });
         if (result && result.media) {
             const audio = new Audio(result.media);
             audioRef.current = audio;
