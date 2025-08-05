@@ -30,9 +30,18 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   const handleSpeak = async (text: string, lang: 'en' | 'ar', id: string) => {
-    if (activeAudioId || !text) return;
+    // Add a guard clause to prevent calling the API with empty text
+    if (!text || !text.trim()) {
+      toast({
+        title: "No text to speak",
+        description: "There is no content to convert to speech.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (activeAudioId) return;
 
-    // Stop any previously playing audio, just in case
     if (audioRef.current) {
         audioRef.current.pause();
     }
@@ -51,14 +60,10 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
                   description: "Your browser might be blocking automated audio playback.",
                   variant: "destructive",
               });
-              setActiveAudioId(null); // Reset on error
+              setActiveAudioId(null);
             });
             
-            // Listen for when the audio finishes playing
-            audio.onended = () => {
-                setActiveAudioId(null);
-            };
-            // Also handle errors during playback
+            audio.onended = () => setActiveAudioId(null);
             audio.onerror = () => {
                 toast({
                     title: "Audio Error",
@@ -74,7 +79,7 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
                 description: "Could not generate audio for the selected text.",
                 variant: "destructive",
             });
-            setActiveAudioId(null); // Reset on failure
+            setActiveAudioId(null);
         }
     } catch (error) {
         console.error("TTS Error:", error);
@@ -83,12 +88,11 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
             description: "An unexpected error occurred while generating audio.",
             variant: "destructive",
         });
-        setActiveAudioId(null); // Reset on error
+        setActiveAudioId(null);
     }
   };
 
   React.useEffect(() => {
-    // Cleanup function to stop audio when the component unmounts
     return () => {
         if (audioRef.current) {
             audioRef.current.pause();
