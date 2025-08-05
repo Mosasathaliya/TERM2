@@ -39,7 +39,7 @@ export async function textToSpeech(input: TextToSpeechInput): Promise<TextToSpee
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        text: text,
+        prompt: text,
         lang: language,
       }),
     });
