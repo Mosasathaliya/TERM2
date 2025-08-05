@@ -8,23 +8,15 @@ import { Button } from './ui/button';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { Loader2, CheckCircle, XCircle, Award, RefreshCw, Lightbulb } from 'lucide-react';
+import { Loader2, XCircle, Award, RefreshCw } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { useProgressStore } from '@/hooks/use-progress-store';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { translateText } from '@/ai/flows/translate-flow';
 
 type QuizState = 'loading' | 'active' | 'finished';
 
 const QUIZ_LENGTH = 100;
 const MAX_RETRIES = 2;
-const HINT_LIMIT = 30;
-
-interface TranslationHint {
-  question: string;
-  options: string[];
-}
 
 export function QuizScreen() {
   const [quizState, setQuizState] = useState<QuizState>('loading');
@@ -35,19 +27,12 @@ export function QuizScreen() {
   const { setFinalExamPassed } = useProgressStore();
   const { toast } = useToast();
   
-  const [hintsUsed, setHintsUsed] = useState(0);
-  const [translationHint, setTranslationHint] = useState<TranslationHint | null>(null);
-  const [isHintLoading, setIsHintLoading] = useState(false);
-  
   const fetchQuiz = useCallback(async (retries = MAX_RETRIES) => {
     setQuizState('loading');
     setQuestions([]);
     setCurrentQuestionIndex(0);
     setUserAnswers([]);
     setSelectedOption(null);
-    setHintsUsed(0);
-    setTranslationHint(null);
-    setIsHintLoading(false);
 
     try {
       const quizData = await generateQuiz();
@@ -100,7 +85,6 @@ export function QuizScreen() {
       const newAnswers = [...userAnswers, selectedOption];
       setUserAnswers(newAnswers);
       setSelectedOption(null);
-      setTranslationHint(null); // Clear hint for next question
 
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
@@ -134,38 +118,6 @@ export function QuizScreen() {
       }
     }
   };
-  
-  const handleHintClick = async () => {
-    if (hintsUsed >= HINT_LIMIT || isHintLoading || translationHint) return;
-    
-    setIsHintLoading(true);
-    const currentQuestion = questions[currentQuestionIndex];
-    
-    try {
-        const textsToTranslate = [currentQuestion.question, ...currentQuestion.options];
-        const translationResult = await translateText({ text: textsToTranslate, targetLanguage: 'ar' });
-        
-        if (Array.isArray(translationResult.translation) && translationResult.translation.length === textsToTranslate.length) {
-            setTranslationHint({
-                question: translationResult.translation[0],
-                options: translationResult.translation.slice(1),
-            });
-            setHintsUsed(prev => prev + 1);
-        } else {
-            throw new Error("Translation did not return a valid array.");
-        }
-    } catch (error) {
-        console.error("Hint translation error:", error);
-        toast({
-            variant: "destructive",
-            title: "Hint Failed",
-            description: "Could not get the translation at this moment.",
-        });
-    } finally {
-        setIsHintLoading(false);
-    }
-  };
-
 
   const score = useMemo(() => {
     if (quizState !== 'finished') return 0;
@@ -243,10 +195,6 @@ export function QuizScreen() {
         <CardContent className="flex-grow flex flex-col justify-center">
             <div className="text-center mb-8">
                 <h3 className="text-xl md:text-2xl font-semibold ">{currentQuestion.question}</h3>
-                {isHintLoading && <Loader2 className="h-5 w-5 animate-spin mx-auto mt-2" />}
-                {translationHint && (
-                    <p className="text-lg text-primary/80 mt-1" dir="rtl">{translationHint.question}</p>
-                )}
             </div>
           <RadioGroup value={selectedOption ?? ''} onValueChange={setSelectedOption} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {currentQuestion.options.map((option, index) => (
@@ -261,25 +209,12 @@ export function QuizScreen() {
                   }`}
                 >
                   <span>{option}</span>
-                   {translationHint && (
-                        <span className="text-sm text-primary/80 mt-1" dir="rtl">{translationHint.options[index]}</span>
-                   )}
                 </Label>
               </div>
             ))}
           </RadioGroup>
         </CardContent>
-        <CardFooter className="justify-between">
-           <Button
-              variant="outline"
-              onClick={handleHintClick}
-              disabled={hintsUsed >= HINT_LIMIT || isHintLoading}
-              className="flex items-center gap-2"
-          >
-              <Lightbulb className="h-4 w-4" />
-              <span>Hint</span>
-              <span className="text-xs text-muted-foreground">({HINT_LIMIT - hintsUsed} left)</span>
-          </Button>
+        <CardFooter className="justify-end">
           <Button onClick={handleNextQuestion} disabled={!selectedOption}>
             {currentQuestionIndex === questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
           </Button>
