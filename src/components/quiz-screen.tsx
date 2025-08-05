@@ -8,15 +8,18 @@ import { Button } from './ui/button';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { Loader2, CheckCircle, XCircle, Award, RefreshCw } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Award, RefreshCw, Lightbulb } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { useProgressStore } from '@/hooks/use-progress-store';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { translateText } from '@/ai/flows/translate-flow';
 
 type QuizState = 'loading' | 'active' | 'finished';
 
 const QUIZ_LENGTH = 100;
 const MAX_RETRIES = 2;
+const HINT_LIMIT = 30;
 
 export function QuizScreen() {
   const [quizState, setQuizState] = useState<QuizState>('loading');
@@ -26,6 +29,11 @@ export function QuizScreen() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const { setFinalExamPassed } = useProgressStore();
   const { toast } = useToast();
+  
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [translationHint, setTranslationHint] = useState<{ question: string; options: string[] } | null>(null);
+  const [isHintLoading, setIsHintLoading] = useState(false);
+
 
   const fetchQuiz = useCallback(async (retries = MAX_RETRIES) => {
     setQuizState('loading');
@@ -33,15 +41,15 @@ export function QuizScreen() {
     setCurrentQuestionIndex(0);
     setUserAnswers([]);
     setSelectedOption(null);
+    setHintsUsed(0);
+    setTranslationHint(null);
 
     try {
       const quizData = await generateQuiz();
-      // Check if the AI returned a valid, non-empty quiz
       if (quizData && quizData.questions.length > 0) {
-        setQuestions(quizData.questions.slice(0, QUIZ_LENGTH)); // Ensure we don't exceed quiz length
+        setQuestions(quizData.questions.slice(0, QUIZ_LENGTH));
         setQuizState('active');
       } else {
-        // If no questions, retry or fail gracefully
         if (retries > 0) {
           toast({
             variant: "destructive",
@@ -55,7 +63,7 @@ export function QuizScreen() {
                 title: "Quiz Generation Failed",
                 description: "The AI could not create questions after multiple attempts. Please try again later.",
             });
-            setQuizState('finished'); // Go to finished state to show error/retry
+            setQuizState('finished');
         }
       }
     } catch (error) {
@@ -76,8 +84,7 @@ export function QuizScreen() {
             setQuizState('finished');
        }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     fetchQuiz();
@@ -88,11 +95,11 @@ export function QuizScreen() {
       const newAnswers = [...userAnswers, selectedOption];
       setUserAnswers(newAnswers);
       setSelectedOption(null);
+      setTranslationHint(null); // Clear hint for next question
 
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
       } else {
-        // This is the last question, so we calculate score and finish
         const finalAnswers = [...newAnswers];
         const finalScore = finalAnswers.reduce((acc, answer, index) => {
             if (questions[index] && answer === questions[index].correct_answer) {
@@ -123,8 +130,40 @@ export function QuizScreen() {
     }
   };
   
+  const handleHintClick = async () => {
+    if (hintsUsed >= HINT_LIMIT || isHintLoading) return;
+    
+    setIsHintLoading(true);
+    setTranslationHint(null);
+    const currentQuestion = questions[currentQuestionIndex];
+
+    try {
+        const textsToTranslate = [currentQuestion.question, ...currentQuestion.options];
+        const translationResult = await translateText({ text: textsToTranslate, targetLanguage: 'ar' });
+        
+        if (Array.isArray(translationResult.translation)) {
+             setTranslationHint({
+                question: translationResult.translation[0],
+                options: translationResult.translation.slice(1),
+            });
+            setHintsUsed(prev => prev + 1);
+        } else {
+            throw new Error("Translation did not return an array for a batch request.");
+        }
+    } catch (error) {
+        console.error("Hint translation error:", error);
+        toast({
+            variant: "destructive",
+            title: "Hint Failed",
+            description: "Could not get the translation at this moment.",
+        });
+    } finally {
+        setIsHintLoading(false);
+    }
+  };
+
+
   const score = useMemo(() => {
-    // Only calculate score when the quiz is finished
     if (quizState !== 'finished') return 0;
     return userAnswers.reduce((acc, answer, index) => {
       if (questions[index] && answer === questions[index].correct_answer) {
@@ -151,7 +190,6 @@ export function QuizScreen() {
   }
 
   if (quizState === 'finished') {
-    // Check if there were any questions to score, otherwise show a generation failed message
     if (questions.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-center p-4">
@@ -187,7 +225,7 @@ export function QuizScreen() {
   const currentQuestion = questions[currentQuestionIndex];
 
   if (!currentQuestion) {
-    return null; // Don't render anything if the question isn't loaded yet
+    return null;
   }
 
   return (
@@ -216,8 +254,41 @@ export function QuizScreen() {
             </div>
           ))}
         </RadioGroup>
+        
+        {isHintLoading && (
+            <div className="flex items-center justify-center mt-4 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin mr-2"/>
+                Getting hint...
+            </div>
+        )}
+
+        {translationHint && (
+          <Alert className="mt-6" dir="rtl">
+            <Lightbulb className="h-4 w-4" />
+            <AlertTitle>تلميح (الترجمة)</AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p><strong>السؤال:</strong> {translationHint.question}</p>
+              <ul className="list-disc pr-5">
+                {currentQuestion.options.map((originalOpt, index) => (
+                  <li key={index}><strong>{originalOpt}:</strong> {translationHint.options[index]}</li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
+
       </CardContent>
-      <CardFooter className="justify-end">
+      <CardFooter className="justify-between">
+         <Button
+            variant="outline"
+            onClick={handleHintClick}
+            disabled={isHintLoading || hintsUsed >= HINT_LIMIT}
+            className="flex items-center gap-2"
+        >
+            <Lightbulb className="h-4 w-4" />
+            <span>Hint</span>
+            <span className="text-xs text-muted-foreground">({HINT_LIMIT - hintsUsed} left)</span>
+        </Button>
         <Button onClick={handleNextQuestion} disabled={!selectedOption}>
           {currentQuestionIndex === questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
         </Button>
