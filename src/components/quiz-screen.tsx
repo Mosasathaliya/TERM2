@@ -41,8 +41,12 @@ export function QuizScreen() {
         setQuizState('active');
       } else {
         if (retries > 0) {
-          console.warn(`Quiz generation failed, retrying... (${retries} retries left)`);
-          setTimeout(() => fetchQuiz(retries - 1), 1000); // Wait 1 sec before retrying
+          toast({
+            variant: "destructive",
+            title: "Quiz Generation Failed, Retrying...",
+            description: `The AI is trying again. ${retries} attempts left.`,
+          });
+          setTimeout(() => fetchQuiz(retries - 1), 2000); // Wait 2 sec before retrying
         } else {
             toast({
                 variant: "destructive",
@@ -54,8 +58,12 @@ export function QuizScreen() {
       }
     } catch (error) {
        if (retries > 0) {
-          console.warn(`Quiz generation failed with error, retrying... (${retries} retries left)`, error);
-          setTimeout(() => fetchQuiz(retries - 1), 1000);
+          toast({
+            variant: "destructive",
+            title: "Quiz Generation Error, Retrying...",
+            description: `The AI is trying again. ${retries} attempts left.`,
+          });
+          setTimeout(() => fetchQuiz(retries - 1), 2000);
        } else {
             console.error('Failed to generate quiz after multiple retries:', error);
             toast({
