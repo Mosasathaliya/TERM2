@@ -208,7 +208,9 @@ function Chatbot({ lesson }: { lesson: Lesson }) {
 
     const playAudio = async (text: string) => {
         try {
-            const result = await textToSpeech({ text, voice: 'algenib' });
+            // Simple check for Arabic characters
+            const isArabic = /[\u0600-\u06FF]/.test(text);
+            const result = await textToSpeech({ text, language: isArabic ? 'ar' : 'en' });
             if (result && result.media) {
                 const audio = new Audio(result.media);
                 audio.play();
@@ -337,7 +339,7 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
       const cleanedWord = word.replace(/[^a-zA-Z]/g, ''); // Clean punctuation
       if (!cleanedWord) return;
 
-      playAudio(cleanedWord, `word-${cleanedWord}`);
+      playAudio(cleanedWord, `word-${cleanedWord}`, 'en');
       setTranslation({ word: cleanedWord, text: 'جاري الترجمة...', isLoading: true });
 
       try {
@@ -370,10 +372,10 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
         }
     };
     
-    const playAudio = async (text: string, id?: string) => {
+    const playAudio = async (text: string, id?: string, lang: 'en' | 'ar' = 'en') => {
         setIsLoadingAudio(true);
         try {
-          const result = await textToSpeech({ text, voice: 'algenib' });
+          const result = await textToSpeech({ text, language: lang });
           if (result && result.media) {
             const audio = new Audio(result.media);
             audio.play();
@@ -412,7 +414,7 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
                     <Button 
                         variant="ghost" 
                         size="icon" 
-                        onClick={() => playAudio(storyContent)}
+                        onClick={() => playAudio(storyContent, 'story-audio', 'en')}
                         disabled={isLoadingAudio}
                         aria-label="Listen to story"
                     >
@@ -522,7 +524,7 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
   };
 
 
-  const playAudio = async (text: string, id: string) => {
+  const playAudio = async (text: string, id: string, lang: 'en' | 'ar' = 'en') => {
     if (audioStates[id]?.dataUrl) {
       const audio = new Audio(audioStates[id].dataUrl!);
       audio.play();
@@ -531,7 +533,7 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
     
     setAudioStates(prev => ({ ...prev, [id]: { loading: true, dataUrl: null } }));
     try {
-      const result = await textToSpeech({text, voice: 'algenib'});
+      const result = await textToSpeech({text, language: lang});
       if (result && result.media) {
         setAudioStates(prev => ({ ...prev, [id]: { loading: false, dataUrl: result.media } }));
         const audio = new Audio(result.media);
@@ -584,7 +586,7 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
                                         <Button 
                                             variant="ghost" 
                                             size="icon" 
-                                            onClick={() => playAudio(item.explanation, `${item.title}-explanation`)}
+                                            onClick={() => playAudio(item.explanation, `${item.title}-explanation`, 'en')}
                                             disabled={audioStates[`${item.title}-explanation`]?.loading}
                                             aria-label="Listen to explanation"
                                         >
@@ -601,7 +603,19 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
                                 )}
                                 {translatedExplanation && (
                                     <div className="p-4 rounded-md bg-accent/20 border border-accent/30">
-                                        <p className="leading-relaxed whitespace-pre-wrap">{translatedExplanation}</p>
+                                         <div className="flex justify-between items-center mb-2">
+                                            <h4 className="font-semibold">الترجمة العربية</h4>
+                                             <Button 
+                                                variant="ghost" 
+                                                size="icon" 
+                                                onClick={() => playAudio(translatedExplanation, `${item.title}-translation`, 'ar')}
+                                                disabled={audioStates[`${item.title}-translation`]?.loading}
+                                                aria-label="Listen to translation"
+                                            >
+                                                <Volume2 className="h-5 w-5" />
+                                            </Button>
+                                        </div>
+                                        <p className="leading-relaxed whitespace-pre-wrap" dir="rtl">{translatedExplanation}</p>
                                     </div>
                                 )}
 
@@ -613,17 +627,28 @@ export function LessonDetailDialog({ item, isOpen, onClose }: LessonDetailDialog
                                             <CardContent className="p-4 flex items-center justify-between">
                                                 <div>
                                                     <p className="font-mono text-left text-base" dir="ltr">{example.english}</p>
-                                                    <p className="text-sm text-muted-foreground mt-1">{example.arabic}</p>
+                                                    <p className="text-sm text-muted-foreground mt-1" dir="rtl">{example.arabic}</p>
                                                 </div>
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="icon" 
-                                                    onClick={() => playAudio(example.english, `${item.title}-example-${index}`)}
-                                                    disabled={audioStates[`${item.title}-example-${index}`]?.loading}
-                                                    aria-label={`Listen to example ${index + 1}`}
-                                                >
-                                                    <Volume2 className="h-5 w-5" />
-                                                </Button>
+                                                 <div className="flex gap-1">
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon" 
+                                                        onClick={() => playAudio(example.english, `${item.title}-example-${index}-en`, 'en')}
+                                                        disabled={audioStates[`${item.title}-example-${index}-en`]?.loading}
+                                                        aria-label={`Listen to English example ${index + 1}`}
+                                                    >
+                                                        <Volume2 className="h-5 w-5" />
+                                                    </Button>
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon" 
+                                                        onClick={() => playAudio(example.arabic, `${item.title}-example-${index}-ar`, 'ar')}
+                                                        disabled={audioStates[`${item.title}-example-${index}-ar`]?.loading}
+                                                        aria-label={`Listen to Arabic example ${index + 1}`}
+                                                    >
+                                                        <Volume2 className="h-5 w-5" />
+                                                    </Button>
+                                                </div>
                                             </CardContent>
                                         </Card>
                                     ))}
