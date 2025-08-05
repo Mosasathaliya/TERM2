@@ -16,35 +16,53 @@ interface VocabularyPanelProps {
 
 export const VocabularyPanel: React.FC<VocabularyPanelProps> = ({ selectedWord, loading }) => {
   const { toast } = useToast();
-  const [audioLoading, setAudioLoading] = React.useState<Record<string, boolean>>({});
+  const [activeAudioId, setActiveAudioId] = React.useState<string | null>(null);
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   const handleSpeak = async (text: string, lang: 'en' | 'ar', id: string) => {
-    if (!text || audioLoading[id]) return;
+    if (activeAudioId || !text) return;
 
-    setAudioLoading(prev => ({...prev, [id]: true}));
+    if (audioRef.current) {
+        audioRef.current.pause();
+    }
+
+    setActiveAudioId(id);
     try {
         const result = await textToSpeech({ text, language: lang });
         if (result && result.media) {
             const audio = new Audio(result.media);
-            audio.play();
-        } else {
-            toast({
-                title: "Text-to-Speech Error",
-                description: "Could not generate audio.",
-                variant: "destructive",
+            audioRef.current = audio;
+
+            audio.play().catch(e => {
+              console.error("Audio playback error:", e);
+              toast({ title: "Audio Playback Error", variant: "destructive" });
+              setActiveAudioId(null);
             });
+            
+            audio.onended = () => setActiveAudioId(null);
+            audio.onerror = () => {
+                toast({ title: "Audio Error", variant: "destructive" });
+                setActiveAudioId(null);
+            };
+
+        } else {
+            toast({ title: "TTS Error", description: "Could not generate audio.", variant: "destructive" });
+            setActiveAudioId(null);
         }
     } catch (error) {
         console.error("TTS Error:", error);
-        toast({
-            title: "TTS Error",
-            description: "An unexpected error occurred.",
-            variant: "destructive",
-        });
-    } finally {
-        setAudioLoading(prev => ({...prev, [id]: false}));
+        toast({ title: "TTS Error", description: "An unexpected error occurred.", variant: "destructive" });
+        setActiveAudioId(null);
     }
   };
+
+  React.useEffect(() => {
+    return () => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+        }
+    };
+  }, []);
 
   const renderContent = () => {
     if (loading && selectedWord) {
@@ -73,12 +91,12 @@ export const VocabularyPanel: React.FC<VocabularyPanelProps> = ({ selectedWord, 
           <div>
             <div className="flex items-center justify-between">
               <h3 className="text-2xl font-bold text-purple-400 capitalize">{selectedWord.word}</h3>
-              <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.word, 'en', 'en-word')} disabled={audioLoading['en-word']}><Volume2 className="h-5 w-5" /></Button>
+              <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.word, 'en', 'en-word')} disabled={!!activeAudioId}><Volume2 className="h-5 w-5" /></Button>
             </div>
             {selectedWord.arabicWord && (
               <div className="flex items-center justify-between" dir="rtl">
                 <h3 className="text-xl font-semibold text-cyan-400">{selectedWord.arabicWord}</h3>
-                <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.arabicWord!, 'ar', 'ar-word')} disabled={audioLoading['ar-word']}><Volume2 className="h-5 w-5" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.arabicWord!, 'ar', 'ar-word')} disabled={!!activeAudioId}><Volume2 className="h-5 w-5" /></Button>
               </div>
             )}
           </div>
@@ -88,7 +106,7 @@ export const VocabularyPanel: React.FC<VocabularyPanelProps> = ({ selectedWord, 
           <div>
              <div className="flex items-center justify-between">
                 <h4 className="font-semibold text-gray-200">Definition</h4>
-                <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.definition, 'en', 'en-def')} disabled={audioLoading['en-def']}><Volume2 className="h-5 w-5" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.definition, 'en', 'en-def')} disabled={!!activeAudioId}><Volume2 className="h-5 w-5" /></Button>
               </div>
             <p className="text-gray-300 leading-relaxed">{selectedWord.definition}</p>
           </div>
@@ -97,7 +115,7 @@ export const VocabularyPanel: React.FC<VocabularyPanelProps> = ({ selectedWord, 
             <div>
               <div className="flex items-center justify-between" dir="rtl">
                 <h4 className="font-semibold text-gray-200">التعريف</h4>
-                <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.arabicDefinition!, 'ar', 'ar-def')} disabled={audioLoading['ar-def']}><Volume2 className="h-5 w-5" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => handleSpeak(selectedWord.arabicDefinition!, 'ar', 'ar-def')} disabled={!!activeAudioId}><Volume2 className="h-5 w-5" /></Button>
               </div>
               <p className="text-gray-300 leading-relaxed text-right" dir="rtl">{selectedWord.arabicDefinition}</p>
             </div>
