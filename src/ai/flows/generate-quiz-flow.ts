@@ -94,6 +94,8 @@ export async function generateQuiz(): Promise<GenerateQuizOutput> {
   
   Each question object in the JSON output must have 4 options and a clearly indicated correct answer.
 
+  Your response must be ONLY a valid JSON array of 20 question objects, with no other text before or after it.
+
   Here is the material:
   ---
   ${learningMaterial}
