@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import type { StoryPart } from '@/lib/adventure-game-types';
 import { UserIcon, WandSparklesIcon, SendIcon } from '@/components/adventure-icon-components';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { TranslationState } from '@/lib/adventure-game-types';
+import Image from 'next/image';
 
 interface GamePanelProps {
   storyHistory: StoryPart[];
@@ -13,6 +13,8 @@ interface GamePanelProps {
   loading: boolean;
   error: string | null;
   translation: TranslationState | null;
+  sceneImageUrl: string | null;
+  loadingSceneImage: boolean;
 }
 
 const ClickableNarrative: React.FC<{
@@ -24,7 +26,7 @@ const ClickableNarrative: React.FC<{
 }> = ({ text, specialWord, onSpecialWordClick, onRegularWordClick, translation }) => {
   return (
     <>
-      {text.split(/(\s+)/).map((segment, index) => {
+      {text.split(/(\\s+)/).map((segment, index) => {
         const word = segment.trim();
         const cleanedWord = word.replace(/[^a-zA-Z]/g, '');
 
@@ -65,7 +67,7 @@ const ClickableNarrative: React.FC<{
 };
 
 
-export const GamePanel: React.FC<GamePanelProps> = ({ storyHistory, onSendAction, onWordClick, onNarrativeWordClick, loading, error, translation }) => {
+export const GamePanel: React.FC<GamePanelProps> = ({ storyHistory, onSendAction, onWordClick, onNarrativeWordClick, loading, error, translation, sceneImageUrl, loadingSceneImage }) => {
   const [inputValue, setInputValue] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -92,6 +94,18 @@ export const GamePanel: React.FC<GamePanelProps> = ({ storyHistory, onSendAction
 
   return (
     <div className="flex flex-col w-full h-full max-h-full">
+        {(sceneImageUrl || loadingSceneImage) && (
+            <div className="relative w-full h-48 bg-gray-800 rounded-lg overflow-hidden mb-4 shrink-0">
+                {loadingSceneImage && (
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400"></div>
+                    </div>
+                )}
+                {sceneImageUrl && (
+                     <Image src={sceneImageUrl} alt="Scene illustration" layout="fill" objectFit="cover" className="transition-opacity duration-500 opacity-100" />
+                )}
+            </div>
+        )}
       <div ref={scrollRef} className="flex-grow overflow-y-auto pr-4 space-y-6">
         {storyHistory.map((part) => (
           <div key={part.id} className={`flex items-start gap-4 ${part.sender === 'user' ? 'justify-end' : ''}`}>

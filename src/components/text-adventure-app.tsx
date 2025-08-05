@@ -1,10 +1,10 @@
-
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { GamePanel } from '@/components/adventure-game-panel';
 import { VocabularyPanel } from '@/components/adventure-vocabulary-panel';
 import { textAdventureFlow, defineWord, generateImageForWord } from '@/ai/flows/text-adventure-flow';
+import { generateImage } from '@/ai/flows/image-generation-flow';
 import type { GameState, StoryPart, VocabularyWord, LoadingStates, GameGenre, TextAdventureAction, TranslationState } from '@/lib/adventure-game-types';
 import { textToSpeech } from '@/ai/flows/tts-flow';
 import { translateText } from '@/ai/flows/translate-flow';
@@ -32,10 +32,11 @@ export function TextAdventureApp() {
   const [gameState, setGameState] = useState<GameState>('setup');
   const [storyHistory, setStoryHistory] = useState<StoryPart[]>([]);
   const [selectedWord, setSelectedWord] = useState<VocabularyWord | null>(null);
-  const [loading, setLoading] = useState<LoadingStates>({ story: false, vocab: false });
+  const [loading, setLoading] = useState<LoadingStates>({ story: false, vocab: false, scene: false });
   const [error, setError] = useState<string | null>(null);
   const [gameGenre, setGameGenre] = useState<GameGenre>('fantasy');
   const [translation, setTranslation] = useState<TranslationState | null>(null);
+  const [sceneImageUrl, setSceneImageUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleAction = useCallback(async (action: TextAdventureAction, prompt?: string) => {
@@ -58,6 +59,7 @@ export function TextAdventureApp() {
     if (action === 'start') {
         setStoryHistory([]);
         currentHistory = [];
+        setSceneImageUrl(null);
     }
 
     try {
@@ -77,6 +79,14 @@ export function TextAdventureApp() {
         gameOver: response.gameOver,
       };
 
+      if (action === 'start' && response.imagePrompt) {
+        setLoading(prev => ({ ...prev, scene: true }));
+        generateImage({ prompt: response.imagePrompt })
+            .then(result => setSceneImageUrl(result.imageUrl))
+            .catch(err => console.error("Scene image generation failed:", err))
+            .finally(() => setLoading(prev => ({ ...prev, scene: false })));
+      }
+
       setStoryHistory(prev => [...prev, aiResponsePart]);
       setGameState(response.gameOver ? 'gameOver' : 'playing');
 
@@ -88,7 +98,6 @@ export function TextAdventureApp() {
         title: "Story Generation Error",
         description: errorMessage,
       });
-      // Don't set game state to error, let the user see the message and retry
     } finally {
       setLoading(prev => ({ ...prev, story: false }));
     }
@@ -130,10 +139,8 @@ export function TextAdventureApp() {
     const cleanedWord = word.replace(/[^a-zA-Z]/g, '').trim();
     if (!cleanedWord) return;
 
-    // Pronounce the word
     textToSpeech({prompt: cleanedWord, lang: 'en'}).catch(err => console.error("TTS error:", err));
 
-    // Translate the word
     setTranslation({ word: word, text: 'جاري الترجمة...', isLoading: true });
     try {
         const result = await translateText({ text: cleanedWord, targetLanguage: 'ar' });
@@ -180,7 +187,7 @@ export function TextAdventureApp() {
         {gameState === 'setup' || gameState === 'gameOver' ? (
           <GameSetup />
         ) : (
-          <div className="flex-grow flex overflow-hidden h-full">
+          <div className="flex-grow flex flex-col overflow-hidden h-full">
             <GamePanel 
               storyHistory={storyHistory} 
               onSendAction={(prompt) => handleAction('continue', prompt)} 
@@ -189,6 +196,8 @@ export function TextAdventureApp() {
               loading={loading.story}
               error={error}
               translation={translation}
+              sceneImageUrl={sceneImageUrl}
+              loadingSceneImage={loading.scene}
             />
           </div>
         )}

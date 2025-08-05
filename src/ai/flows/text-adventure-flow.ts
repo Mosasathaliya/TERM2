@@ -52,12 +52,14 @@ You will create a dynamic, branching text adventure in the ${genre} genre.
 Your response MUST be a single, valid, and complete JSON object with no other text before or after it.
 The JSON object must adhere to the following schema:
 - "narrative": A string of 1-2 paragraphs describing the current scene, events, and outcomes. It should be engaging, descriptive, and well-written.
+- "imagePrompt": An optional, concise (5-10 words) and evocative text prompt for an image generation model, describing the key visual elements of the initial scene. THIS SHOULD ONLY BE INCLUDED FOR THE VERY FIRST NARRATIVE of the story (when history is empty).
 - "newWord": An optional unique, plausible-sounding word relevant to the genre. Only invent a new word if the story history has more than ${historyLength > 0 ? historyLength + 2 : 2} entries.
 - "promptSuggestions": An array of exactly 3 diverse and interesting strings for player actions.
 - "gameOver": A boolean value, set to true only if the story has reached a definitive narrative conclusion.`;
 
 const GameResponseSchema = z.object({
   narrative: z.string().describe("The main story text describing the current scene, events, and outcomes. Should be engaging and descriptive."),
+  imagePrompt: z.string().optional().describe("A concise (5-10 words) prompt for an image generation model, describing the initial scene. Only included on the first turn."),
   newWord: z.string().optional().describe("A single, unique, and plausible-sounding new word relevant to the story's genre. Should be naturally integrated into the narrative."),
   promptSuggestions: z.array(z.string()).describe("An array of 3 diverse and interesting actions the player could take next."),
   gameOver: z.boolean().describe("Set to true only if the story has reached a definitive end."),

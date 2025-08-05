@@ -1,4 +1,3 @@
-
 export type GameState = 'setup' | 'playing' | 'gameOver' | 'error';
 export type GameGenre = 'fantasy' | 'sci-fi' | 'mystery' | 'cyberpunk' | 'steampunk' | 'saudi-folklore';
 export type TextAdventureAction = 'start' | 'continue';
@@ -23,6 +22,7 @@ export interface VocabularyWord {
 export interface LoadingStates {
   story: boolean;
   vocab: boolean;
+  scene: boolean;
 }
 
 export interface TranslationState {
