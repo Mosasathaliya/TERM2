@@ -3,6 +3,7 @@
 
 /**
  * @fileOverview A flow for converting text to speech using Cloudflare's MeloTTS model.
+ * This version is updated to handle both binary and JSON responses from the API.
  */
 import { z } from 'zod';
 import { runAi } from '@/lib/cloudflare-ai';
@@ -33,22 +34,38 @@ export async function textToSpeech(input: TextToSpeechInput): Promise<TextToSpee
     const response = await runAi({
       model: '@cf/myshell-ai/melotts',
       inputs: {
-        prompt: input.text, // Correct parameter name is 'prompt'
+        prompt: input.text,
         lang: input.language,
       },
     });
 
-    // The MeloTTS model returns the raw MP3 audio bytes directly.
-    const audioBuffer = await response.arrayBuffer();
+    let base64Audio: string;
+
+    // Check the content type to handle both possible API responses
+    const contentType = response.headers.get('content-type');
     
-    // A tiny buffer likely indicates an error response (which is often JSON) rather than valid MP3 data.
-    if (audioBuffer.byteLength < 100) { 
-        const errorText = new TextDecoder().decode(audioBuffer);
-        console.error(`TTS Flow: Received an empty or very small audio buffer from the API. Potential error: ${errorText}`);
+    if (contentType && contentType.includes('application/json')) {
+        const jsonResponse = await response.json();
+        // The API returns a JSON object with a base64-encoded audio string
+        if (jsonResponse.result && jsonResponse.result.audio) {
+            base64Audio = jsonResponse.result.audio;
+        } else {
+            console.error("TTS Flow: JSON response did not contain audio data.", jsonResponse);
+            return null;
+        }
+    } else if (contentType && contentType.includes('audio/mpeg')) {
+        // The API returns the raw MP3 audio bytes directly
+        const audioBuffer = await response.arrayBuffer();
+        if (audioBuffer.byteLength < 100) { 
+            const errorText = new TextDecoder().decode(audioBuffer);
+            console.error(`TTS Flow: Received an empty or very small audio buffer from the API. Potential error: ${errorText}`);
+            return null;
+        }
+        base64Audio = Buffer.from(audioBuffer).toString('base64');
+    } else {
+        console.error(`TTS Flow: Received unexpected content type: ${contentType}`);
         return null;
     }
-
-    const base64Audio = Buffer.from(audioBuffer).toString('base64');
     
     return {
       media: `data:audio/mpeg;base64,${base64Audio}`
