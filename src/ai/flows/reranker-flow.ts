@@ -19,7 +19,6 @@ export async function findMostRelevantLesson(query: string, documents: string[])
       inputs: {
         query: query,
         contexts: documents, // The reranker model expects 'contexts' not 'documents'
-        top_k: 1,
       },
     });
 
