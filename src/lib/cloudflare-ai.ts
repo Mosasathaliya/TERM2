@@ -10,8 +10,9 @@ if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
 
 type AiModel = 
   | '@cf/meta/llama-3-8b-instruct'
+  | '@cf/meta/m2m100-1.2b' // Added translation model to the type
   | '@cf/baai/bge-reranker-base'
-  | '@cf/black-forest-labs/flux-1-schnell'
+  | '@cf/stabilityai/stable-diffusion-xl-base-1.0' // Added image generation model to the type
   | '@cf/myshell-ai/melotts'
   | '@cf/openai/whisper';
 
@@ -36,10 +37,12 @@ export async function runAi({ model, inputs, stream = false }: RunAiOptions) {
     'Content-Type': 'application/json',
   };
 
+  const body = stream ? { ...inputs, stream: true } : inputs;
+
   const response = await fetch(url, {
     method: 'POST',
     headers,
-    body: JSON.stringify(stream ? { ...inputs, stream: true } : inputs),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {

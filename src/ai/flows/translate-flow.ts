@@ -33,18 +33,17 @@ export async function translateText({ text, sourceLanguage = 'en', targetLanguag
 
   if (jsonResponse.result && jsonResponse.result.translated_text) {
     if (isBatch) {
-      const translations = jsonResponse.result.translated_text.map((item: string) => item.trim());
+      // For batch requests, Cloudflare might return an array of objects, each with a translated_text key.
+      // Or it might return an object with a translated_text key that is an array of strings.
+      // This handles both possibilities.
+      const translations = Array.isArray(jsonResponse.result.translated_text)
+        ? jsonResponse.result.translated_text
+        : jsonResponse.result.map((item: any) => item.translated_text.trim());
       return { translation: translations };
     } else {
       const translation = jsonResponse.result.translated_text;
       return { translation: translation.trim() };
     }
-  }
-
-  // Handle cases where the API response structure is different for batch requests
-  if (isBatch && jsonResponse.result && Array.isArray(jsonResponse.result)) {
-      const translations = jsonResponse.result.map((item: any) => item.translated_text.trim());
-      return { translation: translations };
   }
 
   // Fallback for unexpected response structure
