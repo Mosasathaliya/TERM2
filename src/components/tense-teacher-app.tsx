@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -94,15 +93,28 @@ export function TenseTeacherApp() {
 
   const handlePlayAudio = async (text: string, entryId: number) => {
       if (!text || isMuted || activeAudio === entryId) return;
+      
+      // Stop any currently playing audio
+      if (audioRef.current) {
+          audioRef.current.pause();
+      }
+
       setActiveAudio(entryId);
 
       try {
         const result = await textToSpeech({ text, language: 'ar' });
         if (result && result.media) {
-            audioRef.current = new Audio(result.media);
-            audioRef.current.play();
-            audioRef.current.onended = () => setActiveAudio(null);
-            audioRef.current.onerror = () => {
+            const audio = new Audio(result.media);
+            audioRef.current = audio;
+
+            audio.play().catch(e => {
+                console.error("Audio playback error:", e);
+                toast({ title: "Audio Playback Error", variant: "destructive" });
+                setActiveAudio(null);
+            });
+
+            audio.onended = () => setActiveAudio(null);
+            audio.onerror = () => {
                 toast({ variant: "destructive", title: "Error playing audio." });
                 setActiveAudio(null);
             }
@@ -144,6 +156,15 @@ export function TenseTeacherApp() {
 
     recognitionRef.current = recognition;
   }, [setValue, toast]);
+
+  // Cleanup effect to stop audio when component unmounts
+  useEffect(() => {
+    return () => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+        }
+    };
+  }, []);
 
   const toggleListening = () => {
     if (!recognitionRef.current) return;
@@ -262,7 +283,7 @@ export function TenseTeacherApp() {
                                     <div className={`rounded-lg px-3 py-2 max-w-[85%] flex items-center gap-2 ${entry.speaker === 'User' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                                         <p className="text-sm whitespace-pre-wrap">{entry.message}</p>
                                         {entry.speaker !== 'User' && (
-                                        <Button variant="ghost" size="icon" className="shrink-0 h-6 w-6 p-1 text-muted-foreground" onClick={() => handlePlayAudio(entry.message, entry.id)}>
+                                        <Button variant="ghost" size="icon" className="shrink-0 h-6 w-6 p-1 text-muted-foreground" onClick={() => handlePlayAudio(entry.message, entry.id)} disabled={activeAudio === entry.id}>
                                             {activeAudio === entry.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <Volume2 className="h-4 w-4"/>}
                                         </Button>
                                         )}

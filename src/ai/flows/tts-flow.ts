@@ -29,7 +29,7 @@ export async function textToSpeech(input: TextToSpeechInput): Promise<TextToSpee
     const response = await runAi({
       model: '@cf/myshell-ai/melotts',
       inputs: {
-        text: input.text, // The API documentation uses 'text' now.
+        prompt: input.text, // Corrected from 'text' to 'prompt'
         lang: input.language,
       },
     });
