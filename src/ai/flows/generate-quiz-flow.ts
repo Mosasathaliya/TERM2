@@ -11,7 +11,7 @@ import { learningItems } from '@/lib/lessons';
 import { generateSingleQuizQuestion } from './generate-single-quiz-question';
 import { findMostRelevantLesson } from './reranker-flow';
 
-const NUM_QUESTIONS_TO_GENERATE = 20;
+const NUM_QUESTIONS_TO_GENERATE = 25;
 
 export async function generateQuiz(): Promise<GenerateQuizOutput> {
   const generatedQuestions: QuizQuestion[] = [];
@@ -21,7 +21,7 @@ export async function generateQuiz(): Promise<GenerateQuizOutput> {
   // This helps us pick the lessons with the richest content for generating questions.
   const query = "A comprehensive English language test covering grammar, vocabulary, and comprehension.";
   
-  // We can't directly get the top N from the reranker, so we'll simulate it by checking relevance against a generic query.
+  // We can't directly get the top N from the reranker, but we'll simulate it by checking relevance against a generic query.
   // A more robust method would involve embedding all documents and finding diverse clusters, but for now, we'll select the top ones.
   // This is a simplified approach to get a good subset of documents.
   const topItemIndexes: number[] = [];
@@ -30,14 +30,20 @@ export async function generateQuiz(): Promise<GenerateQuizOutput> {
   // This loop is a placeholder for a more advanced selection. For now, we'll just take the first N suitable items.
   const suitableItems = learningItems.filter(item => {
       const content = item.type === 'lesson' ? item.explanation : item.content;
-      return content.length > 150; // Ensure content is substantial
+      // Ensure content is substantial enough to generate a good question
+      return content.length > 150; 
   });
 
+  // We'll take a slice of suitable items to ensure we don't make excessive API calls
   const itemsToQuery = suitableItems.slice(0, NUM_QUESTIONS_TO_GENERATE);
 
 
   // 2. Generate questions one by one from the selected, high-quality items
   for (const item of itemsToQuery) {
+      if (generatedQuestions.length >= NUM_QUESTIONS_TO_GENERATE) {
+        break;
+      }
+
       try {
         let content = '';
         if (item.type === 'lesson') {
