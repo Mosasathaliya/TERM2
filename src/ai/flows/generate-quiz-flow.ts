@@ -20,31 +20,30 @@ function getRandomItems<T>(array: T[], numItems: number): T[] {
 export async function generateQuiz(): Promise<GenerateQuizOutput> {
   // 1. Select 100 random learning items
   const selectedItems = getRandomItems(learningItems, 100);
-
-  try {
-    // 2. Generate one question for each item in parallel
-    const questionPromises = selectedItems.map(item => {
+  const generatedQuestions: QuizQuestion[] = [];
+  
+  // 2. Generate questions one by one for better stability
+  for (const item of selectedItems) {
+      try {
         let content = '';
         if (item.type === 'lesson') {
             content = `Title: ${item.title}\nExplanation: ${item.explanation}\nStory: ${item.story?.summary || ''}`;
         } else {
             content = `Story: ${item.title}\nContent: ${item.content}`;
         }
-        return generateSingleQuizQuestion({ learningMaterial: content });
-    });
-
-    const results = await Promise.all(questionPromises);
-    
-    // Filter out any null results from failed generations
-    const validQuestions = results.filter((q): q is QuizQuestion => q !== null);
-
-    // 3. Return the collected questions
-    // Even if some questions fail, we return the ones that succeeded.
-    return { questions: validQuestions };
-
-  } catch(error) {
-      console.error("Failed to generate the full quiz, returning what was successful", error);
-      // In case of a catastrophic failure in Promise.all (less likely now), return empty.
-      return { questions: [] };
+        
+        const question = await generateSingleQuizQuestion({ learningMaterial: content });
+        
+        if (question) {
+            generatedQuestions.push(question);
+        }
+      } catch (error) {
+          // Log the error but continue to the next item
+          console.error(`Failed to generate a question for item: "${item.title}". Skipping.`, error);
+      }
   }
+
+  // 3. Return the collected questions
+  // Even if some questions fail, we return the ones that succeeded.
+  return { questions: generatedQuestions };
 }
