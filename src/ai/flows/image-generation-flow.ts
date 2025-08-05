@@ -22,11 +22,11 @@ export type ImageOutput = z.infer<typeof ImageOutputSchema>;
 export async function generateImage(input: ImageInput): Promise<ImageOutput> {
   try {
     const response = await runAi({
-      model: '@cf/black-forest-labs/flux-1-schnell',
+      model: '@cf/stabilityai/stable-diffusion-xl-base-1.0',
       inputs: { prompt: input.prompt },
     });
 
-    // The FLUX model returns the raw image bytes directly
+    // The model returns the raw image bytes directly
     const imageBuffer = await response.arrayBuffer();
     const base64Image = Buffer.from(imageBuffer).toString('base64');
     
