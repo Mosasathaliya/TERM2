@@ -64,7 +64,7 @@ export async function searchWithAutoRAG(input: AutoRAGInput): Promise<AutoRAGOut
     
     const jsonResponse = await response.json();
 
-    if (jsonResponse.success && jsonResponse.result) {
+    if (jsonResponse.success && jsonResponse.result && jsonResponse.result.search) {
         return {
             results: jsonResponse.result.search.results,
             answer: jsonResponse.result.answer,
