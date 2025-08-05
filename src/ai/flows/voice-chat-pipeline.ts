@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -11,7 +12,7 @@ import { runAi } from '@/lib/cloudflare-ai';
 
 // Cloudflare Speech-to-Text (Whisper)
 async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/openai/whisper`;
+    const url = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/openai/whisper`;
 
     const response = await fetch(url, {
         method: 'POST',
