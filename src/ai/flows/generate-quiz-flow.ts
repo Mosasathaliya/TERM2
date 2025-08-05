@@ -3,9 +3,11 @@
 
 /**
  * @fileOverview An AI agent for generating a quiz from a text document using Cloudflare Workers AI.
+ * This version is updated to select a random subset of learning materials to make the
+ * generation process more reliable.
  */
 import type { GenerateQuizOutput } from '@/types/quiz';
-import { learningItems } from '@/lib/lessons';
+import { learningItems, type LearningItem } from '@/lib/lessons';
 import { runAi } from '@/lib/cloudflare-ai';
 
 
@@ -61,16 +63,34 @@ async function queryCloudflareAsJson(prompt: string): Promise<any> {
     }
 }
 
-export async function generateQuiz(): Promise<GenerateQuizOutput> {
-  const learningMaterial = learningItems.map(item => {
-      if (item.type === 'lesson') {
-          return `Title: ${item.title}\nExplanation: ${item.explanation}\nStory: ${item.story?.summary || ''}`;
-      } else {
-          return `Story: ${item.title}\nContent: ${item.content}`;
-      }
-  }).join('\n\n---\n\n');
+// Function to shuffle an array and pick the first N items
+function getRandomItems<T>(array: T[], numItems: number): T[] {
+  const shuffled = [...array].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, numItems);
+}
 
-  const prompt = `Based on the following English learning material, generate a quiz with exactly 20 unique multiple-choice questions. Each question must have 4 options, and you must clearly indicate the correct answer. The questions should cover the various grammar points, vocabulary, and concepts presented in the text. Ensure the questions are varied and test different aspects of the material.
+
+export async function generateQuiz(): Promise<GenerateQuizOutput> {
+  // 1. Select 20 random learning items
+  const selectedItems = getRandomItems(learningItems, 20);
+
+  // 2. Create the learning material string from the selected items
+  const learningMaterial = selectedItems.map((item, index) => {
+      let content = '';
+      if (item.type === 'lesson') {
+          content = `Title: ${item.title}\nExplanation: ${item.explanation}\nStory: ${item.story?.summary || ''}`;
+      } else {
+          content = `Story: ${item.title}\nContent: ${item.content}`;
+      }
+      return `--- ITEM ${index + 1} ---\n${content}`;
+  }).join('\n\n');
+
+  // 3. Create a more focused prompt
+  const prompt = `Based on the following 20 English learning items, generate a quiz with exactly 20 unique multiple-choice questions. 
+  
+  Your task is to create ONE question for EACH of the 20 items provided. Each question must test a key concept, vocabulary word, or comprehension point from its corresponding item.
+  
+  Each question object in the JSON output must have 4 options and a clearly indicated correct answer.
 
   Here is the material:
   ---
@@ -79,7 +99,11 @@ export async function generateQuiz(): Promise<GenerateQuizOutput> {
   
   try {
       const output = await queryCloudflareAsJson(prompt);
-      return output;
+      // Ensure the output conforms to the expected structure, even if the AI doesn't provide 20 questions.
+      if (output && Array.isArray(output.questions)) {
+          return { questions: output.questions };
+      }
+      return { questions: [] };
   } catch(error) {
       console.error("Failed to generate quiz, returning empty quiz", error);
       return { questions: [] };

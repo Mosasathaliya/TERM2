@@ -36,17 +36,19 @@ export function QuizScreen() {
 
     try {
       const quizData = await generateQuiz();
+      // Check if the AI returned a valid, non-empty quiz
       if (quizData && quizData.questions.length > 0) {
-        setQuestions(quizData.questions);
+        setQuestions(quizData.questions.slice(0, QUIZ_LENGTH)); // Ensure we don't exceed quiz length
         setQuizState('active');
       } else {
+        // If no questions, retry or fail gracefully
         if (retries > 0) {
           toast({
             variant: "destructive",
             title: "Quiz Generation Failed, Retrying...",
             description: `The AI is trying again. ${retries} attempts left.`,
           });
-          setTimeout(() => fetchQuiz(retries - 1), 2000); // Wait 2 sec before retrying
+          setTimeout(() => fetchQuiz(retries - 1), 2000);
         } else {
             toast({
                 variant: "destructive",
@@ -71,7 +73,7 @@ export function QuizScreen() {
                 title: "Quiz Generation Failed",
                 description: "There was a problem creating your quiz. Please try again later.",
             });
-            setQuizState('finished'); // Go to finished state to show error/retry
+            setQuizState('finished');
        }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -99,20 +101,20 @@ export function QuizScreen() {
             return acc;
         }, 0);
         
-        const passed = finalScore / QUIZ_LENGTH >= 0.7;
+        const passed = finalScore / questions.length >= 0.7;
         setFinalExamPassed(passed);
         
         if (passed) {
             toast({
                 title: "Quiz Passed!",
-                description: `You scored ${finalScore}/${QUIZ_LENGTH}. You can now generate your certificate!`,
+                description: `You scored ${finalScore}/${questions.length}. You can now generate your certificate!`,
                 className: "bg-green-100 dark:bg-green-900",
             });
         } else {
              toast({
                 variant: "destructive",
                 title: "Quiz Failed",
-                description: `You scored ${finalScore}/${QUIZ_LENGTH}. You need at least 70% to pass.`,
+                description: `You scored ${finalScore}/${questions.length}. You need at least 70% to pass.`,
             });
         }
         
