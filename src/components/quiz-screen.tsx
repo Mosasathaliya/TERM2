@@ -14,12 +14,88 @@ import { useProgressStore } from '@/hooks/use-progress-store';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { translateText } from '@/ai/flows/translate-flow';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from './ui/dialog';
+
 
 type QuizState = 'loading' | 'active' | 'finished';
 
 const QUIZ_LENGTH = 100;
 const MAX_RETRIES = 2;
 const HINT_LIMIT = 30;
+
+
+function HintDialog({ isOpen, onOpenChange, question, options }: { isOpen: boolean, onOpenChange: (open: boolean) => void, question: string, options: string[] }) {
+    const [translationHint, setTranslationHint] = useState<{ question: string; options: string[] } | null>(null);
+    const [isHintLoading, setIsHintLoading] = useState(false);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        if (isOpen) {
+            const fetchTranslation = async () => {
+                setIsHintLoading(true);
+                setTranslationHint(null);
+                try {
+                    const textsToTranslate = [question, ...options];
+                    const translationResult = await translateText({ text: textsToTranslate, targetLanguage: 'ar' });
+                    
+                    if (Array.isArray(translationResult.translation)) {
+                         setTranslationHint({
+                            question: translationResult.translation[0],
+                            options: translationResult.translation.slice(1),
+                        });
+                    } else {
+                        throw new Error("Translation did not return an array for a batch request.");
+                    }
+                } catch (error) {
+                    console.error("Hint translation error:", error);
+                    toast({
+                        variant: "destructive",
+                        title: "Hint Failed",
+                        description: "Could not get the translation at this moment.",
+                    });
+                } finally {
+                    setIsHintLoading(false);
+                }
+            };
+            fetchTranslation();
+        }
+    }, [isOpen, question, options, toast]);
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2"><Lightbulb className="h-5 w-5 text-amber-400" /> تلميح (الترجمة)</DialogTitle>
+                    <DialogDescription>
+                        هذه ترجمة للسؤال والخيارات لمساعدتك.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4" dir="rtl">
+                    {isHintLoading ? (
+                         <div className="flex items-center justify-center min-h-[150px]">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary"/>
+                         </div>
+                    ) : translationHint ? (
+                        <div className="space-y-4">
+                            <p><strong>السؤال:</strong> {translationHint.question}</p>
+                             <ul className="space-y-2">
+                                {options.map((originalOpt, index) => (
+                                  <li key={index}><strong>{originalOpt}:</strong> {translationHint.options[index]}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    ) : (
+                        <p className="text-center text-muted-foreground">تعذر تحميل التلميح.</p>
+                    )}
+                </div>
+                 <DialogClose asChild>
+                    <Button variant="outline">إغلاق</Button>
+                </DialogClose>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 
 export function QuizScreen() {
   const [quizState, setQuizState] = useState<QuizState>('loading');
@@ -31,8 +107,7 @@ export function QuizScreen() {
   const { toast } = useToast();
   
   const [hintsUsed, setHintsUsed] = useState(0);
-  const [translationHint, setTranslationHint] = useState<{ question: string; options: string[] } | null>(null);
-  const [isHintLoading, setIsHintLoading] = useState(false);
+  const [isHintDialogOpen, setIsHintDialogOpen] = useState(false);
 
 
   const fetchQuiz = useCallback(async (retries = MAX_RETRIES) => {
@@ -42,7 +117,7 @@ export function QuizScreen() {
     setUserAnswers([]);
     setSelectedOption(null);
     setHintsUsed(0);
-    setTranslationHint(null);
+    setIsHintDialogOpen(false);
 
     try {
       const quizData = await generateQuiz();
@@ -95,7 +170,6 @@ export function QuizScreen() {
       const newAnswers = [...userAnswers, selectedOption];
       setUserAnswers(newAnswers);
       setSelectedOption(null);
-      setTranslationHint(null); // Clear hint for next question
 
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
@@ -131,35 +205,9 @@ export function QuizScreen() {
   };
   
   const handleHintClick = async () => {
-    if (hintsUsed >= HINT_LIMIT || isHintLoading) return;
-    
-    setIsHintLoading(true);
-    setTranslationHint(null);
-    const currentQuestion = questions[currentQuestionIndex];
-
-    try {
-        const textsToTranslate = [currentQuestion.question, ...currentQuestion.options];
-        const translationResult = await translateText({ text: textsToTranslate, targetLanguage: 'ar' });
-        
-        if (Array.isArray(translationResult.translation)) {
-             setTranslationHint({
-                question: translationResult.translation[0],
-                options: translationResult.translation.slice(1),
-            });
-            setHintsUsed(prev => prev + 1);
-        } else {
-            throw new Error("Translation did not return an array for a batch request.");
-        }
-    } catch (error) {
-        console.error("Hint translation error:", error);
-        toast({
-            variant: "destructive",
-            title: "Hint Failed",
-            description: "Could not get the translation at this moment.",
-        });
-    } finally {
-        setIsHintLoading(false);
-    }
+    if (hintsUsed >= HINT_LIMIT) return;
+    setHintsUsed(prev => prev + 1);
+    setIsHintDialogOpen(true);
   };
 
 
@@ -229,70 +277,57 @@ export function QuizScreen() {
   }
 
   return (
-    <div className="flex flex-col h-full p-4 md:p-6">
-      <CardHeader>
-        <CardTitle>Final Exam</CardTitle>
-        <CardDescription>Question {currentQuestionIndex + 1} of {questions.length}</CardDescription>
-        <Progress value={((currentQuestionIndex + 1) / questions.length) * 100} className="w-full mt-2" />
-      </CardHeader>
-      <CardContent className="flex-grow flex flex-col justify-center">
-        <h3 className="text-xl md:text-2xl font-semibold text-center mb-8">{currentQuestion.question}</h3>
-        <RadioGroup value={selectedOption ?? ''} onValueChange={setSelectedOption} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {currentQuestion.options.map((option, index) => (
-            <div key={index}>
-              <RadioGroupItem value={option} id={`option-${index}`} className="sr-only" />
-              <Label 
-                htmlFor={`option-${index}`}
-                className={`flex items-center justify-center text-center p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                  selectedOption === option
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border hover:border-primary/50'
-                }`}
-              >
-                {option}
-              </Label>
-            </div>
-          ))}
-        </RadioGroup>
-        
-        {isHintLoading && (
-            <div className="flex items-center justify-center mt-4 text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin mr-2"/>
-                Getting hint...
-            </div>
-        )}
-
-        {translationHint && (
-          <Alert className="mt-6" dir="rtl">
-            <Lightbulb className="h-4 w-4" />
-            <AlertTitle>تلميح (الترجمة)</AlertTitle>
-            <AlertDescription className="space-y-2">
-              <p><strong>السؤال:</strong> {translationHint.question}</p>
-              <ul className="list-disc pr-5">
-                {currentQuestion.options.map((originalOpt, index) => (
-                  <li key={index}><strong>{originalOpt}:</strong> {translationHint.options[index]}</li>
-                ))}
-              </ul>
-            </AlertDescription>
-          </Alert>
-        )}
-
-      </CardContent>
-      <CardFooter className="justify-between">
-         <Button
-            variant="outline"
-            onClick={handleHintClick}
-            disabled={isHintLoading || hintsUsed >= HINT_LIMIT}
-            className="flex items-center gap-2"
-        >
-            <Lightbulb className="h-4 w-4" />
-            <span>Hint</span>
-            <span className="text-xs text-muted-foreground">({HINT_LIMIT - hintsUsed} left)</span>
-        </Button>
-        <Button onClick={handleNextQuestion} disabled={!selectedOption}>
-          {currentQuestionIndex === questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
-        </Button>
-      </CardFooter>
-    </div>
+    <>
+      <div className="flex flex-col h-full p-4 md:p-6">
+        <CardHeader>
+          <CardTitle>Final Exam</CardTitle>
+          <CardDescription>Question {currentQuestionIndex + 1} of {questions.length}</CardDescription>
+          <Progress value={((currentQuestionIndex + 1) / questions.length) * 100} className="w-full mt-2" />
+        </CardHeader>
+        <CardContent className="flex-grow flex flex-col justify-center">
+          <h3 className="text-xl md:text-2xl font-semibold text-center mb-8">{currentQuestion.question}</h3>
+          <RadioGroup value={selectedOption ?? ''} onValueChange={setSelectedOption} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {currentQuestion.options.map((option, index) => (
+              <div key={index}>
+                <RadioGroupItem value={option} id={`option-${index}`} className="sr-only" />
+                <Label 
+                  htmlFor={`option-${index}`}
+                  className={`flex items-center justify-center text-center p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                    selectedOption === option
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  {option}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        </CardContent>
+        <CardFooter className="justify-between">
+           <Button
+              variant="outline"
+              onClick={handleHintClick}
+              disabled={hintsUsed >= HINT_LIMIT}
+              className="flex items-center gap-2"
+          >
+              <Lightbulb className="h-4 w-4" />
+              <span>Hint</span>
+              <span className="text-xs text-muted-foreground">({HINT_LIMIT - hintsUsed} left)</span>
+          </Button>
+          <Button onClick={handleNextQuestion} disabled={!selectedOption}>
+            {currentQuestionIndex === questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+          </Button>
+        </CardFooter>
+      </div>
+      {isHintDialogOpen && (
+        <HintDialog
+            isOpen={isHintDialogOpen}
+            onOpenChange={setIsHintDialogOpen}
+            question={currentQuestion.question}
+            options={currentQuestion.options}
+        />
+      )}
+    </>
   );
 }
