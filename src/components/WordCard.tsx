@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -169,10 +170,23 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
       </CardHeader>
       <CardContent className="space-y-4 pt-4">
         <div className="bg-muted/30 p-3 rounded-md">
-          <h3 className="text-sm font-medium text-accent mb-1">🌍 Arabic Meaning:</h3>
-          <p className="text-xl font-semibold text-right font-[inherit]" dir="rtl">
+            <h3 className="text-sm font-medium text-accent mb-1 flex items-center gap-1">
+               🌍 Arabic Meaning:
+               <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleSpeak(word.arabic, 'ar', 'arabic-word')}
+                    aria-label="Listen to Arabic meaning"
+                    title="Listen to meaning"
+                    className="text-primary hover:text-primary/80 h-5 w-5 p-0"
+                    disabled={!!activeAudioId}
+                >
+                    <Volume2 className={`h-4 w-4 ${activeAudioId === 'arabic-word' ? 'animate-pulse' : ''}`} />
+                </Button>
+            </h3>
+            <p className="text-xl font-semibold text-right font-[inherit]" dir="rtl">
             {word.arabic}
-          </p>
+            </p>
         </div>
 
         <Separator />
@@ -220,12 +234,34 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
            <div>
              <h3 className="text-sm font-medium text-accent mb-1 flex items-center justify-end gap-1">
                📖 التعريف (AR)
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleSpeak(word.arabicDefinition, 'ar', 'arabic-definition')}
+                    aria-label="Listen to Arabic definition"
+                    title="Listen to definition"
+                    className="text-primary hover:text-primary/80 h-5 w-5 p-0"
+                    disabled={!!activeAudioId}
+                >
+                    <Volume2 className={`h-4 w-4 ${activeAudioId === 'arabic-definition' ? 'animate-pulse' : ''}`} />
+                </Button>
              </h3>
              <p className="text-base leading-relaxed font-[inherit]">{word.arabicDefinition}</p>
            </div>
            <div>
              <h3 className="text-sm font-medium text-accent mb-1 flex items-center justify-end gap-1">
                 💬 مثال (AR)
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleSpeak(word.arabicExample, 'ar', 'arabic-example')}
+                    aria-label="Listen to Arabic example"
+                    title="Listen to example"
+                    className="text-primary hover:text-primary/80 h-5 w-5 p-0"
+                    disabled={!!activeAudioId}
+                >
+                    <Volume2 className={`h-4 w-4 ${activeAudioId === 'arabic-example' ? 'animate-pulse' : ''}`} />
+                </Button>
              </h3>
              <p className="text-base italic text-foreground/80 font-[inherit]">"{word.arabicExample}"</p>
            </div>

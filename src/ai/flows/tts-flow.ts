@@ -1,13 +1,15 @@
+
 'use server';
 
 /**
  * @fileOverview A flow for converting text to speech using Cloudflare's MeloTTS model.
- * This version is updated to handle both binary and JSON responses from the API.
+ * This version is updated to handle both binary and JSON responses from the API
+ * and correctly selects the voice based on the requested language.
  */
 import { z } from 'zod';
 import { runAi } from '@/lib/cloudflare-ai';
 
-// Define the schema for the flow's input, matching the API which expects 'prompt'.
+// Define the schema for the flow's input.
 const TextToSpeechInputSchema = z.object({
   prompt: z.string().describe('The text to convert to speech.'),
   lang: z.enum(['en', 'ar']).default('en').describe("The speech language ('en' or 'ar')."),
@@ -27,14 +29,19 @@ export async function textToSpeech(input: TextToSpeechInput): Promise<TextToSpee
     return null;
   }
 
-  console.log(`TTS Flow: Attempting to generate audio for prompt: "${prompt}" in language: "${lang}"`);
+  // Select the appropriate voice based on the language.
+  // 'en-US-Jenny-Neural' is a standard English voice.
+  // 'ar-AE-Fatima-Neural' is an Arabic voice.
+  const voice = lang === 'ar' ? 'ar-AE-Fatima-Neural' : 'en-US-Jenny-Neural';
+
+  console.log(`TTS Flow: Attempting to generate audio for prompt: "${prompt}" with voice: "${voice}"`);
 
   try {
     const response = await runAi({
       model: '@cf/myshell-ai/melotts',
       inputs: {
         prompt: prompt,
-        lang: lang,
+        voice: voice, // Use the 'voice' parameter instead of 'lang'
       },
     });
 
