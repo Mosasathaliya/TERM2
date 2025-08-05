@@ -26,18 +26,28 @@ export async function translateText({ text, sourceLanguage = 'en', targetLanguag
         text: text,
         source_lang: sourceLanguage,
         target_lang: targetLanguage,
-        ...(isBatch && { batch_size: text.length }) // This might not be an official param, but it's good practice to consider if available.
     },
   });
 
   const jsonResponse = await response.json();
 
-  if (isBatch) {
-    // Assuming the API returns an array of objects for batch requests
-    const translations = jsonResponse.result.map((item: any) => item.translated_text.trim());
-    return { translation: translations };
-  } else {
-    const translation = jsonResponse.result.translated_text;
-    return { translation: translation.trim() };
+  if (jsonResponse.result && jsonResponse.result.translated_text) {
+    if (isBatch) {
+      const translations = jsonResponse.result.translated_text.map((item: string) => item.trim());
+      return { translation: translations };
+    } else {
+      const translation = jsonResponse.result.translated_text;
+      return { translation: translation.trim() };
+    }
   }
+
+  // Handle cases where the API response structure is different for batch requests
+  if (isBatch && jsonResponse.result && Array.isArray(jsonResponse.result)) {
+      const translations = jsonResponse.result.map((item: any) => item.translated_text.trim());
+      return { translation: translations };
+  }
+
+  // Fallback for unexpected response structure
+  console.error("Unexpected translation API response structure:", jsonResponse);
+  throw new Error("Failed to parse translation from AI response.");
 }
