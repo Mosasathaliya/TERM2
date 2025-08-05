@@ -33,7 +33,7 @@ async function queryCloudflareAsJson(prompt: string): Promise<any> {
     const messages = [
         {
             role: "system",
-            content: `You are an expert quiz creator. Your task is to generate a JSON object representing a quiz based on the provided learning material. The JSON object must have a key "questions" which is an array of exactly 20 unique multiple-choice question objects. Each question object must have keys "question", "options" (an array of 4 strings), and "correct_answer". Do not output any text other than the JSON object.`
+            content: `You are an expert quiz creator. Your task is to generate a JSON object representing a quiz based on the provided learning material. The JSON object MUST have a key "questions" which is an array of exactly 20 unique multiple-choice question objects. Each question object must have keys "question", "options" (an array of 4 strings), and "correct_answer". Do not output any text other than the JSON object.`
         },
         {
             role: "user",

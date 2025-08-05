@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { generateQuiz } from '@/ai/flows/generate-quiz-flow';
 import type { QuizQuestion } from '@/types/quiz';
 import { Button } from './ui/button';
@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 type QuizState = 'loading' | 'active' | 'finished';
 
 const QUIZ_LENGTH = 20;
+const MAX_RETRIES = 2;
 
 export function QuizScreen() {
   const [quizState, setQuizState] = useState<QuizState>('loading');
@@ -26,39 +27,51 @@ export function QuizScreen() {
   const { setFinalExamPassed } = useProgressStore();
   const { toast } = useToast();
 
-  const fetchQuiz = async () => {
+  const fetchQuiz = useCallback(async (retries = MAX_RETRIES) => {
     setQuizState('loading');
     setQuestions([]);
     setCurrentQuestionIndex(0);
     setUserAnswers([]);
     setSelectedOption(null);
+
     try {
       const quizData = await generateQuiz();
       if (quizData && quizData.questions.length > 0) {
         setQuestions(quizData.questions);
         setQuizState('active');
       } else {
-        toast({
-            variant: "destructive",
-            title: "Quiz Generation Failed",
-            description: "The AI could not create questions. Please try again.",
-        });
-        setQuizState('finished'); // Go to finished state to show error/retry
+        if (retries > 0) {
+          console.warn(`Quiz generation failed, retrying... (${retries} retries left)`);
+          setTimeout(() => fetchQuiz(retries - 1), 1000); // Wait 1 sec before retrying
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Quiz Generation Failed",
+                description: "The AI could not create questions after multiple attempts. Please try again later.",
+            });
+            setQuizState('finished'); // Go to finished state to show error/retry
+        }
       }
     } catch (error) {
-      console.error('Failed to generate quiz:', error);
-      toast({
-          variant: "destructive",
-          title: "Quiz Generation Failed",
-          description: "There was a problem creating your quiz. Please try again.",
-      });
-      setQuizState('finished'); // Go to finished state to show error/retry
+       if (retries > 0) {
+          console.warn(`Quiz generation failed with error, retrying... (${retries} retries left)`, error);
+          setTimeout(() => fetchQuiz(retries - 1), 1000);
+       } else {
+            console.error('Failed to generate quiz after multiple retries:', error);
+            toast({
+                variant: "destructive",
+                title: "Quiz Generation Failed",
+                description: "There was a problem creating your quiz. Please try again later.",
+            });
+            setQuizState('finished'); // Go to finished state to show error/retry
+       }
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetchQuiz();
-  }, []);
+  }, [fetchQuiz]);
 
   const handleNextQuestion = () => {
     if (selectedOption) {
@@ -128,7 +141,6 @@ export function QuizScreen() {
   }
 
   if (quizState === 'finished') {
-    const result = getResultMessage();
     // Check if there were any questions to score, otherwise show a generation failed message
     if (questions.length === 0) {
         return (
@@ -138,13 +150,14 @@ export function QuizScreen() {
                 <p className="text-muted-foreground mt-2">
                     We couldn't create the quiz at this moment. Please try again.
                 </p>
-                <Button onClick={fetchQuiz} className="mt-8">
+                <Button onClick={() => fetchQuiz()} className="mt-8">
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Try Again
                 </Button>
             </div>
         );
     }
+    const result = getResultMessage();
     return (
         <div className="flex flex-col items-center justify-center h-full text-center p-4">
             <div className={result.color}>{result.icon}</div>
@@ -153,7 +166,7 @@ export function QuizScreen() {
                 Your Score: {score} / {questions.length}
             </p>
             <p className="text-muted-foreground">({((score / questions.length) * 100).toFixed(0)}%)</p>
-            <Button onClick={fetchQuiz} className="mt-8">
+            <Button onClick={() => fetchQuiz()} className="mt-8">
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Take Another Quiz
             </Button>
