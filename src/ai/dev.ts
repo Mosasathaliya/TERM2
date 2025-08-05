@@ -18,6 +18,7 @@ import '@/ai/flows/generate-quiz-flow.ts';
 import '@/ai/flows/generate-vocabulary-quiz.ts';
 import '@/ai/flows/story-quiz-flow.ts';
 import '@/ai/flows/image-generation-flow.ts';
+import '@/ai/flows/reranker-flow.ts';
 
 
 // Voice Chat Agent flows
