@@ -1,4 +1,3 @@
-// src/lib/cloudflare-ai.ts
 'use server';
 
 const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
@@ -37,13 +36,7 @@ export async function runAi({ model, inputs, stream = false }: RunAiOptions) {
     'Content-Type': 'application/json',
   };
 
-  // The translation model expects a different payload structure.
-  // Other models wrap inputs in an "inputs" object, but the translation model does not.
-  const body = model === '@cf/meta/m2m100-1.2b' 
-    ? { ...inputs, stream }
-    : stream 
-      ? { ...inputs, stream: true } 
-      : inputs;
+  const body = stream ? { ...inputs, stream: true } : inputs;
 
 
   const response = await fetch(url, {
