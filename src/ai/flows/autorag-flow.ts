@@ -39,29 +39,40 @@ export async function searchWithAutoRAG(input: AutoRAGInput): Promise<AutoRAGOut
   if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN || !CLOUDFLARE_AUTORAG_ID) {
     throw new Error("Cloudflare AutoRAG credentials are not set in the environment variables.");
   }
-
+  
   const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/autorag/rags/${CLOUDFLARE_AUTORAG_ID}/ai-search`;
   
+  const body = {
+      query: input.query,
+  };
+
   try {
     const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query: input.query }),
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
     });
 
-    const jsonResponse = await response.json();
-    
-    if (!response.ok || !jsonResponse.success) {
-      const errorDetails = jsonResponse.errors ? JSON.stringify(jsonResponse.errors) : await response.text();
-      console.error("Cloudflare AutoRAG API error:", errorDetails);
-      throw new Error(`Cloudflare AutoRAG API request failed: ${response.statusText}`);
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Cloudflare AutoRAG API error:`, errorText);
+        throw new Error(`Cloudflare AutoRAG API request failed: ${response.statusText}`);
     }
+    
+    const jsonResponse = await response.json();
 
-    // The response contains a 'result' key with the search results and answer.
-    return AutoRAGOutputSchema.parse(jsonResponse.result);
+    if (jsonResponse.success && jsonResponse.result) {
+        return {
+            results: jsonResponse.result.search.results,
+            answer: jsonResponse.result.answer,
+        };
+    } else {
+        const errorDetails = JSON.stringify(jsonResponse.errors, null, 2);
+        throw new Error(`AutoRAG search was not successful. Errors: ${errorDetails}`);
+    }
 
   } catch (error) {
     console.error("Error in AutoRAG flow:", error);
