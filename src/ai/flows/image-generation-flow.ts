@@ -4,7 +4,6 @@
  */
 import { z } from 'zod';
 import { runAi } from '@/lib/cloudflare-ai';
-import { ensureEnv } from '@/lib/utils';
 
 const ImageInputSchema = z.object({
   prompt: z.string().describe('The text description of the image to generate.'),
@@ -21,7 +20,6 @@ const ImageOutputSchema = z.object({
 export type ImageOutput = z.infer<typeof ImageOutputSchema>;
 
 export async function generateImage(input: ImageInput): Promise<ImageOutput> {
-  ensureEnv('CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_ACCOUNT_ID');
   try {
     const response = await runAi({
       model: '@cf/stabilityai/stable-diffusion-xl-base-1.0',

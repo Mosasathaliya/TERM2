@@ -35,7 +35,12 @@ async function embed(texts: string[]): Promise<number[][]> {
 
 export async function vectorizeUpsert(records: { id: string; text: string; metadata?: Record<string, any> }[]) {
   ensureEnv('CLOUDFLARE_API_TOKEN');
-  const { accountId, apiToken, index } = getAccount();
+  let { accountId, apiToken, index } = getAccount();
+  if (!accountId) {
+    const res = await fetch('https://api.cloudflare.com/client/v4/accounts', { headers: { Authorization: `Bearer ${apiToken}` }});
+    const json = await res.json();
+    accountId = json?.result?.[0]?.id || '';
+  }
   if (!accountId || !apiToken) throw new Error('Missing Cloudflare account or token');
 
   const vectors = await embed(records.map((r) => r.text));
@@ -60,7 +65,12 @@ export async function vectorizeUpsert(records: { id: string; text: string; metad
 
 export async function vectorizeQuery(query: string, topK = 10) {
   ensureEnv('CLOUDFLARE_API_TOKEN');
-  const { accountId, apiToken, index } = getAccount();
+  let { accountId, apiToken, index } = getAccount();
+  if (!accountId) {
+    const res = await fetch('https://api.cloudflare.com/client/v4/accounts', { headers: { Authorization: `Bearer ${apiToken}` }});
+    const json = await res.json();
+    accountId = json?.result?.[0]?.id || '';
+  }
   if (!accountId || !apiToken) throw new Error('Missing Cloudflare account or token');
 
   const [qvec] = await embed([query]);

@@ -6,7 +6,6 @@
  */
 import { z } from 'zod';
 
-const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID || process.env.CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOKEN;
 
 export type TranslateInput = z.infer<typeof TranslateInputSchema>;
@@ -23,7 +22,9 @@ export type TranslateOutput = {
 export async function translateText({ text, sourceLanguage = 'en', targetLanguage }: TranslateInput): Promise<TranslateOutput> {
   
   const isBatch = Array.isArray(text);
-  const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/meta/m2m100-1.2b`;
+  // Resolve account dynamically when not provided
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID || process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID || (await (async()=>{ const r=await fetch('https://api.cloudflare.com/client/v4/accounts',{ headers:{ Authorization:`Bearer ${CLOUDFLARE_API_TOKEN}`}}); const j= await r.json(); return j?.result?.[0]?.id || ''; })());
+  const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/meta/m2m100-1.2b`;
 
   let body;
   if (isBatch) {

@@ -12,7 +12,7 @@ import { runAi } from '@/lib/cloudflare-ai';
 
 // Cloudflare Speech-to-Text (Whisper)
 async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/openai/whisper`;
+    const url = `https://api.cloudflare.com/client/v4/accounts/${(await (async()=>{try{const r=await fetch('https://api.cloudflare.com/client/v4/accounts',{headers:{Authorization:`Bearer ${process.env.CLOUDFLARE_API_TOKEN}`}});if(r.ok){const j=await r.json();return j?.result?.[0]?.id||''} }catch(e){} return ''})())}/ai/run/@cf/openai/whisper`;
 
     const response = await fetch(url, {
         method: 'POST',

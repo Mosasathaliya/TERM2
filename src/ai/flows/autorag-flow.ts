@@ -5,7 +5,6 @@
  */
 import { z } from 'zod';
 
-const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const CLOUDFLARE_AUTORAG_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_AUTORAG_ID;
 
@@ -36,11 +35,12 @@ export type AutoRAGOutput = z.infer<typeof AutoRAGOutputSchema>;
  * @returns The search results from AutoRAG.
  */
 export async function searchWithAutoRAG(input: AutoRAGInput): Promise<AutoRAGOutput> {
-  if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN || !CLOUDFLARE_AUTORAG_ID) {
+  if (!CLOUDFLARE_API_TOKEN || !CLOUDFLARE_AUTORAG_ID) {
     throw new Error("Cloudflare AutoRAG credentials are not set in the environment variables.");
   }
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID || process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID || (await (async()=>{ const r=await fetch('https://api.cloudflare.com/client/v4/accounts',{ headers:{ Authorization:`Bearer ${CLOUDFLARE_API_TOKEN}`}}); const j= await r.json(); return j?.result?.[0]?.id || ''; })());
   
-  const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/autorag/rags/${CLOUDFLARE_AUTORAG_ID}/ai-search`;
+  const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/autorag/rags/${CLOUDFLARE_AUTORAG_ID}/ai-search`;
   
   const body = {
       query: input.query,
