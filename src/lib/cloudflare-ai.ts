@@ -7,13 +7,7 @@ const getEnv = (key: string): string => {
   return value;
 };
 
-export type AiModel =
-  | '@cf/meta/llama-3-8b-instruct'
-  | '@cf/meta/m2m100-1.2b'
-  | '@cf/baai/bge-reranker-base'
-  | '@cf/stabilityai/stable-diffusion-xl-base-1.0'
-  | '@cf/myshell-ai/melotts'
-  | '@cf/openai/whisper';
+export type AiModel = string;
 
 interface RunAiOptions {
   model: AiModel;
@@ -26,7 +20,7 @@ export async function runAi({ model, inputs, stream = false }: RunAiOptions) {
   const CLOUDFLARE_AI_GATEWAY_URL = (process as any)?.env?.CLOUDFLARE_AI_GATEWAY_URL;
 
   const isImageOrAudio = model.includes('stable-diffusion') || model.includes('melotts') || model.includes('whisper');
-  const isTextGeneration = model.includes('llama');
+  const isTextGeneration = model.includes('llama') || model.includes('mixtral') || model.includes('qwen') || model.includes('deepseek');
 
   if (isImageOrAudio) {
     const CLOUDFLARE_ACCOUNT_ID = getEnv('CLOUDFLARE_ACCOUNT_ID');
