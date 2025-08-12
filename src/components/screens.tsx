@@ -61,6 +61,7 @@ import {
 import { learningItems } from '@/lib/lessons';
 import { getExtraRag, putExtraRag } from '@/lib/rag';
 import { generateExtraLearning } from '@/ai/flows/generate-extra-learning';
+import { summarizeYouTubeInArabic } from '@/ai/flows/youtube-transcript-summary';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -306,62 +307,95 @@ const ExplanationSection = ({ title, content, onPlay, isLoading }: { title: stri
 
 
 function WhatIfDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [isExplanationOpen, setIsExplanationOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const videoData = whatIfLinks.split('\n').map(getYouTubeInfo).filter(item => item.embedUrl);
+  const currentVideo = videoData[currentIndex];
+  const [isExplanationOpen, setIsExplanationOpen] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const { toast } = useToast();
 
-    const videoData = whatIfLinks.split('\n').map(getYouTubeInfo).filter(item => item.embedUrl);
-    const currentVideo = videoData[currentIndex];
+  const goToNext = () => setCurrentIndex(prev => (prev + 1) % videoData.length);
+  const goToPrevious = () => setCurrentIndex(prev => (prev - 1 + videoData.length) % videoData.length);
 
-    const goToNext = () => setCurrentIndex(prev => (prev + 1) % videoData.length);
-    const goToPrevious = () => setCurrentIndex(prev => (prev - 1 + videoData.length) % videoData.length);
-    
-    return (
-      <>
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl h-auto flex flex-col p-4 sm:p-6 gap-4">
-                <DialogHeader>
-                    <DialogTitle>ماذا لو...؟</DialogTitle>
-                    <DialogDescription>استكشف سيناريوهات افتراضية رائعة. فيديو {currentIndex + 1} من {videoData.length}.</DialogDescription>
-                </DialogHeader>
-                <div className="flex-grow aspect-video bg-muted rounded-lg overflow-hidden shadow-inner">
-                    {currentVideo?.embedUrl && (
-                        <iframe
-                            key={currentVideo.embedUrl} // Add key to force re-render
-                            width="100%"
-                            height="100%"
-                            src={`${currentVideo.embedUrl}?autoplay=1`}
-                            title="What If YouTube Video Player"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowFullScreen
-                        ></iframe>
-                    )}
-                </div>
-                <div className="flex-col sm:flex-row gap-2 justify-between w-full">
-                    <Button onClick={goToPrevious} disabled={videoData.length <= 1}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
-                        السابق
-                    </Button>
-                     <Button variant="secondary" onClick={() => setIsExplanationOpen(true)}>
-                        <LightbulbIcon className="mr-2 h-4 w-4" />
-                        اشرح هذا الفيديو
-                    </Button>
-                    <Button onClick={goToNext} disabled={videoData.length <= 1}>
-                        التالي
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                </div>
-            </DialogContent>
-        </Dialog>
-        {currentVideo && (
-           <ExplanationDialog 
-              videoTitle={currentVideo.title || `Video ${currentIndex + 1}`}
-              isOpen={isExplanationOpen} 
-              onOpenChange={setIsExplanationOpen}
-            />
-        )}
-      </>
-    );
+  const summarizeOnce = async () => {
+    if (!currentVideo?.videoId) return;
+    const ragId = `yt:${currentVideo.videoId}`;
+    setIsSummarizing(true);
+    setSummary(null);
+    try {
+      const cached = await getExtraRag(ragId);
+      if (cached) {
+        setSummary(cached.explanation);
+        return;
+      }
+      const result = await summarizeYouTubeInArabic({ videoId: currentVideo.videoId, title: currentVideo.title || '' });
+      setSummary(result.arabicSummary);
+      await putExtraRag({ id: ragId, explanation: result.arabicSummary, imageUrls: [], updated_at: new Date().toISOString() });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'خطأ', description: 'تعذر توليد الملخص.' });
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
+  return (
+    <>
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl h-[80vh] flex flex-col">
+          <DialogHeader className="p-4 border-b shrink-0">
+            <DialogTitle>ماذا لو؟ (What If)</DialogTitle>
+            <DialogDescription>فيديو {currentIndex + 1} من {videoData.length}.</DialogDescription>
+          </DialogHeader>
+          <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden shadow-inner">
+            {currentVideo?.embedUrl && (
+              <iframe
+                key={currentVideo.embedUrl}
+                width="100%"
+                height="100%"
+                src={`${currentVideo.embedUrl}?autoplay=1`}
+                title="What If YouTube Video Player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              ></iframe>
+            )}
+          </div>
+          <div className="flex-col sm:flex-row gap-2 justify-between w-full">
+            <Button onClick={goToPrevious} disabled={videoData.length <= 1}>
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              السابق
+            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" onClick={() => setIsExplanationOpen(true)}>
+                <LightbulbIcon className="mr-2 h-4 w-4" />
+                اشرح هذا الفيديو (قديمة)
+              </Button>
+              <Button onClick={summarizeOnce} disabled={isSummarizing || !currentVideo?.videoId}>
+                {isSummarizing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> جاري التلخيص...</> : 'تلخيص عربي (توليد مرة واحدة)'}
+              </Button>
+            </div>
+            <Button onClick={goToNext} disabled={videoData.length <= 1}>
+              التالي
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+          {summary && (
+            <div className="mt-4 p-3 rounded-md border bg-muted text-foreground whitespace-pre-wrap leading-7">
+              {summary}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      {currentVideo && (
+        <ExplanationDialog 
+          videoTitle={currentVideo.title || `Video ${currentIndex + 1}`}
+          isOpen={isExplanationOpen} 
+          onOpenChange={setIsExplanationOpen}
+        />
+      )}
+    </>
+  );
 }
 
 function MotivationDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
