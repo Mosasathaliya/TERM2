@@ -1,0 +1,2 @@
+# Note: Firebase App Hosting config removed in favor of Cloudflare Pages
+# Deployment handled via Wrangler (see package.json scripts)

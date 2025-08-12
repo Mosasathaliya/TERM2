@@ -1,0 +1,36 @@
+
+import type {NextConfig} from 'next';
+
+const nextConfig: NextConfig = {
+  /* config options here */
+  // This is required to allow the Next.js dev server to accept requests from the Studio preview.
+  devIndicators: {
+    allowedDevOrigins: ["*.cloudworkstations.dev"],
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  images: {
+    // keep optimized images; build will run in CF Pages CI
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.youtube.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
+  // do not use static export; we'll use Pages Functions via next-on-pages
+};
+
+export default nextConfig;

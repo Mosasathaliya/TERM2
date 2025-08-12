@@ -1,0 +1,32 @@
+name = "term2"
+compatibility_date = "2024-06-20"
+
+[vars]
+# Bindings available to both Pages Functions and Workers
+CLOUDFLARE_AI_GATEWAY_URL = "https://api.cloudflare.com/client/v4/ai/gateway" # if using gateway proxy
+
+[observability]
+enabled = true
+
+[env.production]
+route = "*"
+
+[kv_namespaces]
+# [[kv_namespaces]]
+# binding = "TERM2_KV"
+# id = "<KV_NAMESPACE_ID>"
+
+[[d1_databases]]
+# binding = "DB"
+# database_name = "term2"
+# database_id = "<D1_DATABASE_ID>"
+
+[[vectorize]]
+# binding = "VECTORIZE"
+# index_name = "term2"
+
+[ai]
+# No-op section placeholder, using custom runner in src/lib/cloudflare-ai.ts
+
+[placement]
+mode = "smart"
