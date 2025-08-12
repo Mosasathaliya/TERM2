@@ -1303,7 +1303,7 @@ export function BookScreen() {
 
     const allItemTitles = learningItems.map(item => item.title);
     const highestCompletedIndex = highestItemCompleted ? allItemTitles.indexOf(highestItemCompleted) : -1;
-    const allLessonsAndStoriesCompleted = true; // UNLOCK ALL FOR TESTING
+    const allLessonsAndStoriesCompleted = highestCompletedIndex >= allItemTitles.length - 1;
 
     const handleOpenQuiz = () => {
         setIsQuizOpen(true);
@@ -1316,75 +1316,75 @@ export function BookScreen() {
             <ScrollArea className="h-[calc(100vh-220px)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
                     {learningItems.map((item, i) => {
-                         const isLocked = false; // UNLOCK ALL FOR TESTING
+                        const isLocked = i > highestCompletedIndex + 1; // can open current next item only
 
                         return (
-                        <Card 
+                          <Card 
                             key={i} 
                             className={cn(
-                                "transform transition-all flex flex-col",
-                                isLocked 
+                              "transform transition-all flex flex-col",
+                              isLocked 
                                 ? "bg-muted/30 border-dashed cursor-not-allowed" 
                                 : "hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm cursor-pointer"
                             )}
                             onClick={() => !isLocked && setSelectedItem(item)}
-                        >
+                          >
                             <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
-                                <div className="flex items-center gap-2">
-                                     {item.type === 'lesson' ? (
-                                        <Book className="h-6 w-6 text-primary" />
-                                    ) : (
-                                        <BookText className="h-6 w-6 text-accent" />
-                                    )}
-                                    <CardTitle as="h3" className={cn("text-lg", isLocked ? "text-muted-foreground" : "text-primary")}>{item.title}</CardTitle>
-                                </div>
-                                {isLocked && <Lock className="h-5 w-5 text-muted-foreground" />}
+                              <div className="flex items-center gap-2">
+                                {item.type === 'lesson' ? (
+                                  <Book className="h-6 w-6 text-primary" />
+                                ) : (
+                                  <BookText className="h-6 w-6 text-accent" />
+                                )}
+                                <CardTitle as="h3" className={cn("text-lg", isLocked ? "text-muted-foreground" : "text-primary")}>{item.title}</CardTitle>
+                              </div>
+                              {isLocked && <Lock className="h-5 w-5 text-muted-foreground" />}
                             </CardHeader>
-                        </Card>
-                    )})}
-                     <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div
-                                    onClick={allLessonsAndStoriesCompleted ? handleOpenQuiz : undefined}
-                                >
-                                    <Card
-                                        className={cn(
-                                            "transform transition-all flex flex-col h-full",
-                                            allLessonsAndStoriesCompleted
-                                                ? "hover:scale-[1.03] hover:shadow-lg bg-accent/20 backdrop-blur-sm cursor-pointer border-accent"
-                                                : "bg-muted/30 border-dashed cursor-not-allowed relative overflow-hidden"
-                                        )}
-                                    >
-                                        {!allLessonsAndStoriesCompleted && (
-                                            <>
-                                                <div className="absolute inset-0 bg-black/20 z-10"></div>
-                                                <Lock className="absolute top-4 right-4 h-5 w-5 text-white/50 z-20" />
-                                            </>
-                                        )}
-                                        <CardHeader>
-                                            <CardTitle as="h3" className="text-lg text-accent text-center flex items-center justify-center gap-2">
-                                                <FileQuestion className="h-6 w-6" />
-                                                الاختبار النهائي
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <CardDescription className="text-center text-muted-foreground">
-                                                {allLessonsAndStoriesCompleted 
-                                                ? "Test your knowledge with questions from the library."
-                                                : `أكمل ${learningItems.length - (highestCompletedIndex + 1)} عنصرًا إضافيًا لفتح الاختبار النهائي.`
-                                                }
-                                            </CardDescription>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            </TooltipTrigger>
-                            {!allLessonsAndStoriesCompleted && (
-                                <TooltipContent>
-                                    <p>أكمل جميع الدروس والقصص لفتح الاختبار النهائي.</p>
-                                </TooltipContent>
-                            )}
-                        </Tooltip>
+                          </Card>
+                        )})}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            onClick={allLessonsAndStoriesCompleted ? handleOpenQuiz : undefined}
+                          >
+                            <Card
+                              className={cn(
+                                "transform transition-all flex flex-col h-full",
+                                allLessonsAndStoriesCompleted
+                                  ? "hover:scale-[1.03] hover:shadow-lg bg-accent/20 backdrop-blur-sm cursor-pointer border-accent"
+                                  : "bg-muted/30 border-dashed cursor-not-allowed relative overflow-hidden"
+                              )}
+                            >
+                              {!allLessonsAndStoriesCompleted && (
+                                <>
+                                  <div className="absolute inset-0 bg-black/20 z-10"></div>
+                                  <Lock className="absolute top-4 right-4 h-5 w-5 text-white/50 z-20" />
+                                </>
+                              )}
+                              <CardHeader>
+                                <CardTitle as="h3" className="text-lg text-accent text-center flex items-center justify-center gap-2">
+                                  <FileQuestion className="h-6 w-6" />
+                                  الاختبار النهائي
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <CardDescription className="text-center text-muted-foreground">
+                                  {allLessonsAndStoriesCompleted 
+                                    ? "Test your knowledge with questions from the library."
+                                    : `أكمل ${learningItems.length - (highestCompletedIndex + 1)} عنصرًا إضافيًا لفتح الاختبار النهائي.`
+                                  }
+                                </CardDescription>
+                              </CardContent>
+                            </Card>
+                          </div>
+                        </TooltipTrigger>
+                        {!allLessonsAndStoriesCompleted && (
+                          <TooltipContent>
+                            <p>أكمل جميع الدروس والقصص لفتح الاختبار النهائي.</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
                     </TooltipProvider>
                 </div>
             </ScrollArea>

@@ -32,6 +32,12 @@ export interface StoredAiLessonArabicRag {
   updated_at: string;
 }
 
+export interface StoredItemQuizRag {
+  id: string; // item id (use lesson title or story title)
+  quiz: { question: string; options: string[]; answer: string }[]; // exactly 5 items
+  updated_at: string;
+}
+
 // In-memory fallback for local dev without KV binding
 const memoryStore = new Map<string, any>();
 
@@ -120,6 +126,27 @@ export async function getAiLessonArabicRag(id: string): Promise<StoredAiLessonAr
 export async function putAiLessonArabicRag(data: StoredAiLessonArabicRag): Promise<void> {
   const kv = getKv();
   const key = `ail:ar:${data.id}`;
+  const value = JSON.stringify(data);
+  if (kv) {
+    await kv.put(key, value, { expirationTtl: 60 * 60 * 24 * 365 });
+    return;
+  }
+  memoryStore.set(key, data);
+}
+
+export async function getItemQuizRag(id: string): Promise<StoredItemQuizRag | null> {
+  const kv = getKv();
+  const key = `quiz:${id}`;
+  if (kv) {
+    const json = await kv.get(key);
+    return json ? (JSON.parse(json) as StoredItemQuizRag) : null;
+  }
+  return memoryStore.get(key) ?? null;
+}
+
+export async function putItemQuizRag(data: StoredItemQuizRag): Promise<void> {
+  const kv = getKv();
+  const key = `quiz:${data.id}`;
   const value = JSON.stringify(data);
   if (kv) {
     await kv.put(key, value, { expirationTtl: 60 * 60 * 24 * 365 });
