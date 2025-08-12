@@ -1,12 +1,9 @@
 
-import type {NextConfig} from 'next';
+import { withCloudflarePages } from '@cloudflare/next-on-pages/with-pages-init';
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  // This is required to allow the Next.js dev server to accept requests from the Studio preview.
-  devIndicators: {
-    allowedDevOrigins: ["*.cloudworkstations.dev"],
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -33,4 +30,4 @@ const nextConfig: NextConfig = {
   // do not use static export; we'll use Pages Functions via next-on-pages
 };
 
-export default nextConfig;
+export default withCloudflarePages(nextConfig);
