@@ -320,6 +320,11 @@ function WhatIfDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
   const [summary, setSummary] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const { toast } = useToast();
+  const tasks = useUserTasks();
+
+  useEffect(() => {
+    if (currentVideo?.videoId) tasks.markVideoSeen(currentVideo.videoId);
+  }, [currentIndex]);
 
   const goToNext = () => setCurrentIndex(prev => (prev + 1) % videoData.length);
   const goToPrevious = () => setCurrentIndex(prev => (prev - 1 + videoData.length) % videoData.length);
@@ -408,6 +413,13 @@ function MotivationDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
     const [currentIndex, setCurrentIndex] = useState(0);
     const videoData = motivationLinks.split('\n').map(getYouTubeInfo).filter(item => item.embedUrl);
     const currentVideo = videoData[currentIndex];
+    const { toast } = useToast();
+    const tasks = useUserTasks();
+
+    useEffect(() => {
+        const id = currentVideo?.videoId;
+        if (id) tasks.markShortSeen(id);
+    }, [currentIndex]);
 
     const goToNext = () => setCurrentIndex(prev => (prev + 1) % videoData.length);
     const goToPrevious = () => setCurrentIndex(prev => (prev - 1 + videoData.length) % videoData.length);
@@ -1483,124 +1495,97 @@ export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => v
 
 export function ProgressScreen() {
     const { completedItemsCount, finalExamPassed } = useProgressStore();
+    const tasks = useUserTasks();
     const { stories } = useStoryStore();
     const [isCertificateOpen, setIsCertificateOpen] = useState(false);
-    
+
+    // Task requirements
+    const REQUIRED_LINGOALEAP = 50;
+    const REQUIRED_ADVENTURE = 10;
+    const REQUIRED_STORIES = 3;
+    const REQUIRED_AHMED_TENSES = 20; // per TENSES_LIST
+    const REQUIRED_SARA_TOPICS = 25; // per SARA_ADVANCED_TOPICS
+
+    // Videos data counts
+    const whatIfData = whatIfLinks.split('\n').map(getYouTubeInfo).filter(v => v.videoId);
+    const shortsData = motivationLinks.split('\n').map(getYouTubeInfo).filter(v => v.videoId);
+
+    // Completions
+    const lingoleapDone = tasks.lingoleapGenCount >= REQUIRED_LINGOALEAP;
+    const adventureDone = tasks.textAdventureGenCount >= REQUIRED_ADVENTURE;
+    const storiesDone = tasks.storyGenCount >= REQUIRED_STORIES;
+    const ahmedDone = tasks.ahmedTensesUsed.length >= REQUIRED_AHMED_TENSES;
+    const saraDone = tasks.saraTopicsUsed.length >= REQUIRED_SARA_TOPICS;
+    const videosDone = tasks.videosSeen.length >= whatIfData.length && whatIfData.length > 0;
+    const shortsDone = tasks.shortsSeen.length >= shortsData.length && shortsData.length > 0;
+    const chatterbotDone = tasks.chatterbotMsSpoken >= 30 * 60 * 1000;
+
+    const allTasksComplete = lingoleapDone && adventureDone && storiesDone && ahmedDone && saraDone && videosDone && shortsDone && chatterbotDone;
+
     const chartData = [
-      { day: "الأحد", lessons: completedItemsCount > 0 ? 2 : 0 },
-      { day: "الاثنين", lessons: completedItemsCount > 2 ? 3 : 0 },
-      { day: "الثلاثاء", lessons: completedItemsCount > 5 ? 1 : 0 },
-      { day: "الأربعاء", lessons: completedItemsCount > 6 ? 4 : 0 },
-      { day: "الخميس", lessons: completedItemsCount > 10 ? 3 : 0 },
-      { day: "الجمعة", lessons: completedItemsCount > 13 ? 1 : 0 },
-      { day: "السبت", lessons: completedItemsCount > 14 ? 5 : 0 },
+      { label: 'LinguaLeap', value: Math.min(tasks.lingoleapGenCount, REQUIRED_LINGOALEAP), max: REQUIRED_LINGOALEAP },
+      { label: 'Text Adventure', value: Math.min(tasks.textAdventureGenCount, REQUIRED_ADVENTURE), max: REQUIRED_ADVENTURE },
+      { label: 'Stories', value: Math.min(tasks.storyGenCount, REQUIRED_STORIES), max: REQUIRED_STORIES },
+      { label: 'Ahmed Tenses', value: Math.min(tasks.ahmedTensesUsed.length, REQUIRED_AHMED_TENSES), max: REQUIRED_AHMED_TENSES },
+      { label: 'Sara Topics', value: Math.min(tasks.saraTopicsUsed.length, REQUIRED_SARA_TOPICS), max: REQUIRED_SARA_TOPICS },
+      { label: 'What If Videos', value: Math.min(tasks.videosSeen.length, whatIfData.length), max: Math.max(whatIfData.length, 1) },
+      { label: 'Motivation Shorts', value: Math.min(tasks.shortsSeen.length, shortsData.length), max: Math.max(shortsData.length, 1) },
+      { label: 'Chatterbot (min)', value: Math.floor(tasks.chatterbotMsSpoken / 60000), max: 30 },
     ];
-    
-    const chartConfig: ChartConfig = {
-      lessons: {
-        label: "الدروس",
-        color: "hsl(var(--primary))",
-      },
-    };
 
-    const storiesCompletedCount = stories.length;
-    const storiesGoal = 3;
-
-  return (
-    <>
-    <section className="animate-fadeIn space-y-6">
-      <Card className="bg-card/70 backdrop-blur-sm">
-        <CardContent className="pt-6 flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage data-ai-hint="profile person" src="https://placehold.co/128x128.png" alt="User Avatar" />
-            <AvatarFallback>ط</AvatarFallback>
-          </Avatar>
-          <div className="flex-grow">
-            <h2 className="text-xl font-bold">طالب مجتهد</h2>
-            <p className="text-muted-foreground">متعلم متحمس</p>
-          </div>
-          <div className="text-center">
-            <p className="text-3xl font-bold text-accent flex items-center gap-1">
-              <Flame /> 12
-            </p>
-            <p className="text-xs text-muted-foreground">أيام متتالية</p>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <Card className="bg-card/70 backdrop-blur-sm">
+    return (
+      <>
+        <section className="animate-fadeIn space-y-6">
+          <Card className="bg-card/70 backdrop-blur-sm">
             <CardHeader>
-                <CardTitle as="h3" className="uppercase text-xs text-muted-foreground">الدروس المكتملة</CardTitle>
+              <CardTitle>Progress Overview</CardTitle>
+              <CardDescription>Real-time progress across all required tasks.</CardDescription>
             </CardHeader>
-            <CardContent>
-                <p className="text-3xl font-bold">{completedItemsCount} / {learningItems.length}</p>
-                <Progress value={(completedItemsCount / learningItems.length) * 100} className="h-2 mt-2" />
+            <CardContent className="space-y-3">
+              {chartData.map((c, i) => (
+                <div key={i} className="space-y-1">
+                  <div className="flex justify-between text-sm"><span>{c.label}</span><span>{c.value}/{c.max}</span></div>
+                  <Progress value={(c.value / c.max) * 100} />
+                </div>
+              ))}
             </CardContent>
-        </Card>
-        <Card className="bg-card/70 backdrop-blur-sm">
+          </Card>
+
+          <Card>
             <CardHeader>
-                <CardTitle as="h3" className="uppercase text-xs text-muted-foreground">القصص المقروءة</CardTitle>
+              <CardTitle>Remaining Tasks</CardTitle>
+              <CardDescription>Complete all tasks and pass the final exam to unlock your certificate.</CardDescription>
             </CardHeader>
-            <CardContent>
-                <p className="text-3xl font-bold">{storiesCompletedCount} / {storiesGoal}</p>
-                <Progress value={(storiesCompletedCount/storiesGoal) * 100} className="h-2 mt-2" />
+            <CardContent className="space-y-2">
+              <ul className="list-disc ps-5">
+                {!lingoleapDone && <li>LinguaLeap generations remaining: {Math.max(REQUIRED_LINGOALEAP - tasks.lingoleapGenCount, 0)}</li>}
+                {!adventureDone && <li>Text Adventure starts remaining: {Math.max(REQUIRED_ADVENTURE - tasks.textAdventureGenCount, 0)}</li>}
+                {!storiesDone && <li>Stories remaining: {Math.max(REQUIRED_STORIES - tasks.storyGenCount, 0)}</li>}
+                {!ahmedDone && <li>Ahmed tenses remaining: {Math.max(REQUIRED_AHMED_TENSES - tasks.ahmedTensesUsed.length, 0)}</li>}
+                {!saraDone && <li>Sara advanced topics remaining: {Math.max(REQUIRED_SARA_TOPICS - tasks.saraTopicsUsed.length, 0)}</li>}
+                {!videosDone && <li>What If videos remaining: {Math.max(whatIfData.length - tasks.videosSeen.length, 0)}</li>}
+                {!shortsDone && <li>Motivation shorts remaining: {Math.max(shortsData.length - tasks.shortsSeen.length, 0)}</li>}
+                {!chatterbotDone && <li>Chatterbot English speaking time remaining (minutes): {Math.max(30 - Math.floor(tasks.chatterbotMsSpoken / 60000), 0)}</li>}
+                {allTasksComplete && <li>All tasks complete!</li>}
+              </ul>
             </CardContent>
-        </Card>
-      </div>
+          </Card>
 
-      <Card className="bg-card/70 backdrop-blur-sm">
-        <CardHeader>
-            <CardTitle as="h3">نشاط التعلم الأسبوعي</CardTitle>
-            <CardDescription>الدروس المكتملة في الأيام السبعة الماضية</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-            <BarChart accessibilityLayer data={chartData}>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="day"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={10}
-                allowDecimals={false}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent />}
-              />
-              <Bar dataKey="lessons" fill="var(--color-lessons)" radius={4} />
-            </BarChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-card/70 backdrop-blur-sm">
-        <CardHeader>
-            <CardTitle as="h3" className="flex items-center gap-2"><Award className="text-accent" /> تهانينا!</CardTitle>
-            <CardDescription>
-                {finalExamPassed ? "لقد أكملت جميع المتطلبات! قم بإنشاء شهادتك الآن." : "أكمل الاختبار النهائي بنجاح لفتح شهادتك."}
-            </CardDescription>
-        </CardHeader>
-        <CardContent>
-            <Button className="w-full" onClick={() => setIsCertificateOpen(true)} disabled={false}>
-                 {"إنشاء شهادة"}
-            </Button>
-        </CardContent>
-      </Card>
-    </section>
-    <CertificateDialog 
-        isOpen={isCertificateOpen} 
-        onOpenChange={setIsCertificateOpen}
-        userName="طالب مجتهد"
-    />
-    </>
-  );
+          <Card>
+            <CardHeader>
+              <CardTitle>Certificate</CardTitle>
+              <CardDescription>Generate your certificate when eligible.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center gap-2">
+              <Button onClick={() => setIsCertificateOpen(true)} disabled={!(allTasksComplete && finalExamPassed)}>Generate Certificate</Button>
+              {!(allTasksComplete && finalExamPassed) && (
+                <p className="text-sm text-muted-foreground">Complete all tasks and pass the Final Exam to unlock.</p>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+      </>
+    );
 }
 
 function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void, userName: string }) {
