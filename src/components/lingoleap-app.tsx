@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
 import { Progress } from "./ui/progress";
+import { useUserTasks } from '@/hooks/use-user-tasks';
 
 const INITIAL_CATEGORIES = [
   { english: "Emotional", arabic: "عاطفي" },
@@ -53,6 +54,7 @@ function LingoleapAppContainer() {
   const [showQuizResult, setShowQuizResult] = useState(false);
 
   const { toast } = useToast();
+  const tasks = useUserTasks();
 
   const fetchNewWordDetails = useCallback(async (word: string) => {
     setIsLoading(true);
@@ -63,6 +65,7 @@ function LingoleapAppContainer() {
         setCurrentWord(details);
         setViewedWords(prev => [...prev, details]);
         setWordsSinceQuiz(prev => prev + 1);
+        tasks.addLingoleap({ word: details.english, definition: details.definition, arabicWord: details.arabic, arabicDefinition: details.arabicDefinition, imageUrl: details.imageUrl });
       } else {
         throw new Error(`Could not fetch details for the word "${word}".`);
       }
@@ -78,9 +81,32 @@ function LingoleapAppContainer() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedCategory, toast]);
+  }, [selectedCategory, toast, tasks]);
 
   const getNextWord = useCallback(async () => {
+    // After 50 user generations, reuse random from saved set
+    if (tasks.lingoleapGenCount >= 50 && tasks.lingoleapSaved.length > 0) {
+      const pick = tasks.lingoleapSaved[Math.floor(Math.random() * tasks.lingoleapSaved.length)];
+      setCurrentWord({
+        english: pick.word,
+        arabic: pick.arabicWord,
+        definition: pick.definition,
+        arabicDefinition: pick.arabicDefinition,
+        example: '',
+        arabicExample: ''
+      });
+      setViewedWords(prev => [...prev, {
+        english: pick.word,
+        arabic: pick.arabicWord,
+        definition: pick.definition,
+        arabicDefinition: pick.arabicDefinition,
+        example: '',
+        arabicExample: ''
+      }]);
+      setWordsSinceQuiz(prev => prev + 1);
+      return;
+    }
+    // original logic
     if (wordsSinceQuiz >= WORDS_PER_QUIZ && viewedWords.length >= WORDS_PER_QUIZ) {
       startAiTransition(async () => {
         try {
@@ -127,7 +153,7 @@ function LingoleapAppContainer() {
         }
       });
     }
-  }, [wordQueue, wordsSinceQuiz, viewedWords, toast, fetchNewWordDetails, selectedCategory]);
+  }, [wordQueue, wordsSinceQuiz, viewedWords, toast, fetchNewWordDetails, selectedCategory, tasks.lingoleapGenCount, tasks.lingoleapSaved]);
 
   useEffect(() => {
     setCurrentWord(null);

@@ -67,6 +67,7 @@ import { enrichAiLessonInEnglish, translateAiLessonToArabic } from '@/ai/flows/g
 import { getAiLessonArabicRag, putAiLessonArabicRag } from '@/lib/rag';
 import { coachChat, type CoachChatMessage } from '@/ai/flows/coach-chat-flow';
 import { generateFinalExam } from '@/ai/flows/generate-final-exam';
+import { useUserTasks } from '@/hooks/use-user-tasks';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -704,6 +705,7 @@ function AiStoryMaker() {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
+    const tasks = useUserTasks();
 
     const canGenerate = stories.length < 3;
 
@@ -725,7 +727,6 @@ function AiStoryMaker() {
                 const { done, value } = await reader.read();
                 if (done) break;
                 const decodedChunk = decoder.decode(value, { stream: true });
-                // Handle the data: {} format
                 const lines = decodedChunk.split('\n\n');
                 for (const line of lines) {
                     if (line.startsWith('data: ')) {
@@ -744,18 +745,13 @@ function AiStoryMaker() {
 
             const imageResult = await generateStoryImage({ story: fullStory });
             setImageUrl(imageResult.imageUrl);
-            
             addStory({ id: Date.now().toString(), prompt, content: fullStory, imageUrl: imageResult.imageUrl });
-            
+            tasks.incrementStory();
             toast({ title: "Story Generated!", description: "Your new story has been saved to your dashboard." });
 
         } catch (err) {
             console.error("AI story generation error:", err);
-            toast({
-                variant: "destructive",
-                title: "حدث خطأ",
-                description: "لم نتمكن من إنشاء القصة. الرجاء المحاولة مرة أخرى.",
-            });
+            toast({ variant: "destructive", title: "حدث خطأ", description: "لم نتمكن من إنشاء القصة. الرجاء المحاولة مرة أخرى." });
         } finally {
             setLoading(false);
         }

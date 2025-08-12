@@ -9,6 +9,7 @@ import * as z from 'zod';
 import { ahmedVoiceCall, type AhmedVoiceCallInput } from '@/ai/flows/ahmed-voice-call';
 import { saraVoiceCall, type SaraVoiceCallInput } from '@/ai/flows/sara-voice-call';
 import { textToSpeech } from '@/ai/flows/tts-flow';
+import { useUserTasks } from '@/hooks/use-user-tasks';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -106,6 +107,8 @@ export function TenseTeacherApp() {
 
   const currentForm = selectedTeacher === 'Ahmed' ? ahmedForm : saraForm;
   const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, reset, getValues } = currentForm;
+
+  const tasks = useUserTasks();
 
   useEffect(() => {
     if (recognitionRef.current && isListening) {
@@ -257,6 +260,7 @@ export function TenseTeacherApp() {
     if (tense) {
       const prompt = `اشرح لي زمن ${tense}`;
       setValue('englishGrammarConcept', prompt);
+      tasks.markAhmedTense(tense);
     }
   };
 
@@ -264,6 +268,7 @@ export function TenseTeacherApp() {
     if (topic) {
       const prompt = `اشرح لي موضوع القواعد المتقدمة التالي بالتفصيل مع أمثلة: ${topic}`;
       setValue('englishGrammarConcept', prompt);
+      tasks.markSaraTopic(topic);
     }
   };
 

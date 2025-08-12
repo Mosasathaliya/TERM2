@@ -10,6 +10,7 @@ import type { GameState, StoryPart, VocabularyWord, LoadingStates, GameGenre, Te
 import { textToSpeech } from '@/ai/flows/tts-flow';
 import { translateText } from '@/ai/flows/translate-flow';
 import { useToast } from "@/hooks/use-toast";
+import { useUserTasks } from '@/hooks/use-user-tasks';
 
 const GAME_GENRES: GameGenre[] = ['fantasy', 'sci-fi', 'mystery', 'cyberpunk', 'steampunk', 'saudi-folklore'];
 
@@ -39,11 +40,28 @@ export function TextAdventureApp() {
   const [translation, setTranslation] = useState<TranslationState | null>(null);
   const [sceneImageUrl, setSceneImageUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const tasks = useUserTasks();
 
   const handleAction = useCallback(async (action: TextAdventureAction, prompt?: string) => {
     setLoading(prev => ({ ...prev, story: true }));
     setError(null);
     setSelectedWord(null);
+
+    // If starting and quota reached, reuse random saved start
+    if (action === 'start' && tasks.textAdventureGenCount >= 10 && tasks.textAdventureSaved.length > 0) {
+      const pick = tasks.textAdventureSaved[Math.floor(Math.random() * tasks.textAdventureSaved.length)];
+      const startPart: StoryPart = {
+        id: Date.now(),
+        sender: 'ai',
+        text: pick.narrative,
+        vocabularyWord: undefined,
+        suggestions: pick.suggestions,
+        gameOver: false,
+      };
+      setStoryHistory([startPart]);
+      setLoading(prev => ({ ...prev, story: false }));
+      return;
+    }
 
     let currentHistory = storyHistory;
     if (action === 'start') {
@@ -97,6 +115,11 @@ export function TextAdventureApp() {
           setGameState('gameOver');
       }
 
+      if (action === 'start') {
+        // save this start for reuse and count
+        tasks.addAdventureStart({ narrative: response.narrative, imageUrl: sceneImageUrl, suggestions: response.promptSuggestions });
+      }
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(errorMessage);
@@ -105,7 +128,7 @@ export function TextAdventureApp() {
     } finally {
       setLoading(prev => ({ ...prev, story: false }));
     }
-  }, [gameGenre, storyHistory, toast]);
+  }, [gameGenre, storyHistory, toast, tasks, sceneImageUrl]);
 
   const handleWordClick = useCallback(async (word: string) => {
     if (!word) return;
