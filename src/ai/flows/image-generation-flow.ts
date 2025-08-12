@@ -5,6 +5,14 @@
 import { z } from 'zod';
 import { runAi } from '@/lib/cloudflare-ai';
 
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
 const ImageInputSchema = z.object({
   prompt: z.string().describe('The text description of the image to generate.'),
 });
@@ -28,17 +36,16 @@ export async function generateImage(input: ImageInput): Promise<ImageOutput> {
 
     // The model returns the raw image bytes directly
     const imageBuffer = await response.arrayBuffer();
-    const base64Image = Buffer.from(imageBuffer).toString('base64');
-    
-    return {
-      imageUrl: `data:image/png;base64,${base64Image}`
-    };
+    const base64Image = arrayBufferToBase64(imageBuffer);
 
+    return {
+      imageUrl: `data:image/png;base64,${base64Image}`,
+    };
   } catch (error) {
-    console.error("Error in image generation flow:", error);
+    console.error('Error in image generation flow:', error);
     // Return a placeholder on error to prevent app crash
     return {
-        imageUrl: `https://placehold.co/512x512/FF0000/FFFFFF.png?text=Error`
+      imageUrl: `https://placehold.co/512x512/FF0000/FFFFFF.png?text=Error`,
     };
   }
 }

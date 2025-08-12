@@ -9,6 +9,9 @@ import LessonClientComponent from '@/components/lesson/LessonClientComponent';
 import { translateText } from '@/ai/flows/translate-flow';
 import { generateArabicExplanation } from '@/ai/flows/generate-lesson-content';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
+
 interface LessonPageProps {
   params: {
     lesson_id: string;
@@ -16,12 +19,6 @@ interface LessonPageProps {
 }
 
 export const dynamicParams = true;
-
-export async function generateStaticParams() {
-  return lessons.map((lesson) => ({
-    lesson_id: lesson.lesson_id,
-  }));
-}
 
 async function getLessonData(lessonId: string): Promise<Lesson | null> {
   const baseLessonData = lessons.find((l) => l.lesson_id === lessonId);
@@ -72,7 +69,6 @@ async function getLessonData(lessonId: string): Promise<Lesson | null> {
   
   return lesson;
 }
-
 
 export default async function LessonPage({ params }: LessonPageProps) {
   const lesson = await getLessonData(params.lesson_id);

@@ -9,30 +9,43 @@
 import { z } from 'zod';
 import { runAi } from '@/lib/cloudflare-ai';
 
+const getEnv = (k: string) => {
+  const v = (process as any)?.env?.[k];
+  if (!v) throw new Error(`${k} is not set`);
+  return v;
+};
 
-// Cloudflare Speech-to-Text (Whisper)
-async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/openai/whisper`;
-
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
-            'Content-Type': 'application/octet-stream', // Send as raw audio data
-        },
-        body: audioBuffer,
-    });
-    
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Cloudflare STT API error:", errorText);
-        throw new Error(`Cloudflare STT API request failed: ${response.statusText}`);
-    }
-
-    const jsonResponse = await response.json();
-    return jsonResponse.result.text;
+function base64ToUint8Array(base64: string): Uint8Array {
+  // atob/btoa are available in Edge/Browser runtimes
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
+  return bytes;
 }
 
+// Cloudflare Speech-to-Text (Whisper)
+async function transcribeAudio(audioBytes: Uint8Array): Promise<string> {
+  const url = `https://api.cloudflare.com/client/v4/accounts/${getEnv('CLOUDFLARE_ACCOUNT_ID')}/ai/run/@cf/openai/whisper`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${getEnv('CLOUDFLARE_API_TOKEN')}`,
+      'Content-Type': 'application/octet-stream',
+    },
+    body: audioBytes,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Cloudflare STT API error:', errorText);
+    throw new Error(`Cloudflare STT API request failed: ${response.statusText}`);
+  }
+
+  const jsonResponse = await response.json();
+  return jsonResponse.result.text as string;
+}
 
 // Define a schema for a single chat message, which will be used for history
 const MessageSchema = z.object({
@@ -58,57 +71,39 @@ const VoiceChatOutputSchema = z.object({
 });
 export type VoiceChatOutput = z.infer<typeof VoiceChatOutputSchema>;
 
-
-/**
- * An exported async function that runs the voice chat pipeline.
- * This is the function that will be called from the application's frontend.
- * @param input - The voice chat input data.
- * @returns A promise that resolves to the AI's final text response.
- */
-export async function runVoiceChatPipeline(
-  input: VoiceChatInput
-): Promise<VoiceChatOutput> {
+export async function runVoiceChatPipeline(input: VoiceChatInput): Promise<VoiceChatOutput> {
   const { audioDataUri, personality, userName, userInfo, history } = input;
-  
-   // Step 1: Transcribe audio to text (using Cloudflare Whisper)
-    const audioBuffer = Buffer.from(audioDataUri.split(',')[1], 'base64');
-    const transcribedText = await transcribeAudio(audioBuffer);
 
-    if (!transcribedText || !transcribedText.trim()) {
-        return { response: "", transcribedText: "" }; // Return empty if transcription is empty
-    }
+  // Step 1: Transcribe audio to text (using Cloudflare Whisper)
+  const base64 = audioDataUri.split(',')[1] ?? '';
+  if (!base64) return { response: '', transcribedText: '' };
+  const audioBytes = base64ToUint8Array(base64);
+  const transcribedText = await transcribeAudio(audioBytes);
 
-    const userMessage: Message = { role: 'user', content: transcribedText };
-    const currentHistory = [...history, userMessage];
-        
-  // Step 2: Construct the system prompt for the AI's persona
+  if (!transcribedText || !transcribedText.trim()) {
+    return { response: '', transcribedText: '' };
+  }
+
+  const userMessage: Message = { role: 'user', content: transcribedText };
+  const currentHistory = [...history, userMessage];
+
   let systemPrompt = `You are an AI with the following personality: ${personality}.`;
-  if (userName) {
-      systemPrompt += ` Address the user as ${userName}.`;
-  }
-  if (userInfo) {
-      systemPrompt += ` Here is some information about the user you are talking to: ${userInfo}.`;
-  }
-  systemPrompt += ` Keep your responses concise and conversational.`
+  if (userName) systemPrompt += ` Address the user as ${userName}.`;
+  if (userInfo) systemPrompt += ` Here is some information about the user you are talking to: ${userInfo}.`;
+  systemPrompt += ` Keep your responses concise and conversational.`;
 
-  // Step 3: Generate the personalized response using Cloudflare
   const messagesForApi = [
     { role: 'system', content: systemPrompt },
-    ...currentHistory.map(msg => ({ role: msg.role === 'model' ? 'assistant' : 'user', content: msg.content })),
+    ...currentHistory.map((msg) => ({ role: msg.role === 'model' ? 'assistant' : 'user', content: msg.content })),
   ];
 
   const response = await runAi({ model: '@cf/meta/llama-3-8b-instruct', inputs: { messages: messagesForApi } });
   const jsonResponse = await response.json();
-  const responseText = jsonResponse.result.response;
-
+  const responseText = jsonResponse.result.response as string;
 
   if (!responseText) {
-      return { response: "I'm sorry, I don't have a response for that." };
+    return { response: "I'm sorry, I don't have a response for that." };
   }
 
-  return { 
-      response: responseText,
-      // Pass back the user's transcribed text so the UI can update
-      transcribedText: transcribedText
-  };
+  return { response: responseText, transcribedText };
 }
