@@ -14,8 +14,14 @@ CLOUDFLARE_ACCOUNT_ID = "$CLOUDFLARE_ACCOUNT_ID"
 APP_LOGIN_ID = "$APP_LOGIN_ID"
 APP_LOGIN_PASSWORD = "$APP_LOGIN_PASSWORD"
 SESSION_SECRET = "$SESSION_SECRET"
+ADMIN_SEED_SECRET = "$ADMIN_SEED_SECRET"
 
 [[kv_namespaces]]
 binding = "LESSON_RAG"
 id = "${LESSON_RAG_NS_ID}"
 preview_id = "${LESSON_RAG_NS_ID}"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "trinav_users"
+database_id = "${D1_DATABASE_ID}"
