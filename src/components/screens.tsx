@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the content for each screen/tab of the application.
  */
@@ -60,6 +59,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { learningItems } from '@/lib/lessons';
+import { getExtraRag, putExtraRag } from '@/lib/rag';
+import { generateExtraLearning } from '@/ai/flows/generate-extra-learning';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -443,9 +444,11 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [activeAudioId, setActiveAudioId] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
     setExplanation(null);
+    setImages([]);
     setAnswers({});
     setIsSubmitted(false);
     if (audioRef.current) {
@@ -457,6 +460,16 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
 
   const handlePlayAudio = async (text: string, id: string, lang: 'en' | 'ar' = 'ar') => {
     if (!text || activeAudioId) return;
+    // Prefer browser Arabic TTS
+    if (lang === 'ar' && typeof window !== 'undefined' && window.speechSynthesis) {
+      setActiveAudioId(id);
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ar-SA';
+      u.onend = () => setActiveAudioId(null);
+      u.onerror = () => setActiveAudioId(null);
+      window.speechSynthesis.speak(u);
+      return;
+    }
     setActiveAudioId(id);
     try {
       const result = await textToSpeech({ prompt: text, lang: lang });
@@ -486,15 +499,25 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
     }
   };
 
-
   const handleExplain = async () => {
     if (!lesson || isExplaining) return;
     setIsExplaining(true);
     setExplanation(null);
+    setImages([]);
     try {
-      const response = await translateText({ text: lesson.content, targetLanguage: 'ar' });
-      setExplanation(response.translation);
-      await handlePlayAudio(response.translation, 'explanation', 'ar');
+      // RAG cache check
+      const cached = await getExtraRag(lesson.id);
+      if (cached) {
+        setExplanation(cached.explanation);
+        setImages(cached.imageUrls);
+        return;
+      }
+      // Generate fresh content
+      const result = await generateExtraLearning(lesson.title, lesson.image_hint);
+      setExplanation(result.explanation);
+      setImages(result.imageUrls);
+      // Save to RAG for cost savings
+      await putExtraRag({ id: lesson.id, explanation: result.explanation, imageUrls: result.imageUrls, updated_at: new Date().toISOString() });
     } catch (err) {
       toast({ variant: 'destructive', title: 'خطأ', description: 'فشل في الحصول على الشرح.' });
     } finally {

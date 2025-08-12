@@ -11,8 +11,15 @@ export interface StoredLessonRag {
   updated_at: string;
 }
 
+export interface StoredExtraRag {
+  id: string; // ai lesson id
+  explanation: string; // Arabic with embedded English examples
+  imageUrls: string[];
+  updated_at: string;
+}
+
 // In-memory fallback for local dev without KV binding
-const memoryStore = new Map<string, StoredLessonRag>();
+const memoryStore = new Map<string, any>();
 
 function getKv() {
   try {
@@ -38,7 +45,28 @@ export async function putLessonRag(data: StoredLessonRag): Promise<void> {
   const key = `lesson:${data.lesson_id}`;
   const value = JSON.stringify(data);
   if (kv) {
-    await kv.put(key, value, { expirationTtl: 60 * 60 * 24 * 365 }); // 1 year TTL
+    await kv.put(key, value, { expirationTtl: 60 * 60 * 24 * 365 });
+    return;
+  }
+  memoryStore.set(key, data);
+}
+
+export async function getExtraRag(id: string): Promise<StoredExtraRag | null> {
+  const kv = getKv();
+  const key = `extra:${id}`;
+  if (kv) {
+    const json = await kv.get(key);
+    return json ? (JSON.parse(json) as StoredExtraRag) : null;
+  }
+  return memoryStore.get(key) ?? null;
+}
+
+export async function putExtraRag(data: StoredExtraRag): Promise<void> {
+  const kv = getKv();
+  const key = `extra:${data.id}`;
+  const value = JSON.stringify(data);
+  if (kv) {
+    await kv.put(key, value, { expirationTtl: 60 * 60 * 24 * 365 });
     return;
   }
   memoryStore.set(key, data);
