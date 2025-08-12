@@ -16,7 +16,6 @@ const getEnv = (k: string) => {
 };
 
 function base64ToUint8Array(base64: string): Uint8Array {
-  // atob/btoa are available in Edge/Browser runtimes
   const binaryString = atob(base64);
   const len = binaryString.length;
   const bytes = new Uint8Array(len);
@@ -47,14 +46,12 @@ async function transcribeAudio(audioBytes: Uint8Array): Promise<string> {
   return jsonResponse.result.text as string;
 }
 
-// Define a schema for a single chat message, which will be used for history
 const MessageSchema = z.object({
   role: z.enum(['user', 'model']),
   content: z.string(),
 });
 export type Message = z.infer<typeof MessageSchema>;
 
-// Input schema for the consolidated pipeline
 const VoiceChatInputSchema = z.object({
   audioDataUri: z.string().describe("The user's audio speech as a data URI."),
   personality: z.string().describe("The agent's base personality."),
@@ -64,7 +61,6 @@ const VoiceChatInputSchema = z.object({
 });
 export type VoiceChatInput = z.infer<typeof VoiceChatInputSchema>;
 
-// Output schema for the consolidated pipeline
 const VoiceChatOutputSchema = z.object({
   response: z.string().describe("The AI agent's final text response."),
   transcribedText: z.string().optional().describe("The transcribed text from the user's audio."),
@@ -74,23 +70,26 @@ export type VoiceChatOutput = z.infer<typeof VoiceChatOutputSchema>;
 export async function runVoiceChatPipeline(input: VoiceChatInput): Promise<VoiceChatOutput> {
   const { audioDataUri, personality, userName, userInfo, history } = input;
 
-  // Step 1: Transcribe audio to text (using Cloudflare Whisper)
   const base64 = audioDataUri.split(',')[1] ?? '';
   if (!base64) return { response: '', transcribedText: '' };
   const audioBytes = base64ToUint8Array(base64);
   const transcribedText = await transcribeAudio(audioBytes);
 
-  if (!transcribedText || !transcribedText.trim()) {
+  // Ignore Arabic or non-English input: if Arabic chars present, return no response
+  if (!transcribedText || /[\u0600-\u06FF]/.test(transcribedText)) {
     return { response: '', transcribedText: '' };
   }
 
   const userMessage: Message = { role: 'user', content: transcribedText };
   const currentHistory = [...history, userMessage];
 
-  let systemPrompt = `You are an AI with the following personality: ${personality}.`;
+  // English-only teacher that corrects mistakes politely and encourages speaking
+  let systemPrompt = `You are an English speaking teacher. Always respond in English only.
+Correct the user's mistakes gently (grammar, word choice, pronunciation hints if needed).
+Keep responses concise, conversational, and include a short follow-up question to keep the dialogue going.
+Personality: ${personality}.`;
   if (userName) systemPrompt += ` Address the user as ${userName}.`;
-  if (userInfo) systemPrompt += ` Here is some information about the user you are talking to: ${userInfo}.`;
-  systemPrompt += ` Keep your responses concise and conversational.`;
+  if (userInfo) systemPrompt += ` User info: ${userInfo}.`;
 
   const messagesForApi = [
     { role: 'system', content: systemPrompt },
@@ -102,7 +101,7 @@ export async function runVoiceChatPipeline(input: VoiceChatInput): Promise<Voice
   const responseText = jsonResponse.result.response as string;
 
   if (!responseText) {
-    return { response: "I'm sorry, I don't have a response for that." };
+    return { response: "", transcribedText };
   }
 
   return { response: responseText, transcribedText };
