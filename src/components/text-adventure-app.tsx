@@ -144,19 +144,26 @@ export function TextAdventureApp() {
   }, [gameGenre]);
 
   const handleNarrativeWordClick = useCallback(async (word: string) => {
-    const cleanedWord = word.replace(/[^a-zA-Z]/g, '').trim();
+    const cleanedWord = word.replace(/[^\p{L}]/gu, '').trim();
     if (!cleanedWord) return;
 
-    textToSpeech({prompt: cleanedWord, lang: 'en'}).catch(err => console.error("TTS error:", err));
+    const isArabic = /[\u0600-\u06FF]/.test(cleanedWord);
+    if (isArabic && typeof window !== 'undefined' && window.speechSynthesis) {
+      const u = new SpeechSynthesisUtterance(cleanedWord);
+      u.lang = 'ar-SA';
+      window.speechSynthesis.speak(u);
+    } else {
+      textToSpeech({ prompt: cleanedWord, lang: 'en' }).catch(err => console.error('TTS error:', err));
+    }
 
     setTranslation({ word: word, text: 'جاري الترجمة...', isLoading: true });
     try {
-        const result = await translateText({ text: cleanedWord, targetLanguage: 'ar' });
-        setTranslation({ word: word, text: result.translation, isLoading: false });
+      const result = await translateText({ text: cleanedWord, targetLanguage: 'ar' });
+      setTranslation({ word: word, text: result.translation, isLoading: false });
     } catch (error) {
-        console.error('Translation error:', error);
-        setTranslation({ word: word, text: 'فشل الترجمة', isLoading: false });
-        toast({ variant: 'destructive', title: 'خطأ في الترجمة' });
+      console.error('Translation error:', error);
+      setTranslation({ word: word, text: 'فشل الترجمة', isLoading: false });
+      toast({ variant: 'destructive', title: 'خطأ في الترجمة' });
     }
   }, [toast]);
   
@@ -220,6 +227,11 @@ export function TextAdventureApp() {
           </div>
         )}
       </main>
+      <VocabularyPanel 
+        selectedWord={selectedWord} 
+        loading={loading.vocab} 
+        onContinue={() => setSelectedWord(null)}
+      />
     </div>
   );
 }

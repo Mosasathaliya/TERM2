@@ -29,80 +29,60 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
   const [activeAudioId, setActiveAudioId] = React.useState<string | null>(null);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
+  const playBrowserArabic = (text: string) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return false;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ar-SA';
+    window.speechSynthesis.speak(utterance);
+    return true;
+  };
+
   const handleSpeak = async (text: string, lang: 'en' | 'ar', id: string) => {
-    // 1. Add a strict guard clause to prevent calling the API with empty text
     if (!text || !text.trim()) {
-      toast({
-        title: "No text to speak",
-        description: "There is no content to convert to speech.",
-        variant: "destructive",
-      });
+      toast({ title: "No text to speak", description: "There is no content to convert to speech.", variant: "destructive" });
       return;
     }
-    
     if (activeAudioId) return;
+    if (audioRef.current) audioRef.current.pause();
 
-    if (audioRef.current) {
-        audioRef.current.pause();
+    // Use browser TTS for Arabic only
+    if (lang === 'ar') {
+      const ok = playBrowserArabic(text);
+      if (!ok) {
+        toast({ title: "TTS غير مدعوم", description: "المتصفح لا يدعم تحويل النص إلى كلام بالعربية.", variant: "destructive" });
+      }
+      return;
     }
 
     setActiveAudioId(id);
     try {
-        const result = await textToSpeech({prompt: text, lang: lang});
-        // 2. Explicitly check for a null or invalid result from the API flow
-        if (!result || !result.media) {
-            toast({
-                title: "Text-to-Speech Error",
-                description: "Could not generate audio for the selected text.",
-                variant: "destructive",
-            });
-            setActiveAudioId(null);
-            return;
-        }
-
-        const audio = new Audio(result.media);
-        audioRef.current = audio;
-
-        // 3. Add a specific catch block for browser playback errors
-        audio.play().catch(e => {
-          console.error("Audio playback error:", e);
-          toast({
-              title: "Audio Playback Error",
-              description: "Your browser might be blocking automated audio playback. Please interact with the page and try again.",
-              variant: "destructive",
-          });
-          setActiveAudioId(null);
-        });
-        
-        audio.onended = () => setActiveAudioId(null);
-        audio.onerror = () => {
-            toast({
-                title: "Audio Error",
-                description: "An error occurred while trying to play the audio.",
-                variant: "destructive",
-            });
-            setActiveAudioId(null);
-        };
-
-    } catch (error) {
-        console.error("TTS Error:", error);
-        toast({
-            title: "Text-to-Speech Error",
-            description: "An unexpected error occurred while generating audio.",
-            variant: "destructive",
-        });
+      const result = await textToSpeech({ prompt: text, lang: 'en' });
+      if (!result || !result.media) {
+        toast({ title: "Text-to-Speech Error", description: "Could not generate audio for the selected text.", variant: "destructive" });
         setActiveAudioId(null);
+        return;
+      }
+
+      const audio = new Audio(result.media);
+      audioRef.current = audio;
+      audio.play().catch(e => {
+        console.error("Audio playback error:", e);
+        toast({ title: "Audio Playback Error", description: "Your browser might be blocking audio. Tap and try again.", variant: "destructive" });
+        setActiveAudioId(null);
+      });
+      audio.onended = () => setActiveAudioId(null);
+      audio.onerror = () => {
+        toast({ title: "Audio Error", description: "An error occurred while trying to play the audio.", variant: "destructive" });
+        setActiveAudioId(null);
+      };
+    } catch (error) {
+      console.error("TTS Error:", error);
+      toast({ title: "Text-to-Speech Error", description: "An unexpected error occurred while generating audio.", variant: "destructive" });
+      setActiveAudioId(null);
     }
   };
 
-  React.useEffect(() => {
-    // Cleanup function to stop audio when the component unmounts
-    return () => {
-        if (audioRef.current) {
-            audioRef.current.pause();
-        }
-    };
-  }, []);
+  React.useEffect(() => () => { if (audioRef.current) audioRef.current.pause(); }, []);
 
   if (isLoading) {
     return (
@@ -116,156 +96,64 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
             <Skeleton className="h-4 w-1/4" />
             <Skeleton className="h-6 w-2/5" />
           </div>
-           <div className="space-y-2">
+          <div className="space-y-2">
             <Skeleton className="h-4 w-1/4" />
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-4/5" />
           </div>
-           <div className="space-y-2">
+          <div className="space-y-2">
             <Skeleton className="h-4 w-1/4" />
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-4/5" />
-           </div>
-           <div className="space-y-2">
-             <Skeleton className="h-4 w-1/4" />
-             <Skeleton className="h-4 w-full" />
-             <Skeleton className="h-4 w-4/5" />
-           </div>
-           <div className="space-y-2">
-             <Skeleton className="h-4 w-1/4" />
-             <Skeleton className="h-4 w-full" />
-             <Skeleton className="h-4 w-4/5" />
-           </div>
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-4/5" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-4/5" />
+          </div>
         </CardContent>
       </Card>
     );
   }
 
-  if (!word) {
-    return (
-       <Card className="w-full max-w-md bg-card text-card-foreground shadow-lg rounded-lg transition-all duration-300 ease-in-out p-6">
-         <p className="text-center text-muted-foreground">Select a category and click "Next Word" to begin.</p>
-       </Card>
-     );
-   }
-
+  if (!word) return null;
 
   return (
-    <Card className="w-full max-w-md bg-card text-card-foreground shadow-lg rounded-lg fade-in transition-all duration-300 ease-in-out">
+    <Card className="w-full max-w-md bg-card text-card-foreground shadow-lg rounded-lg transition-all duration-300 ease-in-out">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-3xl font-bold text-primary truncate">
-          {word.english}
-        </CardTitle>
-        <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => handleSpeak(word.english, 'en', 'word')}
-            aria-label={`Listen to ${word.english}`}
-            title="Listen to pronunciation"
-            className="text-primary hover:text-primary/80"
-            disabled={!!activeAudioId}
-        >
-            <Volume2 className={`h-6 w-6 ${activeAudioId === 'word' ? 'animate-pulse' : ''}`} />
+        <CardTitle>{word.english}</CardTitle>
+        <Button variant="ghost" size="icon" onClick={() => handleSpeak(word.english, 'en', 'word-en')}>
+          <Volume2 className="h-5 w-5" />
         </Button>
       </CardHeader>
-      <CardContent className="space-y-4 pt-4">
-        <div className="bg-muted/30 p-3 rounded-md">
-            <h3 className="text-sm font-medium text-accent mb-1 flex items-center gap-1">
-               🌍 Arabic Meaning:
-               <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleSpeak(word.arabic, 'ar', 'arabic-word')}
-                    aria-label="Listen to Arabic meaning"
-                    title="Listen to meaning"
-                    className="text-primary hover:text-primary/80 h-5 w-5 p-0"
-                    disabled={!!activeAudioId}
-                >
-                    <Volume2 className={`h-4 w-4 ${activeAudioId === 'arabic-word' ? 'animate-pulse' : ''}`} />
-                </Button>
-            </h3>
-            <p className="text-xl font-semibold text-right font-[inherit]" dir="rtl">
-            {word.arabic}
-            </p>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground">الترجمة</span>
+          <Button variant="ghost" size="icon" onClick={() => handleSpeak(word.arabic, 'ar', 'word-ar')}>
+            <Volume2 className="h-5 w-5" />
+          </Button>
         </div>
-
+        <p className="text-lg font-semibold">{word.arabic}</p>
         <Separator />
-
-        <div className="space-y-3">
-           <div>
-             <h3 className="text-sm font-medium text-accent mb-1 flex items-center gap-1">
-               📖 Definition (EN)
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleSpeak(word.definition, 'en', 'definition')}
-                    aria-label="Listen to English definition"
-                    title="Listen to definition"
-                    className="text-primary hover:text-primary/80 h-5 w-5 p-0"
-                    disabled={!!activeAudioId}
-                >
-                    <Volume2 className={`h-4 w-4 ${activeAudioId === 'definition' ? 'animate-pulse' : ''}`} />
-                </Button>
-             </h3>
-             <p className="text-base leading-relaxed">{word.definition}</p>
-           </div>
-           <div>
-             <h3 className="text-sm font-medium text-accent mb-1 flex items-center gap-1">
-               💬 Example (EN)
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleSpeak(word.example, 'en', 'example')}
-                    aria-label="Listen to English example sentence"
-                    title="Listen to example"
-                    className="text-primary hover:text-primary/80 h-5 w-5 p-0"
-                    disabled={!!activeAudioId}
-                >
-                    <Volume2 className={`h-4 w-4 ${activeAudioId === 'example' ? 'animate-pulse' : ''}`} />
-                </Button>
-             </h3>
-             <p className="text-base italic text-foreground/80">"{word.example}"</p>
-           </div>
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground">مثال</span>
+          <Button variant="ghost" size="icon" onClick={() => handleSpeak(word.example, 'en', 'ex-en')}>
+            <Volume2 className="h-5 w-5" />
+          </Button>
         </div>
-
-        <Separator />
-
-         <div className="space-y-3 text-right" dir="rtl">
-           <div>
-             <h3 className="text-sm font-medium text-accent mb-1 flex items-center justify-end gap-1">
-               📖 التعريف (AR)
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleSpeak(word.arabicDefinition, 'ar', 'arabic-definition')}
-                    aria-label="Listen to Arabic definition"
-                    title="Listen to definition"
-                    className="text-primary hover:text-primary/80 h-5 w-5 p-0"
-                    disabled={!!activeAudioId}
-                >
-                    <Volume2 className={`h-4 w-4 ${activeAudioId === 'arabic-definition' ? 'animate-pulse' : ''}`} />
-                </Button>
-             </h3>
-             <p className="text-base leading-relaxed font-[inherit]">{word.arabicDefinition}</p>
-           </div>
-           <div>
-             <h3 className="text-sm font-medium text-accent mb-1 flex items-center justify-end gap-1">
-                💬 مثال (AR)
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleSpeak(word.arabicExample, 'ar', 'arabic-example')}
-                    aria-label="Listen to Arabic example"
-                    title="Listen to example"
-                    className="text-primary hover:text-primary/80 h-5 w-5 p-0"
-                    disabled={!!activeAudioId}
-                >
-                    <Volume2 className={`h-4 w-4 ${activeAudioId === 'arabic-example' ? 'animate-pulse' : ''}`} />
-                </Button>
-             </h3>
-             <p className="text-base italic text-foreground/80 font-[inherit]">"{word.arabicExample}"</p>
-           </div>
+        <p>{word.example}</p>
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground">مثال بالعربية</span>
+          <Button variant="ghost" size="icon" onClick={() => handleSpeak(word.arabicExample, 'ar', 'ex-ar')}>
+            <Volume2 className="h-5 w-5" />
+          </Button>
         </div>
+        <p dir="rtl">{word.arabicExample}</p>
       </CardContent>
     </Card>
   );
