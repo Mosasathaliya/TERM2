@@ -62,6 +62,8 @@ import { learningItems } from '@/lib/lessons';
 import { getExtraRag, putExtraRag } from '@/lib/rag';
 import { generateExtraLearning } from '@/ai/flows/generate-extra-learning';
 import { summarizeYouTubeInArabic } from '@/ai/flows/youtube-transcript-summary';
+import { getAiLessonRag, putAiLessonRag } from '@/lib/rag';
+import { enrichAiLessonInEnglish, translateAiLessonToArabic } from '@/ai/flows/generate-ai-lesson-content';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -470,176 +472,116 @@ function AiLessonsDialog({ isOpen, onOpenChange, onSelectLesson }: { isOpen: boo
 }
 
 function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson: AiLesson | null, isOpen: boolean, onOpenChange: (isOpen: boolean) => void, onBack: () => void }) {
-  const [explanation, setExplanation] = useState<string | null>(null);
-  const [isExplaining, setIsExplaining] = useState(false);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const { toast } = useToast();
-  
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [activeAudioId, setActiveAudioId] = useState<string | null>(null);
+  const [englishContent, setEnglishContent] = useState<string | null>(null);
+  const [arabicTranslation, setArabicTranslation] = useState<string | null>(null);
   const [images, setImages] = useState<string[]>([]);
+  const [quiz, setQuiz] = useState<{ question: string; options: string[]; answer: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    setExplanation(null);
+    setEnglishContent(null);
+    setArabicTranslation(null);
     setImages([]);
-    setAnswers({});
-    setIsSubmitted(false);
-    if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-    }
-    setActiveAudioId(null);
+    setQuiz([]);
   }, [lesson]);
 
-  const handlePlayAudio = async (text: string, id: string, lang: 'en' | 'ar' = 'ar') => {
-    if (!text || activeAudioId) return;
-    // Prefer browser Arabic TTS
-    if (lang === 'ar' && typeof window !== 'undefined' && window.speechSynthesis) {
-      setActiveAudioId(id);
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'ar-SA';
-      u.onend = () => setActiveAudioId(null);
-      u.onerror = () => setActiveAudioId(null);
-      window.speechSynthesis.speak(u);
-      return;
-    }
-    setActiveAudioId(id);
+  const loadContent = async () => {
+    if (!lesson || isLoading) return;
+    setIsLoading(true);
     try {
-      const result = await textToSpeech({ prompt: text, lang: lang });
-      if (result?.media) {
-        if (!audioRef.current) {
-          audioRef.current = new Audio();
-        }
-        const audio = audioRef.current;
-        audio.src = result.media;
-        audio.play().catch(e => {
-          console.error("Audio playback error:", e);
-          setActiveAudioId(null);
-        });
-        audio.onended = () => setActiveAudioId(null);
-        audio.onerror = () => {
-             toast({ variant: 'destructive', title: 'خطأ في تشغيل الصوت.' });
-             setActiveAudioId(null);
-        }
-      } else {
-        toast({ variant: 'destructive', title: 'خطأ', description: 'فشل في تشغيل الصوت.' });
-        setActiveAudioId(null);
-      }
-    } catch (err) {
-      console.error("TTS Error:", err);
-      toast({ variant: 'destructive', title: 'خطأ في تشغيل الصوت.' });
-      setActiveAudioId(null);
-    }
-  };
-
-  const handleExplain = async () => {
-    if (!lesson || isExplaining) return;
-    setIsExplaining(true);
-    setExplanation(null);
-    setImages([]);
-    try {
-      // RAG cache check
-      const cached = await getExtraRag(lesson.id);
+      const cached = await getAiLessonRag(lesson.id);
       if (cached) {
-        setExplanation(cached.explanation);
+        setEnglishContent(cached.enrichedEnglish);
         setImages(cached.imageUrls);
+        setQuiz(cached.quiz);
         return;
       }
-      // Generate fresh content
-      const result = await generateExtraLearning(lesson.title, lesson.image_hint);
-      setExplanation(result.explanation);
-      setImages(result.imageUrls);
-      // Save to RAG for cost savings
-      await putExtraRag({ id: lesson.id, explanation: result.explanation, imageUrls: result.imageUrls, updated_at: new Date().toISOString() });
-    } catch (err) {
-      toast({ variant: 'destructive', title: 'خطأ', description: 'فشل في الحصول على الشرح.' });
+      const enriched = await enrichAiLessonInEnglish(lesson.title, lesson.content, lesson.image_hint);
+      setEnglishContent(enriched.enrichedEnglish);
+      setImages(enriched.imageUrls);
+      setQuiz(enriched.quiz);
+      await putAiLessonRag({ id: lesson.id, enrichedEnglish: enriched.enrichedEnglish, imageUrls: enriched.imageUrls, quiz: enriched.quiz, updated_at: new Date().toISOString() });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to load lesson.' });
     } finally {
-      setIsExplaining(false);
+      setIsLoading(false);
     }
-  };
-  
-  const handleAnswerChange = (qIndex: number, option: string) => {
-    if (isSubmitted) return;
-    setAnswers(prev => ({ ...prev, [qIndex]: option }));
   };
 
-  const handleSubmit = () => {
-    if (!lesson) return;
-    setIsSubmitted(true);
-    const correctAnswers = lesson.questions.reduce((acc, q, i) => {
-        return answers[i] === q.answer ? acc + 1 : acc;
-    }, 0);
-    if (correctAnswers >= 2) {
-        toast({ title: 'تهانينا!', description: 'لقد نجحت في الاختبار!', className: 'bg-green-100 dark:bg-green-900' });
-    } else {
-        toast({ variant: 'destructive', title: 'حاول مرة أخرى', description: `تحتاج إلى إجابتين صحيحتين على الأقل للنجاح. نتيجتك: ${correctAnswers}` });
+  useEffect(() => { if (isOpen) loadContent(); }, [isOpen]);
+
+  const handleTranslate = async () => {
+    if (!englishContent || isTranslating) return;
+    setIsTranslating(true);
+    try {
+      const ar = await translateAiLessonToArabic(englishContent);
+      setArabicTranslation(ar);
+    } catch {
+      toast({ variant: 'destructive', title: 'خطأ', description: 'فشل في الترجمة.' });
+    } finally {
+      setIsTranslating(false);
     }
   };
-  
-  if (!lesson) return null;
-  const score = lesson.questions.reduce((acc, q, i) => answers[i] === q.answer ? acc + 1 : acc, 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
-        <DialogHeader className="p-4 border-b flex-row items-center">
-            <Button variant="ghost" size="icon" onClick={onBack}><ChevronLeft/></Button>
-            <DialogTitle className="flex items-center gap-2">
-                {lesson.title}
-            </DialogTitle>
+      <DialogContent className="max-w-3xl h-[85vh] flex flex-col">
+        <DialogHeader className="p-4 border-b shrink-0">
+          <div className="flex items-center justify-between">
+            <DialogTitle>{lesson?.title || 'AI Lesson'}</DialogTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={onBack}>Back</Button>
+              <Button variant="secondary" size="sm" onClick={handleTranslate} disabled={!englishContent || isTranslating}>
+                {isTranslating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Translating...</> : 'Translate to Arabic'}
+              </Button>
+            </div>
+          </div>
+          <DialogDescription>English content enriched with AI; optional Arabic translation. Quiz in English only.</DialogDescription>
         </DialogHeader>
-        <ScrollArea className="flex-grow">
-          <div className="p-6">
-            <Image src={lesson.image} alt={lesson.title} width={600} height={400} className="w-full h-auto object-cover rounded-md mb-4" data-ai-hint={lesson.image_hint}/>
-            <p className="text-foreground/90 leading-relaxed mb-4">{lesson.content}</p>
-            <Button onClick={handleExplain} disabled={isExplaining || !!activeAudioId}>
-              {isExplaining ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Volume2 className="mr-2 h-4 w-4"/>}
-              اشرح بالعربية
-            </Button>
-            {explanation && <p className="mt-4 p-4 bg-muted rounded-md" dir="rtl">{explanation}</p>}
+        <ScrollArea className="flex-grow p-4 space-y-4">
+          {isLoading && <div className="text-muted-foreground">Loading lesson...</div>}
 
-            <div className="mt-8">
-              <h3 className="text-xl font-bold mb-4">اختبر معلوماتك</h3>
-              {isSubmitted && (
-                 <Alert className="mb-4 bg-primary/10 border-primary/20">
-                    <CheckCircle className="h-4 w-4 text-primary" />
-                    <AlertTitle>النتيجة: {score} من {lesson.questions.length}</AlertTitle>
-                    <AlertDescription>
-                        {score >= 2 ? "رائع! لقد نجحت." : "تحتاج إلى إجابتين صحيحتين على الأقل للنجاح."}
-                    </AlertDescription>
-                </Alert>
-              )}
-              <div className="space-y-6">
-                {lesson.questions.map((q, i) => (
-                  <div key={i} className={cn("p-4 border rounded-lg", isSubmitted && (answers[i] === q.answer ? 'border-green-500' : 'border-destructive'))}>
-                    <p className="font-semibold mb-3">{i+1}. {q.question}</p>
-                    <RadioGroup value={answers[i]} onValueChange={(val) => handleAnswerChange(i, val)} disabled={isSubmitted}>
-                      {q.options.map(opt => {
-                        const isCorrect = opt === q.answer;
-                        const isSelected = answers[i] === opt;
-                        return (
-                          <div key={opt} className={cn("flex items-center space-x-2 rounded-md p-2", isSubmitted && isCorrect && "bg-green-500/10 text-green-800 dark:text-green-300", isSubmitted && isSelected && !isCorrect && "bg-destructive/10 text-destructive")}>
-                          <RadioGroupItem value={opt} id={`q${i}-opt-${opt}`} />
-                          <Label htmlFor={`q${i}-opt-${opt}`} className="flex-1 cursor-pointer">{opt}</Label>
-                           {isSubmitted && isCorrect && <Check className="h-5 w-5 text-green-500" />}
-                            {isSubmitted && isSelected && !isCorrect && <X className="h-5 w-5 text-destructive" />}
-                          </div>
-                        )
-                      })}
-                    </RadioGroup>
+          {englishContent && (
+            <div className="space-y-3">
+              <h4 className="font-semibold text-lg">English Lesson</h4>
+              <div className="prose prose-invert max-w-none whitespace-pre-wrap leading-7">{englishContent}</div>
+            </div>
+          )}
+
+          {images.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {images.map((src, i) => (
+                <Image key={i} src={src} alt={`lesson-illustration-${i}`} width={600} height={400} className="w-full h-auto rounded-md object-cover" />
+              ))}
+            </div>
+          )}
+
+          {arabicTranslation && (
+            <div className="space-y-3">
+              <h4 className="font-semibold text-lg">الترجمة العربية</h4>
+              <div className="prose prose-invert max-w-none whitespace-pre-wrap leading-7">{arabicTranslation}</div>
+            </div>
+          )}
+
+          {quiz.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="font-semibold text-lg">English Quiz</h4>
+              <div className="space-y-4">
+                {quiz.map((q, i) => (
+                  <div key={i} className="p-3 rounded-md bg-muted/50">
+                    <p className="font-medium">{i + 1}. {q.question}</p>
+                    <ul className="list-disc ps-5">
+                      {q.options.map((opt, j) => (
+                        <li key={j}>{opt}</li>
+                      ))}
+                    </ul>
                   </div>
                 ))}
               </div>
-               <div className="mt-6 flex justify-end">
-                  {isSubmitted ? (
-                    <Button variant="outline" onClick={() => { setIsSubmitted(false); setAnswers({}); }}>أعد المحاولة</Button>
-                  ) : (
-                    <Button onClick={handleSubmit}>تحقق من الإجابات</Button>
-                  )}
-              </div>
             </div>
-          </div>
+          )}
         </ScrollArea>
       </DialogContent>
     </Dialog>
