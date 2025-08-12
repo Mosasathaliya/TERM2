@@ -66,6 +66,7 @@ import { getAiLessonRag, putAiLessonRag } from '@/lib/rag';
 import { enrichAiLessonInEnglish, translateAiLessonToArabic } from '@/ai/flows/generate-ai-lesson-content';
 import { getAiLessonArabicRag, putAiLessonArabicRag } from '@/lib/rag';
 import { coachChat, type CoachChatMessage } from '@/ai/flows/coach-chat-flow';
+import { generateFinalExam } from '@/ai/flows/generate-final-exam';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -1701,6 +1702,92 @@ function ArabicCoachDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCh
         <div className="flex gap-2">
           <Textarea dir="rtl" value={input} onChange={e => setInput(e.target.value)} rows={1} placeholder="اكتب رسالتك بالعربية..."/>
           <Button onClick={send} disabled={isSending || !input.trim()}>{isSending ? '...' : 'إرسال'}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function FinalExamDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) {
+  const [questions, setQuestions] = useState<{ question: string; options: string[]; correct_answer: string }[]>([]);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number>(70 * 60); // seconds
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { setFinalExamPassed } = useProgressStore();
+
+  useEffect(() => {
+    let timer: any;
+    if (startedAt) {
+      timer = setInterval(() => {
+        setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => timer && clearInterval(timer);
+  }, [startedAt]);
+
+  const startExam = async () => {
+    const gen = await generateFinalExam();
+    setQuestions(gen.questions);
+    setAnswers({});
+    setStartedAt(Date.now());
+    setTimeLeft(70 * 60);
+  };
+
+  useEffect(() => { if (isOpen) startExam(); }, [isOpen]);
+
+  const submit = async () => {
+    if (!questions.length || isSubmitting) return;
+    setIsSubmitting(true);
+    const score = questions.reduce((acc, q, i) => (answers[i] === q.correct_answer ? acc + 1 : acc), 0);
+    const percent = (score / questions.length) * 100;
+    const passed = percent >= 70;
+    setFinalExamPassed(passed);
+    onOpenChange(false);
+    alert(`Your score: ${score}/100 (${percent.toFixed(0)}%). ${percent >= 80 ? 'Excellent' : passed ? 'Good' : 'Try again'}.`);
+    setIsSubmitting(false);
+  };
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+
+  useEffect(() => { if (timeLeft === 0 && isOpen) submit(); }, [timeLeft]);
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
+        <DialogHeader className="p-4 border-b shrink-0">
+          <div className="flex items-center justify-between">
+            <DialogTitle>Final Exam (100 Questions – 70 minutes)</DialogTitle>
+            <div className="text-sm">Time left: {minutes.toString().padStart(2,'0')}:{seconds.toString().padStart(2,'0')}</div>
+          </div>
+          <DialogDescription>All questions in English. Score ≥ 80: Excellent; 70–79: Good; else: fail.</DialogDescription>
+        </DialogHeader>
+        <ScrollArea className="flex-grow p-4 space-y-4">
+          {!questions.length ? (
+            <div className="text-muted-foreground">Preparing exam...</div>
+          ) : (
+            questions.map((q, i) => (
+              <div key={i} className="p-3 rounded-md bg-muted/50 space-y-2">
+                <p className="font-medium">{i + 1}. {q.question}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {q.options.map(opt => (
+                    <button
+                      key={opt}
+                      className={`text-left p-2 rounded-md border ${answers[i] === opt ? 'border-primary' : 'border-border'} hover:bg-accent`}
+                      onClick={() => setAnswers(prev => ({ ...prev, [i]: opt }))}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </ScrollArea>
+        <div className="p-4 flex justify-end gap-2 border-t">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button onClick={submit} disabled={!questions.length || isSubmitting}>Submit</Button>
         </div>
       </DialogContent>
     </Dialog>
