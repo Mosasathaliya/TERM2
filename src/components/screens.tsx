@@ -65,6 +65,7 @@ import { summarizeYouTubeInArabic } from '@/ai/flows/youtube-transcript-summary'
 import { getAiLessonRag, putAiLessonRag } from '@/lib/rag';
 import { enrichAiLessonInEnglish, translateAiLessonToArabic } from '@/ai/flows/generate-ai-lesson-content';
 import { getAiLessonArabicRag, putAiLessonArabicRag } from '@/lib/rag';
+import { coachChat, type CoachChatMessage } from '@/ai/flows/coach-chat-flow';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -1659,6 +1660,51 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
             </DialogContent>
         </Dialog>
     );
+}
+
+function ArabicCoachDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
+  const [history, setHistory] = useState<CoachChatMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  const send = async () => {
+    const msg = input.trim();
+    if (!msg || isSending) return;
+    setIsSending(true);
+    const newHistory = [...history, { role: 'user', content: msg }];
+    setHistory(newHistory);
+    setInput('');
+    try {
+      const out = await coachChat({ message: msg, history: newHistory });
+      setHistory(prev => [...prev, { role: 'assistant', content: out.answer }]);
+    } catch {
+      setHistory(prev => [...prev, { role: 'assistant', content: 'عذرًا، حدث خطأ. حاول مرة أخرى.' }]);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg h-[70vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>مدرب التعلم (عربي)</DialogTitle>
+          <DialogDescription>دردشة بالعربية تعتمد فقط على محتوى التطبيق.</DialogDescription>
+        </DialogHeader>
+        <ScrollArea className="flex-grow p-2 space-y-2">
+          {history.map((m, i) => (
+            <div key={i} className={`p-2 rounded-md ${m.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`} dir="rtl">
+              {m.content}
+            </div>
+          ))}
+        </ScrollArea>
+        <div className="flex gap-2">
+          <Textarea dir="rtl" value={input} onChange={e => setInput(e.target.value)} rows={1} placeholder="اكتب رسالتك بالعربية..."/>
+          <Button onClick={send} disabled={isSending || !input.trim()}>{isSending ? '...' : 'إرسال'}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
     
