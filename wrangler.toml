@@ -6,7 +6,11 @@ compatibility_date = "2024-06-20"
 pages_build_output_dir = ".vercel/output/static"
 
 [vars]
-# Set these in Cloudflare dashboard or via wrangler secret
 # CLOUDFLARE_AI_GATEWAY_URL = "https://.../ai-gateway"
 # CLOUDFLARE_API_TOKEN = "..."
 # CLOUDFLARE_ACCOUNT_ID = "..."
+
+[[kv_namespaces]]
+binding = "LESSON_RAG"
+id = "${LESSON_RAG_NS_ID}"
+preview_id = "${LESSON_RAG_NS_ID}"
