@@ -45,11 +45,25 @@ export function WordCard({ word, isLoading = false }: WordCardProps) {
     if (activeAudioId) return;
     if (audioRef.current) audioRef.current.pause();
 
-    // Use browser TTS for Arabic only
     if (lang === 'ar') {
       const ok = playBrowserArabic(text);
-      if (!ok) {
-        toast({ title: "TTS غير مدعوم", description: "المتصفح لا يدعم تحويل النص إلى كلام بالعربية.", variant: "destructive" });
+      if (ok) return;
+      // Fallback to Cloudflare TTS for Arabic if browser TTS not available
+      setActiveAudioId(id);
+      try {
+        const result = await textToSpeech({ prompt: text, lang: 'ar' });
+        if (!result || !result.media) {
+          toast({ title: "TTS Error", description: "Could not generate audio.", variant: "destructive" });
+          setActiveAudioId(null);
+          return;
+        }
+        const audio = new Audio(result.media);
+        audioRef.current = audio;
+        audio.play().catch(() => setActiveAudioId(null));
+        audio.onended = () => setActiveAudioId(null);
+        audio.onerror = () => setActiveAudioId(null);
+      } catch (e) {
+        setActiveAudioId(null);
       }
       return;
     }

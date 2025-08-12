@@ -50,7 +50,7 @@ export function TextAdventureApp() {
         setStoryHistory([]);
         currentHistory = [];
         setSceneImageUrl(null);
-        setGameState('playing'); // Move to playing state immediately for better UI feedback
+        setGameState('playing');
     }
 
     const isUserAction = action === 'continue' && prompt;
@@ -100,12 +100,8 @@ export function TextAdventureApp() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(errorMessage);
-      toast({
-        variant: "destructive",
-        title: "Story Generation Error",
-        description: errorMessage,
-      });
-      setGameState('error'); // Go to an error state
+      toast({ variant: "destructive", title: "Story Generation Error", description: errorMessage });
+      setGameState('error');
     } finally {
       setLoading(prev => ({ ...prev, story: false }));
     }
@@ -148,10 +144,14 @@ export function TextAdventureApp() {
     if (!cleanedWord) return;
 
     const isArabic = /[\u0600-\u06FF]/.test(cleanedWord);
-    if (isArabic && typeof window !== 'undefined' && window.speechSynthesis) {
-      const u = new SpeechSynthesisUtterance(cleanedWord);
-      u.lang = 'ar-SA';
-      window.speechSynthesis.speak(u);
+    if (isArabic) {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        const u = new SpeechSynthesisUtterance(cleanedWord);
+        u.lang = 'ar-SA';
+        window.speechSynthesis.speak(u);
+      } else {
+        textToSpeech({ prompt: cleanedWord, lang: 'ar' }).catch(err => console.error('TTS error:', err));
+      }
     } else {
       textToSpeech({ prompt: cleanedWord, lang: 'en' }).catch(err => console.error('TTS error:', err));
     }

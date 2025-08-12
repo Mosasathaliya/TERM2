@@ -22,11 +22,29 @@ export const VocabularyPanel: React.FC<VocabularyPanelProps> = ({ selectedWord, 
   const handleSpeak = async (text: string, lang: 'en' | 'ar', id: string) => {
     if (activeAudioId || !text) return;
 
-    if (lang === 'ar' && typeof window !== 'undefined' && window.speechSynthesis) {
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'ar-SA';
-      window.speechSynthesis.speak(u);
-      return;
+    if (lang === 'ar') {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'ar-SA';
+        window.speechSynthesis.speak(u);
+        return;
+      } else {
+        setActiveAudioId(id);
+        try {
+          const result = await textToSpeech({ prompt: text, lang: 'ar' });
+          if (result && result.media) {
+            const audio = new Audio(result.media);
+            audioRef.current = audio;
+            audio.play().catch(() => setActiveAudioId(null));
+            audio.onended = () => setActiveAudioId(null);
+            audio.onerror = () => setActiveAudioId(null);
+            return;
+          }
+        } catch (e) {
+          setActiveAudioId(null);
+        }
+        return;
+      }
     }
 
     if (audioRef.current) audioRef.current.pause();

@@ -209,11 +209,20 @@ function Chatbot({ lesson }: { lesson: Lesson }) {
     const playAudio = async (text: string) => {
         try {
             const isArabic = /[\u0600-\u06FF]/.test(text);
-            if (isArabic && typeof window !== 'undefined' && window.speechSynthesis) {
-                const u = new SpeechSynthesisUtterance(text);
-                u.lang = 'ar-SA';
-                window.speechSynthesis.speak(u);
-                return;
+            if (isArabic) {
+                if (typeof window !== 'undefined' && window.speechSynthesis) {
+                    const u = new SpeechSynthesisUtterance(text);
+                    u.lang = 'ar-SA';
+                    window.speechSynthesis.speak(u);
+                    return;
+                } else {
+                    const result = await textToSpeech({ prompt: text, lang: 'ar' });
+                    if (result && result.media) {
+                        const audio = new Audio(result.media);
+                        audio.play();
+                        return;
+                    }
+                }
             }
             const result = await textToSpeech({ prompt: text, lang: 'en' });
             if (result && result.media) {
