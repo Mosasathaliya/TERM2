@@ -1,0 +1,156 @@
+'use server';
+
+import { getRequestContext } from '@cloudflare/next-on-pages';
+
+export interface StoredLessonRag {
+  lesson_id: string;
+  arabic_explanation: string;
+  examples: Array<{ english: string; arabic: string; imagePrompt?: string }>;
+  additional_notes_arabic?: string | null;
+  common_mistakes_arabic?: string | null;
+  updated_at: string;
+}
+
+export interface StoredExtraRag {
+  id: string; // ai lesson id
+  explanation: string; // Arabic with embedded English examples
+  imageUrls: string[];
+  updated_at: string;
+}
+
+export interface StoredAiLessonRag {
+  id: string; // ai lesson id
+  enrichedEnglish: string;
+  imageUrls: string[];
+  quiz: { question: string; options: string[]; answer: string }[];
+  updated_at: string;
+}
+
+export interface StoredAiLessonArabicRag {
+  id: string;
+  arabic: string;
+  updated_at: string;
+}
+
+export interface StoredItemQuizRag {
+  id: string; // item id (use lesson title or story title)
+  quiz: { question: string; options: string[]; answer: string }[]; // exactly 5 items
+  updated_at: string;
+}
+
+// In-memory fallback for local dev without KV binding
+const memoryStore = new Map<string, any>();
+
+function getKv() {
+  try {
+    const env: any = getRequestContext().env;
+    return env?.LESSON_RAG as KVNamespace | undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export async function getLessonRag(lessonId: string): Promise<StoredLessonRag | null> {
+  const kv = getKv();
+  const key = `lesson:${lessonId}`;
+  if (kv) {
+    const json = await kv.get(key);
+    return json ? (JSON.parse(json) as StoredLessonRag) : null;
+  }
+  return memoryStore.get(key) ?? null;
+}
+
+export async function putLessonRag(data: StoredLessonRag): Promise<void> {
+  const kv = getKv();
+  const key = `lesson:${data.lesson_id}`;
+  const value = JSON.stringify(data);
+  if (kv) {
+    await kv.put(key, value, { expirationTtl: 60 * 60 * 24 * 365 });
+    return;
+  }
+  memoryStore.set(key, data);
+}
+
+export async function getExtraRag(id: string): Promise<StoredExtraRag | null> {
+  const kv = getKv();
+  const key = `extra:${id}`;
+  if (kv) {
+    const json = await kv.get(key);
+    return json ? (JSON.parse(json) as StoredExtraRag) : null;
+  }
+  return memoryStore.get(key) ?? null;
+}
+
+export async function putExtraRag(data: StoredExtraRag): Promise<void> {
+  const kv = getKv();
+  const key = `extra:${data.id}`;
+  const value = JSON.stringify(data);
+  if (kv) {
+    await kv.put(key, value, { expirationTtl: 60 * 60 * 24 * 365 });
+    return;
+  }
+  memoryStore.set(key, data);
+}
+
+export async function getAiLessonRag(id: string): Promise<StoredAiLessonRag | null> {
+  const kv = getKv();
+  const key = `ail:${id}`;
+  if (kv) {
+    const json = await kv.get(key);
+    return json ? (JSON.parse(json) as StoredAiLessonRag) : null;
+  }
+  return memoryStore.get(key) ?? null;
+}
+
+export async function putAiLessonRag(data: StoredAiLessonRag): Promise<void> {
+  const kv = getKv();
+  const key = `ail:${data.id}`;
+  const value = JSON.stringify(data);
+  if (kv) {
+    await kv.put(key, value, { expirationTtl: 60 * 60 * 24 * 365 });
+    return;
+  }
+  memoryStore.set(key, data);
+}
+
+export async function getAiLessonArabicRag(id: string): Promise<StoredAiLessonArabicRag | null> {
+  const kv = getKv();
+  const key = `ail:ar:${id}`;
+  if (kv) {
+    const json = await kv.get(key);
+    return json ? (JSON.parse(json) as StoredAiLessonArabicRag) : null;
+  }
+  return memoryStore.get(key) ?? null;
+}
+
+export async function putAiLessonArabicRag(data: StoredAiLessonArabicRag): Promise<void> {
+  const kv = getKv();
+  const key = `ail:ar:${data.id}`;
+  const value = JSON.stringify(data);
+  if (kv) {
+    await kv.put(key, value, { expirationTtl: 60 * 60 * 24 * 365 });
+    return;
+  }
+  memoryStore.set(key, data);
+}
+
+export async function getItemQuizRag(id: string): Promise<StoredItemQuizRag | null> {
+  const kv = getKv();
+  const key = `quiz:${id}`;
+  if (kv) {
+    const json = await kv.get(key);
+    return json ? (JSON.parse(json) as StoredItemQuizRag) : null;
+  }
+  return memoryStore.get(key) ?? null;
+}
+
+export async function putItemQuizRag(data: StoredItemQuizRag): Promise<void> {
+  const kv = getKv();
+  const key = `quiz:${data.id}`;
+  const value = JSON.stringify(data);
+  if (kv) {
+    await kv.put(key, value, { expirationTtl: 60 * 60 * 24 * 365 });
+    return;
+  }
+  memoryStore.set(key, data);
+}

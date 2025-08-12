@@ -1,33 +1,27 @@
-name = "term2"
+name = "trinav"
 compatibility_date = "2024-06-20"
+
+[pages]
+# Build is handled by @cloudflare/next-on-pages via npm script
 pages_build_output_dir = ".vercel/output/static"
 
 [vars]
-# Bindings available to both Pages Functions and Workers
-CLOUDFLARE_AI_GATEWAY_URL = "https://api.cloudflare.com/client/v4/ai/gateway" # if using gateway proxy
+# Existing Cloudflare vars
+CLOUDFLARE_AI_GATEWAY_URL = "$CLOUDFLARE_AI_GATEWAY_URL"
+CLOUDFLARE_API_TOKEN = "$CLOUDFLARE_API_TOKEN"
+CLOUDFLARE_ACCOUNT_ID = "$CLOUDFLARE_ACCOUNT_ID"
+# App auth variables
+APP_LOGIN_ID = "$APP_LOGIN_ID"
+APP_LOGIN_PASSWORD = "$APP_LOGIN_PASSWORD"
+SESSION_SECRET = "$SESSION_SECRET"
+ADMIN_SEED_SECRET = "$ADMIN_SEED_SECRET"
 
-[observability]
-enabled = true
-
-[env.production]
-route = "*"
-
-[kv_namespaces]
-# [[kv_namespaces]]
-# binding = "TERM2_KV"
-# id = "<KV_NAMESPACE_ID>"
+[[kv_namespaces]]
+binding = "LESSON_RAG"
+id = "${LESSON_RAG_NS_ID}"
+preview_id = "${LESSON_RAG_NS_ID}"
 
 [[d1_databases]]
-# binding = "DB"
-# database_name = "term2"
-# database_id = "<D1_DATABASE_ID>"
-
-[[vectorize]]
-# binding = "VECTORIZE"
-# index_name = "term2"
-
-[ai]
-# No-op section placeholder, using custom runner in src/lib/cloudflare-ai.ts
-
-[placement]
-mode = "smart"
+binding = "DB"
+database_name = "trinav_users"
+database_id = "${D1_DATABASE_ID}"

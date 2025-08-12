@@ -43,3 +43,10 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+
+# env files
+.env
+.env.*
+
+# cloudflare pages output
+.vercel/output

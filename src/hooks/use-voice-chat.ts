@@ -2,91 +2,99 @@
 'use client';
 
 /**
- * @fileoverview Custom hook to manage the entire voice chat lifecycle.
- * It integrates audio processing and calls a server-side pipeline for AI interactions.
+ * @fileoverview Custom hook to manage the entire voice chat lifecycle for Chatterbot.
+ * - STT: Records mic audio, sends to Cloudflare Whisper via server pipeline
+ * - LLM: Generates response via Cloudflare text model (runAi)
+ * - TTS: Speaks back (browser SpeechSynthesis for Arabic, Cloudflare TTS for English)
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { useAudioProcessor } from './use-audio-processor';
 import { useAgentStore } from './use-agent-store';
 import { textToSpeech } from '@/ai/flows/tts-flow';
-import type { Message } from '@/ai/flows/voice-chat-pipeline';
-import { runVoiceChatPipeline } from '@/ai/flows/voice-chat-pipeline';
+import { runVoiceChatPipeline, type Message as VoiceMessage } from '@/ai/flows/voice-chat-pipeline';
 
-const MAX_HISTORY_MESSAGES = 30; // 15 pairs of user/model messages
+const MAX_HISTORY_MESSAGES = 30; // keep last 15 user/model pairs
 
 export function useVoiceChat() {
   const { currentAgent, userSettings, setAudioLevel } = useAgentStore();
+
   const [isConnected, setIsConnected] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isTalking, setIsTalking] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [history, setHistory] = useState<Message[]>([]);
-  
+  const [history, setHistory] = useState<VoiceMessage[]>([]);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
 
-  const handleAudioData = useCallback(async (dataUri: string) => {
-    if (isMuted) return;
-  
+  const speak = useCallback(async (text: string) => {
+    if (!text?.trim() || isMuted) return;
+
+    const isArabic = /[\u0600-\u06FF]/.test(text);
     setIsTalking(true);
+
+    if (isArabic && typeof window !== 'undefined' && window.speechSynthesis) {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ar-SA';
+      u.onend = () => setIsTalking(false);
+      window.speechSynthesis.speak(u);
+      return;
+    }
+
+    const result = await textToSpeech({ prompt: text, lang: 'en' });
+    if (!result?.media) {
+      setIsTalking(false);
+      return;
+    }
+
+    if (!audioRef.current) audioRef.current = new Audio();
+    audioRef.current.src = result.media;
+    audioRef.current.onended = () => setIsTalking(false);
     try {
-      const pipelineInput = {
+      await audioRef.current.play();
+    } catch {
+      setIsTalking(false);
+    }
+  }, [isMuted]);
+
+  const handleAudioData = useCallback(async (dataUri: string) => {
+    try {
+      const output = await runVoiceChatPipeline({
         audioDataUri: dataUri,
         personality: currentAgent.personality,
         userName: userSettings.name,
         userInfo: userSettings.info,
-        history: history,
-      };
+        history,
+      });
 
-      const result = await runVoiceChatPipeline(pipelineInput);
-      const { response: responseText, transcribedText } = result;
+      if (output.transcribedText) {
+        const userMsg: VoiceMessage = { role: 'user', content: output.transcribedText };
+        setHistory((prev) => [...prev, userMsg].slice(-MAX_HISTORY_MESSAGES));
+      }
 
-      // Update history with both user's message and model's response
-       if (transcribedText) {
-          const userMessage: Message = { role: 'user', content: transcribedText };
-          const modelMessage: Message = { role: 'model', content: responseText };
-          setHistory(prev => [...prev, userMessage, modelMessage].slice(-MAX_HISTORY_MESSAGES));
-       }
-      
-      if (responseText) {
-          const ttsResult = await textToSpeech({ prompt: responseText, lang: 'en' });
-          if (audioRef.current && ttsResult?.media) {
-              audioRef.current.src = ttsResult.media;
-              audioRef.current.play().catch(e => {
-                console.error("Audio playback error:", e);
-                setIsTalking(false);
-              });
-          } else {
-               setIsTalking(false);
-          }
-      } else {
-           setIsTalking(false);
+      if (output.response) {
+        const modelMsg: VoiceMessage = { role: 'model', content: output.response };
+        setHistory((prev) => [...prev, modelMsg].slice(-MAX_HISTORY_MESSAGES));
+        await speak(output.response);
       }
     } catch (error) {
       console.error('Voice chat pipeline error:', error);
       setIsTalking(false);
     }
-  }, [isMuted, currentAgent, userSettings, history]);
-  
+  }, [currentAgent.personality, userSettings.name, userSettings.info, history, speak]);
 
-  const { start, stop } = useAudioProcessor(handleAudioData);
+  const { isRecording, start, stop } = useAudioProcessor(handleAudioData);
 
   const connect = useCallback(() => {
-    if (!audioRef.current) {
-        const audio = new Audio();
-        audioRef.current = audio;
-    }
+    if (!audioRef.current) audioRef.current = new Audio();
     setIsConnected(true);
   }, []);
-
 
   const disconnect = useCallback(() => {
     if (isRecording) {
       stop();
-      setIsRecording(false);
     }
     if (audioRef.current) {
       audioRef.current.pause();
@@ -105,80 +113,54 @@ export function useVoiceChat() {
   }, [isRecording, stop, setAudioLevel]);
 
   const toggleMute = () => setIsMuted((prev) => !prev);
-  
+
   const toggleRecording = useCallback(() => {
-    if (isRecording) {
-      stop();
-    } else {
-      start();
-    }
-    setIsRecording(prev => !prev);
-  }, [isRecording, start, stop]);
-  
-  
+    if (!isConnected) return;
+    if (isRecording) stop(); else start();
+  }, [isConnected, isRecording, start, stop]);
+
+  // Optional: lip-sync meter (average audio level) when speaking
   useEffect(() => {
-    let lipSyncFrameId: number;
+    let rafId: number;
+    if (!audioRef.current) return;
 
-    const setupAudioContext = () => {
-        if (audioRef.current && !audioContextRef.current) {
-            const context = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const source = context.createMediaElementSource(audioRef.current);
-            const analyser = context.createAnalyser();
-            
-            source.connect(analyser);
-            analyser.connect(context.destination);
-            
-            audioContextRef.current = context;
-            analyserRef.current = analyser;
-            sourceNodeRef.current = source;
-        }
-    };
-    
-    if (isTalking) {
-      setupAudioContext();
-      const analyser = analyserRef.current;
-      if (analyser) {
-        analyser.fftSize = 32;
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-
-        const animate = () => {
-          if (!analyserRef.current || !isTalking) {
-            cancelAnimationFrame(lipSyncFrameId);
-            setAudioLevel(0);
-            return;
-          }
-          analyserRef.current.getByteFrequencyData(dataArray);
-          const average = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
-          setAudioLevel(average / 128);
-          lipSyncFrameId = requestAnimationFrame(animate);
-        };
-        animate();
+    const setup = () => {
+      if (!audioContextRef.current) {
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const src = ctx.createMediaElementSource(audioRef.current!);
+        const analyser = ctx.createAnalyser();
+        src.connect(analyser);
+        analyser.connect(ctx.destination);
+        audioContextRef.current = ctx;
+        analyserRef.current = analyser;
+        sourceNodeRef.current = src;
       }
+    };
+
+    const animate = () => {
+      const analyser = analyserRef.current;
+      if (!analyser || !isTalking) {
+        setAudioLevel(0);
+        rafId && cancelAnimationFrame(rafId);
+        return;
+      }
+      analyser.fftSize = 32;
+      const buffer = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(buffer);
+      const avg = buffer.reduce((a, v) => a + v, 0) / buffer.length;
+      setAudioLevel(avg / 128);
+      rafId = requestAnimationFrame(animate);
+    };
+
+    if (isTalking) {
+      setup();
+      animate();
     } else {
       setAudioLevel(0);
     }
 
-    return () => {
-      if (lipSyncFrameId) {
-        cancelAnimationFrame(lipSyncFrameId);
-      }
-    };
+    return () => rafId && cancelAnimationFrame(rafId);
   }, [isTalking, setAudioLevel]);
-
-  useEffect(() => {
-    const audioEl = audioRef.current;
-    if (!audioEl) return;
-    
-    const handleAudioEnd = () => {
-      setIsTalking(false);
-    };
-
-    audioEl.addEventListener('ended', handleAudioEnd);
-    return () => {
-      audioEl.removeEventListener('ended', handleAudioEnd);
-    };
-  }, [isTalking]); 
 
   return {
     isConnected,

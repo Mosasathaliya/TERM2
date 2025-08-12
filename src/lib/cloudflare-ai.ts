@@ -1,83 +1,98 @@
 
 'use server';
 
-const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOKEN;
+const getEnv = (key: string): string => {
+  const value = (process as any)?.env?.[key];
+  if (!value) throw new Error(`${key} is not set in the environment variables.`);
+  return value;
+};
 
-async function resolveAccountId(): Promise<string> {
-  // Prefer explicit env if provided
-  if (process.env.CLOUDFLARE_ACCOUNT_ID) {
-    return process.env.CLOUDFLARE_ACCOUNT_ID as string;
-  }
-  // Cache between calls during runtime
-  // @ts-ignore
-  if (globalThis.__cfAccountId) {
-    // @ts-ignore
-    return globalThis.__cfAccountId as string;
-  }
-  if (!CLOUDFLARE_API_TOKEN) {
-    throw new Error('CLOUDFLARE_API_TOKEN is required to auto-resolve Account ID.');
-  }
-  const res = await fetch('https://api.cloudflare.com/client/v4/accounts', {
-    headers: { Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}` },
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Failed to resolve Cloudflare Account ID: ${res.status} ${text}`);
-  }
-  const json = await res.json();
-  const accounts = json?.result || [];
-  if (!accounts.length || !accounts[0]?.id) {
-    throw new Error('No Cloudflare accounts found for the provided token.');
-  }
-  const id = accounts[0].id as string;
-  // @ts-ignore
-  globalThis.__cfAccountId = id;
-  return id;
-}
-
-type AiModel = 
-  | '@cf/meta/llama-3-8b-instruct'
-  | '@cf/meta/m2m100-1.2b'
-  | '@cf/baai/bge-reranker-base'
-  | '@cf/baai/bge-base-en-v1.5'
-  | '@cf/stabilityai/stable-diffusion-xl-base-1.0'
-  | '@cf/myshell-ai/melotts'
-  | '@cf/openai/whisper';
+export type AiModel = string;
 
 interface RunAiOptions {
   model: AiModel;
-  inputs: object;
+  inputs: any;
   stream?: boolean;
 }
 
-/**
- * A centralized function to run any Cloudflare AI model via the AI Gateway.
- * @param model The AI model to run.
- * @param inputs The inputs for the model.
- * @param stream Whether to stream the response (for text generation).
- * @returns The model's response.
- */
 export async function runAi({ model, inputs, stream = false }: RunAiOptions) {
-  const CLOUDFLARE_ACCOUNT_ID = await resolveAccountId();
-  const directUrl = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${model}`;
+  const CLOUDFLARE_API_TOKEN = getEnv('CLOUDFLARE_API_TOKEN');
+  const CLOUDFLARE_AI_GATEWAY_URL = (process as any)?.env?.CLOUDFLARE_AI_GATEWAY_URL;
 
-  let body: any;
-  const headers: HeadersInit = { Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}` } as HeadersInit;
+  const isImageOrAudio = model.includes('stable-diffusion') || model.includes('melotts') || model.includes('whisper');
+  const isTextGeneration = model.includes('llama') || model.includes('mixtral') || model.includes('qwen') || model.includes('deepseek');
 
-  // Whisper expects raw audio
-  if (model.includes('whisper') && 'audio' in inputs && (inputs as any).audio && (((inputs as any).audio) instanceof Buffer || ((inputs as any).audio) instanceof Uint8Array)) {
-    (headers as any)['Content-Type'] = 'application/octet-stream';
-    body = (inputs as any).audio;
-  } else {
-    (headers as any)['Content-Type'] = 'application/json';
-    body = JSON.stringify(stream ? { ...inputs, stream: true } : inputs);
+  if (isImageOrAudio) {
+    const CLOUDFLARE_ACCOUNT_ID = getEnv('CLOUDFLARE_ACCOUNT_ID');
+    const directUrl = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${model}`;
+
+    let body: any;
+    const headers: HeadersInit = { Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}` };
+
+    if (model.includes('whisper') && inputs && inputs.audio && (inputs.audio instanceof Uint8Array)) {
+      headers['Content-Type'] = 'application/octet-stream';
+      body = inputs.audio;
+    } else {
+      headers['Content-Type'] = 'application/json';
+      body = JSON.stringify(inputs ?? {});
+    }
+
+    const response = await fetch(directUrl, { method: 'POST', headers, body });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Cloudflare AI Direct API error for model ${model}:`, errorText);
+      throw new Error(`Cloudflare AI Direct API request failed: ${response.statusText}`);
+    }
+
+    return response;
   }
 
-  const response = await fetch(directUrl, { method: 'POST', headers, body });
+  if (!CLOUDFLARE_AI_GATEWAY_URL) {
+    throw new Error('CLOUDFLARE_AI_GATEWAY_URL is not set for gateway-based requests.');
+  }
+
+  const body = {
+    ...(isTextGeneration && stream ? { stream: true } : {}),
+    ...inputs,
+  };
+
+  const gatewayPayload = {
+    provider: 'workers-ai',
+    endpoint: model,
+    query: body,
+    headers: {
+      Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
+    },
+  };
+
+  const response = await fetch(CLOUDFLARE_AI_GATEWAY_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-gateway-mode': 'single',
+    },
+    body: JSON.stringify(gatewayPayload),
+  });
+
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`Cloudflare AI Direct API error for model ${model}:`, errorText);
-    throw new Error(`Cloudflare AI Direct API request failed: ${response.statusText}`);
+    console.error(`Cloudflare AI Gateway error for model ${model}:`, errorText);
+    throw new Error(`Cloudflare AI Gateway request failed: ${response.statusText}`);
   }
-  return response;
+
+  if (stream) return response;
+
+  const jsonResponse = await response.json();
+  if ((jsonResponse as any).result) {
+    return new Response(JSON.stringify({ result: (jsonResponse as any).result }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 200,
+    });
+  }
+
+  return new Response(JSON.stringify(jsonResponse), {
+    headers: { 'Content-Type': 'application/json' },
+    status: response.status,
+  });
 }

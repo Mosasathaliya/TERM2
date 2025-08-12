@@ -43,7 +43,8 @@ You MUST reply with ONLY the explanation text, without any introductory phrases 
     { role: 'user', content: englishGrammarConcept },
   ];
 
-  const response = await runAi({ model: '@cf/meta/llama-3-8b-instruct', inputs: { messages } });
+  const primaryModel = (process as any)?.env?.CLOUDFLARE_PRIMARY_TEXT_MODEL || '@cf/meta/llama-3-8b-instruct';
+  const response = await runAi({ model: primaryModel, inputs: { messages } });
   const jsonResponse = await response.json();
   const explanation = jsonResponse.result.response;
 

@@ -60,6 +60,15 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { learningItems } from '@/lib/lessons';
+import { getExtraRag, putExtraRag } from '@/lib/rag';
+import { generateExtraLearning } from '@/ai/flows/generate-extra-learning';
+import { summarizeYouTubeInArabic } from '@/ai/flows/youtube-transcript-summary';
+import { getAiLessonRag, putAiLessonRag } from '@/lib/rag';
+import { enrichAiLessonInEnglish, translateAiLessonToArabic } from '@/ai/flows/generate-ai-lesson-content';
+import { getAiLessonArabicRag, putAiLessonArabicRag } from '@/lib/rag';
+import { coachChat, type CoachChatMessage } from '@/ai/flows/coach-chat-flow';
+import { generateFinalExam } from '@/ai/flows/generate-final-exam';
+import { useUserTasks } from '@/hooks/use-user-tasks';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -305,68 +314,113 @@ const ExplanationSection = ({ title, content, onPlay, isLoading }: { title: stri
 
 
 function WhatIfDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [isExplanationOpen, setIsExplanationOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const videoData = whatIfLinks.split('\n').map(getYouTubeInfo).filter(item => item.embedUrl);
+  const currentVideo = videoData[currentIndex];
+  const [isExplanationOpen, setIsExplanationOpen] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const { toast } = useToast();
+  const tasks = useUserTasks();
 
-    const videoData = whatIfLinks.split('\n').map(getYouTubeInfo).filter(item => item.embedUrl);
-    const currentVideo = videoData[currentIndex];
+  useEffect(() => {
+    if (currentVideo?.videoId) tasks.markVideoSeen(currentVideo.videoId);
+  }, [currentIndex]);
 
-    const goToNext = () => setCurrentIndex(prev => (prev + 1) % videoData.length);
-    const goToPrevious = () => setCurrentIndex(prev => (prev - 1 + videoData.length) % videoData.length);
-    
-    return (
-      <>
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl h-auto flex flex-col p-4 sm:p-6 gap-4">
-                <DialogHeader>
-                    <DialogTitle>ماذا لو...؟</DialogTitle>
-                    <DialogDescription>استكشف سيناريوهات افتراضية رائعة. فيديو {currentIndex + 1} من {videoData.length}.</DialogDescription>
-                </DialogHeader>
-                <div className="flex-grow aspect-video bg-muted rounded-lg overflow-hidden shadow-inner">
-                    {currentVideo?.embedUrl && (
-                        <iframe
-                            key={currentVideo.embedUrl} // Add key to force re-render
-                            width="100%"
-                            height="100%"
-                            src={`${currentVideo.embedUrl}?autoplay=1`}
-                            title="What If YouTube Video Player"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowFullScreen
-                        ></iframe>
-                    )}
-                </div>
-                <div className="flex-col sm:flex-row gap-2 justify-between w-full">
-                    <Button onClick={goToPrevious} disabled={videoData.length <= 1}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
-                        السابق
-                    </Button>
-                     <Button variant="secondary" onClick={() => setIsExplanationOpen(true)}>
-                        <LightbulbIcon className="mr-2 h-4 w-4" />
-                        اشرح هذا الفيديو
-                    </Button>
-                    <Button onClick={goToNext} disabled={videoData.length <= 1}>
-                        التالي
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                </div>
-            </DialogContent>
-        </Dialog>
-        {currentVideo && (
-           <ExplanationDialog 
-              videoTitle={currentVideo.title || `Video ${currentIndex + 1}`}
-              isOpen={isExplanationOpen} 
-              onOpenChange={setIsExplanationOpen}
-            />
-        )}
-      </>
-    );
+  const goToNext = () => setCurrentIndex(prev => (prev + 1) % videoData.length);
+  const goToPrevious = () => setCurrentIndex(prev => (prev - 1 + videoData.length) % videoData.length);
+
+  const summarizeOnce = async () => {
+    if (!currentVideo?.videoId) return;
+    const ragId = `yt:${currentVideo.videoId}`;
+    setIsSummarizing(true);
+    setSummary(null);
+    try {
+      const cached = await getExtraRag(ragId);
+      if (cached) {
+        setSummary(cached.explanation);
+        return;
+      }
+      const result = await summarizeYouTubeInArabic({ videoId: currentVideo.videoId, title: currentVideo.title || '' });
+      setSummary(result.arabicSummary);
+      await putExtraRag({ id: ragId, explanation: result.arabicSummary, imageUrls: [], updated_at: new Date().toISOString() });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'خطأ', description: 'تعذر توليد الملخص.' });
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
+  return (
+    <>
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl h-[80vh] flex flex-col">
+          <DialogHeader className="p-4 border-b shrink-0">
+            <DialogTitle>ماذا لو؟ (What If)</DialogTitle>
+            <DialogDescription>فيديو {currentIndex + 1} من {videoData.length}.</DialogDescription>
+          </DialogHeader>
+          <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden shadow-inner">
+            {currentVideo?.embedUrl && (
+              <iframe
+                key={currentVideo.embedUrl}
+                width="100%"
+                height="100%"
+                src={`${currentVideo.embedUrl}?autoplay=1`}
+                title="What If YouTube Video Player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              ></iframe>
+            )}
+          </div>
+          <div className="flex-col sm:flex-row gap-2 justify-between w-full">
+            <Button onClick={goToPrevious} disabled={videoData.length <= 1}>
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              السابق
+            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" onClick={() => setIsExplanationOpen(true)}>
+                <LightbulbIcon className="mr-2 h-4 w-4" />
+                اشرح هذا الفيديو (قديمة)
+              </Button>
+              <Button onClick={summarizeOnce} disabled={isSummarizing || !currentVideo?.videoId}>
+                {isSummarizing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> جاري التلخيص...</> : 'تلخيص عربي (توليد مرة واحدة)'}
+              </Button>
+            </div>
+            <Button onClick={goToNext} disabled={videoData.length <= 1}>
+              التالي
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+          {summary && (
+            <div className="mt-4 p-3 rounded-md border bg-muted text-foreground whitespace-pre-wrap leading-7">
+              {summary}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      {currentVideo && (
+        <ExplanationDialog 
+          videoTitle={currentVideo.title || `Video ${currentIndex + 1}`}
+          isOpen={isExplanationOpen} 
+          onOpenChange={setIsExplanationOpen}
+        />
+      )}
+    </>
+  );
 }
 
 function MotivationDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const videoData = motivationLinks.split('\n').map(getYouTubeInfo).filter(item => item.embedUrl);
     const currentVideo = videoData[currentIndex];
+    const { toast } = useToast();
+    const tasks = useUserTasks();
+
+    useEffect(() => {
+        const id = currentVideo?.videoId;
+        if (id) tasks.markShortSeen(id);
+    }, [currentIndex]);
 
     const goToNext = () => setCurrentIndex(prev => (prev + 1) % videoData.length);
     const goToPrevious = () => setCurrentIndex(prev => (prev - 1 + videoData.length) % videoData.length);
@@ -435,154 +489,122 @@ function AiLessonsDialog({ isOpen, onOpenChange, onSelectLesson }: { isOpen: boo
 }
 
 function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson: AiLesson | null, isOpen: boolean, onOpenChange: (isOpen: boolean) => void, onBack: () => void }) {
-  const [explanation, setExplanation] = useState<string | null>(null);
-  const [isExplaining, setIsExplaining] = useState(false);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [englishContent, setEnglishContent] = useState<string | null>(null);
+  const [arabicTranslation, setArabicTranslation] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [quiz, setQuiz] = useState<{ question: string; options: string[]; answer: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
   const { toast } = useToast();
-  
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [activeAudioId, setActiveAudioId] = useState<string | null>(null);
 
   useEffect(() => {
-    setExplanation(null);
-    setAnswers({});
-    setIsSubmitted(false);
-    if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-    }
-    setActiveAudioId(null);
+    setEnglishContent(null);
+    setArabicTranslation(null);
+    setImages([]);
+    setQuiz([]);
   }, [lesson]);
 
-  const handlePlayAudio = async (text: string, id: string, lang: 'en' | 'ar' = 'ar') => {
-    if (!text || activeAudioId) return;
-    setActiveAudioId(id);
+  const loadContent = async () => {
+    if (!lesson || isLoading) return;
+    setIsLoading(true);
     try {
-      const result = await textToSpeech({ prompt: text, lang: lang });
-      if (result?.media) {
-        if (!audioRef.current) {
-          audioRef.current = new Audio();
-        }
-        const audio = audioRef.current;
-        audio.src = result.media;
-        audio.play().catch(e => {
-          console.error("Audio playback error:", e);
-          setActiveAudioId(null);
-        });
-        audio.onended = () => setActiveAudioId(null);
-        audio.onerror = () => {
-             toast({ variant: 'destructive', title: 'خطأ في تشغيل الصوت.' });
-             setActiveAudioId(null);
-        }
-      } else {
-        toast({ variant: 'destructive', title: 'خطأ', description: 'فشل في تشغيل الصوت.' });
-        setActiveAudioId(null);
+      const cached = await getAiLessonRag(lesson.id);
+      if (cached) {
+        setEnglishContent(cached.enrichedEnglish);
+        setImages(cached.imageUrls);
+        setQuiz(cached.quiz);
+        return;
       }
-    } catch (err) {
-      console.error("TTS Error:", err);
-      toast({ variant: 'destructive', title: 'خطأ في تشغيل الصوت.' });
-      setActiveAudioId(null);
-    }
-  };
-
-
-  const handleExplain = async () => {
-    if (!lesson || isExplaining) return;
-    setIsExplaining(true);
-    setExplanation(null);
-    try {
-      const response = await translateText({ text: lesson.content, targetLanguage: 'ar' });
-      setExplanation(response.translation);
-      await handlePlayAudio(response.translation, 'explanation', 'ar');
-    } catch (err) {
-      toast({ variant: 'destructive', title: 'خطأ', description: 'فشل في الحصول على الشرح.' });
+      const enriched = await enrichAiLessonInEnglish(lesson.title, lesson.content, lesson.image_hint);
+      setEnglishContent(enriched.enrichedEnglish);
+      setImages(enriched.imageUrls);
+      setQuiz(enriched.quiz);
+      await putAiLessonRag({ id: lesson.id, enrichedEnglish: enriched.enrichedEnglish, imageUrls: enriched.imageUrls, quiz: enriched.quiz, updated_at: new Date().toISOString() });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to load lesson.' });
     } finally {
-      setIsExplaining(false);
+      setIsLoading(false);
     }
-  };
-  
-  const handleAnswerChange = (qIndex: number, option: string) => {
-    if (isSubmitted) return;
-    setAnswers(prev => ({ ...prev, [qIndex]: option }));
   };
 
-  const handleSubmit = () => {
-    if (!lesson) return;
-    setIsSubmitted(true);
-    const correctAnswers = lesson.questions.reduce((acc, q, i) => {
-        return answers[i] === q.answer ? acc + 1 : acc;
-    }, 0);
-    if (correctAnswers >= 2) {
-        toast({ title: 'تهانينا!', description: 'لقد نجحت في الاختبار!', className: 'bg-green-100 dark:bg-green-900' });
-    } else {
-        toast({ variant: 'destructive', title: 'حاول مرة أخرى', description: `تحتاج إلى إجابتين صحيحتين على الأقل للنجاح. نتيجتك: ${correctAnswers}` });
+  useEffect(() => { if (isOpen) loadContent(); }, [isOpen]);
+
+  const handleTranslate = async () => {
+    if (!englishContent || isTranslating) return;
+    setIsTranslating(true);
+    try {
+      const cached = await getAiLessonArabicRag(lesson!.id);
+      if (cached) {
+        setArabicTranslation(cached.arabic);
+        return;
+      }
+      const ar = await translateAiLessonToArabic(englishContent);
+      setArabicTranslation(ar);
+      await putAiLessonArabicRag({ id: lesson!.id, arabic: ar, updated_at: new Date().toISOString() });
+    } catch {
+      toast({ variant: 'destructive', title: 'خطأ', description: 'فشل في الترجمة.' });
+    } finally {
+      setIsTranslating(false);
     }
   };
-  
-  if (!lesson) return null;
-  const score = lesson.questions.reduce((acc, q, i) => answers[i] === q.answer ? acc + 1 : acc, 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
-        <DialogHeader className="p-4 border-b flex-row items-center">
-            <Button variant="ghost" size="icon" onClick={onBack}><ChevronLeft/></Button>
-            <DialogTitle className="flex items-center gap-2">
-                {lesson.title}
-            </DialogTitle>
+      <DialogContent className="max-w-3xl h-[85vh] flex flex-col">
+        <DialogHeader className="p-4 border-b shrink-0">
+          <div className="flex items-center justify-between">
+            <DialogTitle>{lesson?.title || 'AI Lesson'}</DialogTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={onBack}>Back</Button>
+              <Button variant="secondary" size="sm" onClick={handleTranslate} disabled={!englishContent || isTranslating}>
+                {isTranslating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Translating...</> : 'Translate to Arabic'}
+              </Button>
+            </div>
+          </div>
+          <DialogDescription>English content enriched with AI; optional Arabic translation. Quiz in English only.</DialogDescription>
         </DialogHeader>
-        <ScrollArea className="flex-grow">
-          <div className="p-6">
-            <Image src={lesson.image} alt={lesson.title} width={600} height={400} className="w-full h-auto object-cover rounded-md mb-4" data-ai-hint={lesson.image_hint}/>
-            <p className="text-foreground/90 leading-relaxed mb-4">{lesson.content}</p>
-            <Button onClick={handleExplain} disabled={isExplaining || !!activeAudioId}>
-              {isExplaining ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Volume2 className="mr-2 h-4 w-4"/>}
-              اشرح بالعربية
-            </Button>
-            {explanation && <p className="mt-4 p-4 bg-muted rounded-md" dir="rtl">{explanation}</p>}
+        <ScrollArea className="flex-grow p-4 space-y-4">
+          {isLoading && <div className="text-muted-foreground">Loading lesson...</div>}
 
-            <div className="mt-8">
-              <h3 className="text-xl font-bold mb-4">اختبر معلوماتك</h3>
-              {isSubmitted && (
-                 <Alert className="mb-4 bg-primary/10 border-primary/20">
-                    <CheckCircle className="h-4 w-4 text-primary" />
-                    <AlertTitle>النتيجة: {score} من {lesson.questions.length}</AlertTitle>
-                    <AlertDescription>
-                        {score >= 2 ? "رائع! لقد نجحت." : "تحتاج إلى إجابتين صحيحتين على الأقل للنجاح."}
-                    </AlertDescription>
-                </Alert>
-              )}
-              <div className="space-y-6">
-                {lesson.questions.map((q, i) => (
-                  <div key={i} className={cn("p-4 border rounded-lg", isSubmitted && (answers[i] === q.answer ? 'border-green-500' : 'border-destructive'))}>
-                    <p className="font-semibold mb-3">{i+1}. {q.question}</p>
-                    <RadioGroup value={answers[i]} onValueChange={(val) => handleAnswerChange(i, val)} disabled={isSubmitted}>
-                      {q.options.map(opt => {
-                        const isCorrect = opt === q.answer;
-                        const isSelected = answers[i] === opt;
-                        return (
-                          <div key={opt} className={cn("flex items-center space-x-2 rounded-md p-2", isSubmitted && isCorrect && "bg-green-500/10 text-green-800 dark:text-green-300", isSubmitted && isSelected && !isCorrect && "bg-destructive/10 text-destructive")}>
-                          <RadioGroupItem value={opt} id={`q${i}-opt-${opt}`} />
-                          <Label htmlFor={`q${i}-opt-${opt}`} className="flex-1 cursor-pointer">{opt}</Label>
-                           {isSubmitted && isCorrect && <Check className="h-5 w-5 text-green-500" />}
-                            {isSubmitted && isSelected && !isCorrect && <X className="h-5 w-5 text-destructive" />}
-                          </div>
-                        )
-                      })}
-                    </RadioGroup>
+          {englishContent && (
+            <div className="space-y-3">
+              <h4 className="font-semibold text-lg">English Lesson</h4>
+              <div className="prose prose-invert max-w-none whitespace-pre-wrap leading-7">{englishContent}</div>
+            </div>
+          )}
+
+          {images.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {images.map((src, i) => (
+                <Image key={i} src={src} alt={`lesson-illustration-${i}`} width={600} height={400} className="w-full h-auto rounded-md object-cover" />
+              ))}
+            </div>
+          )}
+
+          {arabicTranslation && (
+            <div className="space-y-3">
+              <h4 className="font-semibold text-lg">الترجمة العربية</h4>
+              <div className="prose prose-invert max-w-none whitespace-pre-wrap leading-7">{arabicTranslation}</div>
+            </div>
+          )}
+
+          {quiz.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="font-semibold text-lg">English Quiz</h4>
+              <div className="space-y-4">
+                {quiz.map((q, i) => (
+                  <div key={i} className="p-3 rounded-md bg-muted/50">
+                    <p className="font-medium">{i + 1}. {q.question}</p>
+                    <ul className="list-disc ps-5">
+                      {q.options.map((opt, j) => (
+                        <li key={j}>{opt}</li>
+                      ))}
+                    </ul>
                   </div>
                 ))}
               </div>
-               <div className="mt-6 flex justify-end">
-                  {isSubmitted ? (
-                    <Button variant="outline" onClick={() => { setIsSubmitted(false); setAnswers({}); }}>أعد المحاولة</Button>
-                  ) : (
-                    <Button onClick={handleSubmit}>تحقق من الإجابات</Button>
-                  )}
-              </div>
             </div>
-          </div>
+          )}
         </ScrollArea>
       </DialogContent>
     </Dialog>
@@ -696,6 +718,7 @@ function AiStoryMaker() {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
+    const tasks = useUserTasks();
 
     const canGenerate = stories.length < 3;
 
@@ -717,7 +740,6 @@ function AiStoryMaker() {
                 const { done, value } = await reader.read();
                 if (done) break;
                 const decodedChunk = decoder.decode(value, { stream: true });
-                // Handle the data: {} format
                 const lines = decodedChunk.split('\n\n');
                 for (const line of lines) {
                     if (line.startsWith('data: ')) {
@@ -736,18 +758,13 @@ function AiStoryMaker() {
 
             const imageResult = await generateStoryImage({ story: fullStory });
             setImageUrl(imageResult.imageUrl);
-            
             addStory({ id: Date.now().toString(), prompt, content: fullStory, imageUrl: imageResult.imageUrl });
-            
+            tasks.incrementStory();
             toast({ title: "Story Generated!", description: "Your new story has been saved to your dashboard." });
 
         } catch (err) {
             console.error("AI story generation error:", err);
-            toast({
-                variant: "destructive",
-                title: "حدث خطأ",
-                description: "لم نتمكن من إنشاء القصة. الرجاء المحاولة مرة أخرى.",
-            });
+            toast({ variant: "destructive", title: "حدث خطأ", description: "لم نتمكن من إنشاء القصة. الرجاء المحاولة مرة أخرى." });
         } finally {
             setLoading(false);
         }
@@ -1287,7 +1304,7 @@ export function BookScreen() {
 
     const allItemTitles = learningItems.map(item => item.title);
     const highestCompletedIndex = highestItemCompleted ? allItemTitles.indexOf(highestItemCompleted) : -1;
-    const allLessonsAndStoriesCompleted = true; // UNLOCK ALL FOR TESTING
+    const allLessonsAndStoriesCompleted = highestCompletedIndex >= allItemTitles.length - 1;
 
     const handleOpenQuiz = () => {
         setIsQuizOpen(true);
@@ -1300,75 +1317,75 @@ export function BookScreen() {
             <ScrollArea className="h-[calc(100vh-220px)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
                     {learningItems.map((item, i) => {
-                         const isLocked = false; // UNLOCK ALL FOR TESTING
+                        const isLocked = i > highestCompletedIndex + 1; // can open current next item only
 
                         return (
-                        <Card 
+                          <Card 
                             key={i} 
                             className={cn(
-                                "transform transition-all flex flex-col",
-                                isLocked 
+                              "transform transition-all flex flex-col",
+                              isLocked 
                                 ? "bg-muted/30 border-dashed cursor-not-allowed" 
                                 : "hover:scale-[1.03] hover:shadow-lg bg-card/70 backdrop-blur-sm cursor-pointer"
                             )}
                             onClick={() => !isLocked && setSelectedItem(item)}
-                        >
+                          >
                             <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
-                                <div className="flex items-center gap-2">
-                                     {item.type === 'lesson' ? (
-                                        <Book className="h-6 w-6 text-primary" />
-                                    ) : (
-                                        <BookText className="h-6 w-6 text-accent" />
-                                    )}
-                                    <CardTitle as="h3" className={cn("text-lg", isLocked ? "text-muted-foreground" : "text-primary")}>{item.title}</CardTitle>
-                                </div>
-                                {isLocked && <Lock className="h-5 w-5 text-muted-foreground" />}
+                              <div className="flex items-center gap-2">
+                                {item.type === 'lesson' ? (
+                                  <Book className="h-6 w-6 text-primary" />
+                                ) : (
+                                  <BookText className="h-6 w-6 text-accent" />
+                                )}
+                                <CardTitle as="h3" className={cn("text-lg", isLocked ? "text-muted-foreground" : "text-primary")}>{item.title}</CardTitle>
+                              </div>
+                              {isLocked && <Lock className="h-5 w-5 text-muted-foreground" />}
                             </CardHeader>
-                        </Card>
-                    )})}
-                     <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div
-                                    onClick={allLessonsAndStoriesCompleted ? handleOpenQuiz : undefined}
-                                >
-                                    <Card
-                                        className={cn(
-                                            "transform transition-all flex flex-col h-full",
-                                            allLessonsAndStoriesCompleted
-                                                ? "hover:scale-[1.03] hover:shadow-lg bg-accent/20 backdrop-blur-sm cursor-pointer border-accent"
-                                                : "bg-muted/30 border-dashed cursor-not-allowed relative overflow-hidden"
-                                        )}
-                                    >
-                                        {!allLessonsAndStoriesCompleted && (
-                                            <>
-                                                <div className="absolute inset-0 bg-black/20 z-10"></div>
-                                                <Lock className="absolute top-4 right-4 h-5 w-5 text-white/50 z-20" />
-                                            </>
-                                        )}
-                                        <CardHeader>
-                                            <CardTitle as="h3" className="text-lg text-accent text-center flex items-center justify-center gap-2">
-                                                <FileQuestion className="h-6 w-6" />
-                                                الاختبار النهائي
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <CardDescription className="text-center text-muted-foreground">
-                                                {allLessonsAndStoriesCompleted 
-                                                ? "Test your knowledge with questions from the library."
-                                                : `أكمل ${learningItems.length - (highestCompletedIndex + 1)} عنصرًا إضافيًا لفتح الاختبار النهائي.`
-                                                }
-                                            </CardDescription>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            </TooltipTrigger>
-                            {!allLessonsAndStoriesCompleted && (
-                                <TooltipContent>
-                                    <p>أكمل جميع الدروس والقصص لفتح الاختبار النهائي.</p>
-                                </TooltipContent>
-                            )}
-                        </Tooltip>
+                          </Card>
+                        )})}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            onClick={allLessonsAndStoriesCompleted ? handleOpenQuiz : undefined}
+                          >
+                            <Card
+                              className={cn(
+                                "transform transition-all flex flex-col h-full",
+                                allLessonsAndStoriesCompleted
+                                  ? "hover:scale-[1.03] hover:shadow-lg bg-accent/20 backdrop-blur-sm cursor-pointer border-accent"
+                                  : "bg-muted/30 border-dashed cursor-not-allowed relative overflow-hidden"
+                              )}
+                            >
+                              {!allLessonsAndStoriesCompleted && (
+                                <>
+                                  <div className="absolute inset-0 bg-black/20 z-10"></div>
+                                  <Lock className="absolute top-4 right-4 h-5 w-5 text-white/50 z-20" />
+                                </>
+                              )}
+                              <CardHeader>
+                                <CardTitle as="h3" className="text-lg text-accent text-center flex items-center justify-center gap-2">
+                                  <FileQuestion className="h-6 w-6" />
+                                  الاختبار النهائي
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <CardDescription className="text-center text-muted-foreground">
+                                  {allLessonsAndStoriesCompleted 
+                                    ? "Test your knowledge with questions from the library."
+                                    : `أكمل ${learningItems.length - (highestCompletedIndex + 1)} عنصرًا إضافيًا لفتح الاختبار النهائي.`
+                                  }
+                                </CardDescription>
+                              </CardContent>
+                            </Card>
+                          </div>
+                        </TooltipTrigger>
+                        {!allLessonsAndStoriesCompleted && (
+                          <TooltipContent>
+                            <p>أكمل جميع الدروس والقصص لفتح الاختبار النهائي.</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
                     </TooltipProvider>
                 </div>
             </ScrollArea>
@@ -1479,124 +1496,97 @@ export function AiScreen({ setActiveTab }: { setActiveTab: (tab: ActiveTab) => v
 
 export function ProgressScreen() {
     const { completedItemsCount, finalExamPassed } = useProgressStore();
+    const tasks = useUserTasks();
     const { stories } = useStoryStore();
     const [isCertificateOpen, setIsCertificateOpen] = useState(false);
-    
+
+    // Task requirements
+    const REQUIRED_LINGOALEAP = 50;
+    const REQUIRED_ADVENTURE = 10;
+    const REQUIRED_STORIES = 3;
+    const REQUIRED_AHMED_TENSES = 20; // per TENSES_LIST
+    const REQUIRED_SARA_TOPICS = 25; // per SARA_ADVANCED_TOPICS
+
+    // Videos data counts
+    const whatIfData = whatIfLinks.split('\n').map(getYouTubeInfo).filter(v => v.videoId);
+    const shortsData = motivationLinks.split('\n').map(getYouTubeInfo).filter(v => v.videoId);
+
+    // Completions
+    const lingoleapDone = tasks.lingoleapGenCount >= REQUIRED_LINGOALEAP;
+    const adventureDone = tasks.textAdventureGenCount >= REQUIRED_ADVENTURE;
+    const storiesDone = tasks.storyGenCount >= REQUIRED_STORIES;
+    const ahmedDone = tasks.ahmedTensesUsed.length >= REQUIRED_AHMED_TENSES;
+    const saraDone = tasks.saraTopicsUsed.length >= REQUIRED_SARA_TOPICS;
+    const videosDone = tasks.videosSeen.length >= whatIfData.length && whatIfData.length > 0;
+    const shortsDone = tasks.shortsSeen.length >= shortsData.length && shortsData.length > 0;
+    const chatterbotDone = tasks.chatterbotMsSpoken >= 30 * 60 * 1000;
+
+    const allTasksComplete = lingoleapDone && adventureDone && storiesDone && ahmedDone && saraDone && videosDone && shortsDone && chatterbotDone;
+
     const chartData = [
-      { day: "الأحد", lessons: completedItemsCount > 0 ? 2 : 0 },
-      { day: "الاثنين", lessons: completedItemsCount > 2 ? 3 : 0 },
-      { day: "الثلاثاء", lessons: completedItemsCount > 5 ? 1 : 0 },
-      { day: "الأربعاء", lessons: completedItemsCount > 6 ? 4 : 0 },
-      { day: "الخميس", lessons: completedItemsCount > 10 ? 3 : 0 },
-      { day: "الجمعة", lessons: completedItemsCount > 13 ? 1 : 0 },
-      { day: "السبت", lessons: completedItemsCount > 14 ? 5 : 0 },
+      { label: 'LinguaLeap', value: Math.min(tasks.lingoleapGenCount, REQUIRED_LINGOALEAP), max: REQUIRED_LINGOALEAP },
+      { label: 'Text Adventure', value: Math.min(tasks.textAdventureGenCount, REQUIRED_ADVENTURE), max: REQUIRED_ADVENTURE },
+      { label: 'Stories', value: Math.min(tasks.storyGenCount, REQUIRED_STORIES), max: REQUIRED_STORIES },
+      { label: 'Ahmed Tenses', value: Math.min(tasks.ahmedTensesUsed.length, REQUIRED_AHMED_TENSES), max: REQUIRED_AHMED_TENSES },
+      { label: 'Sara Topics', value: Math.min(tasks.saraTopicsUsed.length, REQUIRED_SARA_TOPICS), max: REQUIRED_SARA_TOPICS },
+      { label: 'What If Videos', value: Math.min(tasks.videosSeen.length, whatIfData.length), max: Math.max(whatIfData.length, 1) },
+      { label: 'Motivation Shorts', value: Math.min(tasks.shortsSeen.length, shortsData.length), max: Math.max(shortsData.length, 1) },
+      { label: 'Chatterbot (min)', value: Math.floor(tasks.chatterbotMsSpoken / 60000), max: 30 },
     ];
-    
-    const chartConfig: ChartConfig = {
-      lessons: {
-        label: "الدروس",
-        color: "hsl(var(--primary))",
-      },
-    };
 
-    const storiesCompletedCount = stories.length;
-    const storiesGoal = 3;
-
-  return (
-    <>
-    <section className="animate-fadeIn space-y-6">
-      <Card className="bg-card/70 backdrop-blur-sm">
-        <CardContent className="pt-6 flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage data-ai-hint="profile person" src="https://placehold.co/128x128.png" alt="User Avatar" />
-            <AvatarFallback>ط</AvatarFallback>
-          </Avatar>
-          <div className="flex-grow">
-            <h2 className="text-xl font-bold">طالب مجتهد</h2>
-            <p className="text-muted-foreground">متعلم متحمس</p>
-          </div>
-          <div className="text-center">
-            <p className="text-3xl font-bold text-accent flex items-center gap-1">
-              <Flame /> 12
-            </p>
-            <p className="text-xs text-muted-foreground">أيام متتالية</p>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <Card className="bg-card/70 backdrop-blur-sm">
+    return (
+      <>
+        <section className="animate-fadeIn space-y-6">
+          <Card className="bg-card/70 backdrop-blur-sm">
             <CardHeader>
-                <CardTitle as="h3" className="uppercase text-xs text-muted-foreground">الدروس المكتملة</CardTitle>
+              <CardTitle>Progress Overview</CardTitle>
+              <CardDescription>Real-time progress across all required tasks.</CardDescription>
             </CardHeader>
-            <CardContent>
-                <p className="text-3xl font-bold">{completedItemsCount} / {learningItems.length}</p>
-                <Progress value={(completedItemsCount / learningItems.length) * 100} className="h-2 mt-2" />
+            <CardContent className="space-y-3">
+              {chartData.map((c, i) => (
+                <div key={i} className="space-y-1">
+                  <div className="flex justify-between text-sm"><span>{c.label}</span><span>{c.value}/{c.max}</span></div>
+                  <Progress value={(c.value / c.max) * 100} />
+                </div>
+              ))}
             </CardContent>
-        </Card>
-        <Card className="bg-card/70 backdrop-blur-sm">
+          </Card>
+
+          <Card>
             <CardHeader>
-                <CardTitle as="h3" className="uppercase text-xs text-muted-foreground">القصص المقروءة</CardTitle>
+              <CardTitle>Remaining Tasks</CardTitle>
+              <CardDescription>Complete all tasks and pass the final exam to unlock your certificate.</CardDescription>
             </CardHeader>
-            <CardContent>
-                <p className="text-3xl font-bold">{storiesCompletedCount} / {storiesGoal}</p>
-                <Progress value={(storiesCompletedCount/storiesGoal) * 100} className="h-2 mt-2" />
+            <CardContent className="space-y-2">
+              <ul className="list-disc ps-5">
+                {!lingoleapDone && <li>LinguaLeap generations remaining: {Math.max(REQUIRED_LINGOALEAP - tasks.lingoleapGenCount, 0)}</li>}
+                {!adventureDone && <li>Text Adventure starts remaining: {Math.max(REQUIRED_ADVENTURE - tasks.textAdventureGenCount, 0)}</li>}
+                {!storiesDone && <li>Stories remaining: {Math.max(REQUIRED_STORIES - tasks.storyGenCount, 0)}</li>}
+                {!ahmedDone && <li>Ahmed tenses remaining: {Math.max(REQUIRED_AHMED_TENSES - tasks.ahmedTensesUsed.length, 0)}</li>}
+                {!saraDone && <li>Sara advanced topics remaining: {Math.max(REQUIRED_SARA_TOPICS - tasks.saraTopicsUsed.length, 0)}</li>}
+                {!videosDone && <li>What If videos remaining: {Math.max(whatIfData.length - tasks.videosSeen.length, 0)}</li>}
+                {!shortsDone && <li>Motivation shorts remaining: {Math.max(shortsData.length - tasks.shortsSeen.length, 0)}</li>}
+                {!chatterbotDone && <li>Chatterbot English speaking time remaining (minutes): {Math.max(30 - Math.floor(tasks.chatterbotMsSpoken / 60000), 0)}</li>}
+                {allTasksComplete && <li>All tasks complete!</li>}
+              </ul>
             </CardContent>
-        </Card>
-      </div>
+          </Card>
 
-      <Card className="bg-card/70 backdrop-blur-sm">
-        <CardHeader>
-            <CardTitle as="h3">نشاط التعلم الأسبوعي</CardTitle>
-            <CardDescription>الدروس المكتملة في الأيام السبعة الماضية</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-            <BarChart accessibilityLayer data={chartData}>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="day"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={10}
-                allowDecimals={false}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent />}
-              />
-              <Bar dataKey="lessons" fill="var(--color-lessons)" radius={4} />
-            </BarChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-card/70 backdrop-blur-sm">
-        <CardHeader>
-            <CardTitle as="h3" className="flex items-center gap-2"><Award className="text-accent" /> تهانينا!</CardTitle>
-            <CardDescription>
-                {finalExamPassed ? "لقد أكملت جميع المتطلبات! قم بإنشاء شهادتك الآن." : "أكمل الاختبار النهائي بنجاح لفتح شهادتك."}
-            </CardDescription>
-        </CardHeader>
-        <CardContent>
-            <Button className="w-full" onClick={() => setIsCertificateOpen(true)} disabled={false}>
-                 {"إنشاء شهادة"}
-            </Button>
-        </CardContent>
-      </Card>
-    </section>
-    <CertificateDialog 
-        isOpen={isCertificateOpen} 
-        onOpenChange={setIsCertificateOpen}
-        userName="طالب مجتهد"
-    />
-    </>
-  );
+          <Card>
+            <CardHeader>
+              <CardTitle>Certificate</CardTitle>
+              <CardDescription>Generate your certificate when eligible.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center gap-2">
+              <Button onClick={() => setIsCertificateOpen(true)} disabled={!(allTasksComplete && finalExamPassed)}>Generate Certificate</Button>
+              {!(allTasksComplete && finalExamPassed) && (
+                <p className="text-sm text-muted-foreground">Complete all tasks and pass the Final Exam to unlock.</p>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+      </>
+    );
 }
 
 function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void, userName: string }) {
@@ -1655,4 +1645,138 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
     );
 }
 
+<<<<<<< Current (Your changes)
+=======
+function ArabicCoachDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
+  const [history, setHistory] = useState<CoachChatMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  const send = async () => {
+    const msg = input.trim();
+    if (!msg || isSending) return;
+    setIsSending(true);
+    const newHistory = [...history, { role: 'user', content: msg }];
+    setHistory(newHistory);
+    setInput('');
+    try {
+      const out = await coachChat({ message: msg, history: newHistory });
+      setHistory(prev => [...prev, { role: 'assistant', content: out.answer }]);
+    } catch {
+      setHistory(prev => [...prev, { role: 'assistant', content: 'عذرًا، حدث خطأ. حاول مرة أخرى.' }]);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg h-[70vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>مدرب التعلم (عربي)</DialogTitle>
+          <DialogDescription>دردشة بالعربية تعتمد فقط على محتوى التطبيق.</DialogDescription>
+        </DialogHeader>
+        <ScrollArea className="flex-grow p-2 space-y-2">
+          {history.map((m, i) => (
+            <div key={i} className={`p-2 rounded-md ${m.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`} dir="rtl">
+              {m.content}
+            </div>
+          ))}
+        </ScrollArea>
+        <div className="flex gap-2">
+          <Textarea dir="rtl" value={input} onChange={e => setInput(e.target.value)} rows={1} placeholder="اكتب رسالتك بالعربية..."/>
+          <Button onClick={send} disabled={isSending || !input.trim()}>{isSending ? '...' : 'إرسال'}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function FinalExamDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) {
+  const [questions, setQuestions] = useState<{ question: string; options: string[]; correct_answer: string }[]>([]);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number>(70 * 60); // seconds
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { setFinalExamPassed } = useProgressStore();
+
+  useEffect(() => {
+    let timer: any;
+    if (startedAt) {
+      timer = setInterval(() => {
+        setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => timer && clearInterval(timer);
+  }, [startedAt]);
+
+  const startExam = async () => {
+    const gen = await generateFinalExam();
+    setQuestions(gen.questions);
+    setAnswers({});
+    setStartedAt(Date.now());
+    setTimeLeft(70 * 60);
+  };
+
+  useEffect(() => { if (isOpen) startExam(); }, [isOpen]);
+
+  const submit = async () => {
+    if (!questions.length || isSubmitting) return;
+    setIsSubmitting(true);
+    const score = questions.reduce((acc, q, i) => (answers[i] === q.correct_answer ? acc + 1 : acc), 0);
+    const percent = (score / questions.length) * 100;
+    const passed = percent >= 70;
+    setFinalExamPassed(passed);
+    onOpenChange(false);
+    alert(`Your score: ${score}/100 (${percent.toFixed(0)}%). ${percent >= 80 ? 'Excellent' : passed ? 'Good' : 'Try again'}.`);
+    setIsSubmitting(false);
+  };
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+
+  useEffect(() => { if (timeLeft === 0 && isOpen) submit(); }, [timeLeft]);
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
+        <DialogHeader className="p-4 border-b shrink-0">
+          <div className="flex items-center justify-between">
+            <DialogTitle>Final Exam (100 Questions – 70 minutes)</DialogTitle>
+            <div className="text-sm">Time left: {minutes.toString().padStart(2,'0')}:{seconds.toString().padStart(2,'0')}</div>
+          </div>
+          <DialogDescription>All questions in English. Score ≥ 80: Excellent; 70–79: Good; else: fail.</DialogDescription>
+        </DialogHeader>
+        <ScrollArea className="flex-grow p-4 space-y-4">
+          {!questions.length ? (
+            <div className="text-muted-foreground">Preparing exam...</div>
+          ) : (
+            questions.map((q, i) => (
+              <div key={i} className="p-3 rounded-md bg-muted/50 space-y-2">
+                <p className="font-medium">{i + 1}. {q.question}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {q.options.map(opt => (
+                    <button
+                      key={opt}
+                      className={`text-left p-2 rounded-md border ${answers[i] === opt ? 'border-primary' : 'border-border'} hover:bg-accent`}
+                      onClick={() => setAnswers(prev => ({ ...prev, [i]: opt }))}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </ScrollArea>
+        <div className="p-4 flex justify-end gap-2 border-t">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button onClick={submit} disabled={!questions.length || isSubmitting}>Submit</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+>>>>>>> Incoming (Background Agent changes)
     

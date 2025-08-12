@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Volume2, MessageSquare, BookText, BrainCircuit, Send, User, Bot, Sparkles, Image as ImageIcon, Mic, Square, FileText, Languages, Check, X, CheckCircle } from 'lucide-react';
+import { Volume2, MessageSquare, BookText, BrainCircuit, Send, User, Bot, Sparkles, Image as ImageIcon, Mic, Square, FileText, Languages, Check, X, CheckCircle, Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import type { LearningItem, Lesson, Story, MCQ } from '@/lib/lessons';
 import { textToSpeech } from '@/ai/flows/tts-flow';
@@ -27,6 +27,8 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { useProgressStore } from '@/hooks/use-progress-store';
+import { getItemQuizRag, putItemQuizRag } from '@/lib/rag';
+import { generateFiveMcqFromContent } from '@/ai/flows/generate-lesson-quiz';
 
 interface LessonDetailDialogProps {
   item: LearningItem;
@@ -40,104 +42,123 @@ interface Message {
 }
 
 function LessonQuiz({ lesson }: { lesson: Lesson }) {
-    const [answers, setAnswers] = React.useState<Record<number, string>>({});
-    const [isSubmitted, setIsSubmitted] = React.useState(false);
-    const { completeItem } = useProgressStore();
+  const [answers, setAnswers] = React.useState<Record<number, string>>({});
+  const [isSubmitted, setIsSubmitted] = React.useState(false);
+  const [quiz, setQuiz] = React.useState<{ question: string; options: string[]; answer: string }[]>([]);
+  const { completeItem } = useProgressStore();
+  const { toast } = useToast();
 
-    const mcqs = lesson.mcqs;
-
-    const handleAnswerChange = (questionIndex: number, selectedOption: string) => {
-        if (isSubmitted) return;
-        setAnswers(prev => ({ ...prev, [questionIndex]: selectedOption }));
-    };
-
-    const handleSubmit = () => {
-        setIsSubmitted(true);
-        const score = mcqs.reduce((correctCount, mcq, index) => {
-            return answers[index] === mcq.answer ? correctCount + 1 : correctCount;
-        }, 0);
-        
-        // Assuming passing score is >= 70%
-        if (score / mcqs.length >= 0.7) {
-            completeItem(lesson.title);
+  React.useEffect(() => {
+    const run = async () => {
+      try {
+        const id = lesson.title;
+        const cached = await getItemQuizRag(id);
+        if (cached?.quiz?.length === 5) {
+          setQuiz(cached.quiz);
+          return;
         }
+        const generated = await generateFiveMcqFromContent({
+          title: lesson.title,
+          englishContext: `${lesson.explanation}\n\nExamples:\n${lesson.examples.map(e => `- ${e.english}`).join('\n')}`,
+          arabicContext: `${lesson.arabic_explanation || ''}`,
+        });
+        if (generated.length === 5) {
+          setQuiz(generated);
+          await putItemQuizRag({ id, quiz: generated, updated_at: new Date().toISOString() });
+        }
+      } catch (e) {
+        console.error('Lesson quiz load error', e);
+      }
     };
+    run();
+  }, [lesson]);
 
-    const handleRetry = () => {
-        setAnswers({});
-        setIsSubmitted(false);
-    };
+  const handleAnswerChange = (questionIndex: number, selectedOption: string) => {
+    if (isSubmitted) return;
+    setAnswers(prev => ({ ...prev, [questionIndex]: selectedOption }));
+  };
 
-    const score = React.useMemo(() => {
-        if (!isSubmitted) return 0;
-        return mcqs.reduce((correctCount, mcq, index) => {
-            if (answers[index] === mcq.answer) {
-                return correctCount + 1;
-            }
-            return correctCount;
-        }, 0);
-    }, [isSubmitted, answers, mcqs]);
+  const handleSubmit = () => {
+    setIsSubmitted(true);
+    const score = quiz.reduce((correctCount, mcq, index) => (answers[index] === mcq.answer ? correctCount + 1 : correctCount), 0);
+    if (score >= 3) {
+      completeItem(lesson.title);
+      toast({ title: 'تم الاجتياز', description: `Your score: ${score}/5` });
+    } else {
+      toast({ variant: 'destructive', title: 'لم تجتز', description: `You need at least 3 correct answers.` });
+    }
+  };
 
-    return (
-        <ScrollArea className="h-full">
-            <div className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold">اختبر معلوماتك</h3>
-                    {isSubmitted && (
-                         <Button onClick={handleRetry} variant="outline">أعد المحاولة</Button>
-                    )}
-                </div>
+  const handleRetry = () => {
+    setAnswers({});
+    setIsSubmitted(false);
+  };
 
-                {isSubmitted && (
-                     <Alert className="mb-6 bg-primary/10 border-primary/20">
-                        <CheckCircle className="h-4 w-4 text-primary" />
-                        <AlertTitle>نتيجتك</AlertTitle>
-                        <AlertDescription>
-                            لقد حصلت على {score} من {mcqs.length} إجابات صحيحة.
-                        </AlertDescription>
-                    </Alert>
-                )}
+  const score = React.useMemo(() => {
+    if (!isSubmitted) return 0;
+    return quiz.reduce((correctCount, mcq, index) => (answers[index] === mcq.answer ? correctCount + 1 : correctCount), 0);
+  }, [isSubmitted, answers, quiz]);
 
-                <div className="space-y-6">
-                    {mcqs.map((mcq, index) => (
-                        <Card key={index} className={cn(
-                            "bg-muted/50 p-4 transition-colors",
-                            isSubmitted && (answers[index] === mcq.answer ? 'border-green-500' : 'border-destructive')
-                        )}>
-                            <p className="font-semibold mb-3">{index + 1}. {mcq.question}</p>
-                            <RadioGroup
-                                value={answers[index] || ""}
-                                onValueChange={(value) => handleAnswerChange(index, value)}
-                                disabled={isSubmitted}
-                            >
-                                {mcq.options.map((option, i) => {
-                                    const isCorrect = option === mcq.answer;
-                                    const isSelected = answers[index] === option;
-                                    return (
-                                        <div key={i} className={cn(
-                                            "flex items-center space-x-2 rounded-md p-2",
-                                             isSubmitted && isCorrect && "bg-green-500/10 text-green-800 dark:text-green-300",
-                                             isSubmitted && isSelected && !isCorrect && "bg-destructive/10 text-destructive"
-                                        )}>
-                                            <RadioGroupItem value={option} id={`q${index}-o${i}`} />
-                                            <Label htmlFor={`q${index}-o${i}`} className="flex-1 cursor-pointer">{option}</Label>
-                                            {isSubmitted && isCorrect && <Check className="h-5 w-5 text-green-500" />}
-                                            {isSubmitted && isSelected && !isCorrect && <X className="h-5 w-5 text-destructive" />}
-                                        </div>
-                                    );
-                                })}
-                            </RadioGroup>
-                        </Card>
-                    ))}
-                </div>
-                 {!isSubmitted && (
-                    <div className="mt-6 flex justify-end">
-                        <Button onClick={handleSubmit}>تحقق من الإجابات</Button>
+  return (
+    <ScrollArea className="h-full">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-semibold">اختبر معلوماتك</h3>
+          {isSubmitted && (
+            <Button onClick={handleRetry} variant="outline">أعد المحاولة</Button>
+          )}
+        </div>
+
+        {isSubmitted && (
+          <Alert className="mb-6 bg-primary/10 border-primary/20">
+            <CheckCircle className="h-4 w-4 text-primary" />
+            <AlertTitle>نتيجتك</AlertTitle>
+            <AlertDescription>
+              لقد حصلت على {score} من {quiz.length} إجابات صحيحة.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="space-y-6">
+          {quiz.map((mcq, index) => (
+            <Card key={index} className={cn(
+              "bg-muted/50 p-4 transition-colors",
+              isSubmitted && (answers[index] === mcq.answer ? 'border-green-500' : 'border-destructive')
+            )}>
+              <p className="font-semibold mb-3">{index + 1}. {mcq.question}</p>
+              <RadioGroup
+                value={answers[index] || ""}
+                onValueChange={(value) => handleAnswerChange(index, value)}
+                disabled={isSubmitted}
+              >
+                {mcq.options.map((option, i) => {
+                  const isCorrect = option === mcq.answer;
+                  const isSelected = answers[index] === option;
+                  return (
+                    <div key={i} className={cn(
+                      "flex items-center space-x-2 rounded-md p-2",
+                      isSubmitted && isCorrect && "bg-green-500/10 text-green-800 dark:text-green-300",
+                      isSubmitted && isSelected && !isCorrect && "bg-destructive/10 text-destructive"
+                    )}>
+                      <RadioGroupItem value={option} id={`q${index}-o${i}`} />
+                      <Label htmlFor={`q${index}-o${i}`} className="flex-1 cursor-pointer">{option}</Label>
+                      {isSubmitted && isCorrect && <Check className="h-5 w-5 text-green-500" />}
+                      {isSubmitted && isSelected && !isCorrect && <X className="h-5 w-5 text-destructive" />}
                     </div>
-                )}
-            </div>
-        </ScrollArea>
-    );
+                  );
+                })}
+              </RadioGroup>
+            </Card>
+          ))}
+        </div>
+        {!isSubmitted && (
+          <div className="mt-6 flex justify-end">
+            <Button onClick={handleSubmit} disabled={quiz.length !== 5 || Object.keys(answers).length !== quiz.length}>تحقق من الإجابات</Button>
+          </div>
+        )}
+      </div>
+    </ScrollArea>
+  );
 }
 
 function Chatbot({ lesson }: { lesson: Lesson }) {
@@ -208,9 +229,23 @@ function Chatbot({ lesson }: { lesson: Lesson }) {
 
     const playAudio = async (text: string) => {
         try {
-            // Simple check for Arabic characters
             const isArabic = /[\u0600-\u06FF]/.test(text);
-            const result = await textToSpeech({ prompt: text, lang: isArabic ? 'ar' : 'en' });
+            if (isArabic) {
+                if (typeof window !== 'undefined' && window.speechSynthesis) {
+                    const u = new SpeechSynthesisUtterance(text);
+                    u.lang = 'ar-SA';
+                    window.speechSynthesis.speak(u);
+                    return;
+                } else {
+                    const result = await textToSpeech({ prompt: text, lang: 'ar' });
+                    if (result && result.media) {
+                        const audio = new Audio(result.media);
+                        audio.play();
+                        return;
+                    }
+                }
+            }
+            const result = await textToSpeech({ prompt: text, lang: 'en' });
             if (result && result.media) {
                 const audio = new Audio(result.media);
                 audio.play();
@@ -331,9 +366,39 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
     const [translation, setTranslation] = React.useState<{ word: string, text: string, isLoading: boolean } | null>(null);
     const { toast } = useToast();
     const { completeItem } = useProgressStore();
+    const [quiz, setQuiz] = React.useState<{ question: string; options: string[]; answer: string }[] | null>(null);
+    const [answers, setAnswers] = React.useState<Record<number, string>>({});
+    const [isSubmitted, setIsSubmitted] = React.useState(false);
 
     const storyContent = 'summary' in story ? story.summary : story.content;
     const storyTitle = 'title' in story ? story.title : '';
+
+    React.useEffect(() => {
+      setQuiz(null);
+      setAnswers({});
+      setIsSubmitted(false);
+    }, [storyTitle]);
+
+    const loadStoryQuiz = async () => {
+      try {
+        const id = `story:${storyTitle}`;
+        const cached = await getItemQuizRag(id);
+        if (cached?.quiz?.length === 5) {
+          setQuiz(cached.quiz);
+          return;
+        }
+        const generated = await generateFiveMcqFromContent({ title: storyTitle, englishContext: storyContent });
+        if (generated.length === 5) {
+          setQuiz(generated);
+          await putItemQuizRag({ id, quiz: generated, updated_at: new Date().toISOString() });
+        } else {
+          toast({ variant: 'destructive', title: 'فشل إنشاء الاختبار' });
+        }
+      } catch (e) {
+        console.error('Story quiz error', e);
+        toast({ variant: 'destructive', title: 'فشل إنشاء الاختبار' });
+      }
+    };
 
     const handleWordClick = async (word: string) => {
       const cleanedWord = word.replace(/[^a-zA-Z]/g, ''); // Clean punctuation
@@ -397,13 +462,16 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
             setIsLoadingAudio(false);
         }
     };
-
-    const handleMarkComplete = () => {
-      completeItem(storyTitle);
-      toast({
-        title: "Story Complete!",
-        description: "You've unlocked the next item in your learning path.",
-      });
+    const handleSubmitQuiz = () => {
+      if (!quiz) return;
+      setIsSubmitted(true);
+      const score = quiz.reduce((acc, q, i) => (answers[i] === q.answer ? acc + 1 : acc), 0);
+      if (score >= 3) {
+        completeItem(storyTitle);
+        toast({ title: 'تم الاجتياز', description: `Your score: ${score}/5` });
+      } else {
+        toast({ variant: 'destructive', title: 'لم تجتز', description: `You need at least 3 correct answers.` });
+      }
     };
 
     return (
@@ -411,15 +479,18 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
             <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-semibold">{storyTitle}</h3>
-                    <Button 
+                    <div className="flex gap-2">
+                      <Button 
                         variant="ghost" 
                         size="icon" 
                         onClick={() => playAudio(storyContent, 'en')}
                         disabled={isLoadingAudio}
                         aria-label="Listen to story"
-                    >
+                      >
                         <Volume2 className="h-5 w-5" />
-                    </Button>
+                      </Button>
+                      <Button onClick={loadStoryQuiz} disabled={!!quiz}>Start Quiz</Button>
+                    </div>
                 </div>
 
                 <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap mb-6" dir="ltr">
@@ -438,59 +509,51 @@ function StoryReader({ story, isLessonStory }: { story: Story | Lesson['story'],
                               {word}
                             </span>
                           </PopoverTrigger>
-                          {translation?.word === cleanedWord && (
-                            <PopoverContent className="w-auto p-2" side="top">
-                                {translation.isLoading ? (
-                                    <div className="text-sm">...</div>
-                                ) : (
-                                    <div className="text-sm font-semibold">{translation.text}</div>
-                                )}
-                            </PopoverContent>
-                          )}
+                          <PopoverContent className="w-80" align="start">
+                            <div className="space-y-2">
+                              <p className="font-semibold">{translation?.word || cleanedWord}</p>
+                              {translation?.isLoading ? (
+                                <p className="text-sm text-muted-foreground">جاري الترجمة...</p>
+                              ) : (
+                                <p className="text-sm">{translation?.text}</p>
+                              )}
+                            </div>
+                          </PopoverContent>
                         </Popover>
                       );
                     }
                     return <span key={index}>{segment}</span>;
                   })}
                 </p>
-                
-                {!isLessonStory && !imageUrl && !isLoadingImage && (
-                    <Button onClick={handleGenerateImage}>
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        تخيل القصة
+
+                <div className="flex items-center gap-3 mb-6">
+                    <Button onClick={handleGenerateImage} disabled={isLoadingImage} className="flex items-center gap-2">
+                        {isLoadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+                        توليد صورة للقصة
                     </Button>
-                )}
+                </div>
 
-                 {isLessonStory && (
-                    <div className="mt-6 flex justify-end">
-                        <Button onClick={handleMarkComplete}>
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Mark as Complete
-                        </Button>
+                {quiz && (
+                  <div className="space-y-6 mt-8">
+                    <h4 className="font-semibold text-lg">Story Quiz</h4>
+                    {quiz.map((q, i) => (
+                      <div key={i} className="p-4 border rounded-lg">
+                        <p className="font-medium">{i + 1}. {q.question}</p>
+                        <RadioGroup value={answers[i]} onValueChange={(val) => !isSubmitted && setAnswers(prev => ({ ...prev, [i]: val }))} disabled={isSubmitted}>
+                          {q.options.map((opt, j) => (
+                            <div key={j} className="flex items-center space-x-2 rounded-md p-2">
+                              <RadioGroupItem value={opt} id={`sq${i}-o${j}`} />
+                              <Label htmlFor={`sq${i}-o${j}`} className="flex-1 cursor-pointer">{opt}</Label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                        {isSubmitted && (<div className="mt-2 text-sm">Correct: <strong>{q.answer}</strong></div>)}
+                      </div>
+                    ))}
+                    <div className="mt-4 flex justify-end">
+                      {!isSubmitted && <Button onClick={handleSubmitQuiz} disabled={Object.keys(answers).length !== quiz.length}>Submit</Button>}
                     </div>
-                )}
-
-                {isLoadingImage && (
-                    <div className="flex items-center justify-center p-4 rounded-md bg-muted">
-                        <div className="flex items-center space-x-2" dir="rtl">
-                            <div className="h-2 w-2 bg-primary rounded-full animate-pulse [animation-delay:-0.3s]"></div>
-                            <div className="h-2 w-2 bg-primary rounded-full animate-pulse [animation-delay:-0.15s]"></div>
-                            <div className="h-2 w-2 bg-primary rounded-full animate-pulse"></div>
-                            <span className="text-muted-foreground mr-2">...يتم إنشاء الصورة</span>
-                        </div>
-                    </div>
-                )}
-                
-                {imageUrl && (
-                    <div className="mt-4 border rounded-lg overflow-hidden">
-                        <Image
-                            src={imageUrl}
-                            alt={`Illustration for ${storyTitle}`}
-                            width={500}
-                            height={500}
-                            className="w-full h-auto object-cover"
-                        />
-                    </div>
+                  </div>
                 )}
             </div>
         </ScrollArea>

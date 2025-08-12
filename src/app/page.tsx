@@ -4,6 +4,8 @@
 import { MainApp } from "@/components/main-app";
 import { Suspense } from 'react';
 
+export const runtime = 'edge';
+
 function PageContent() {
   return <MainApp />;
 }

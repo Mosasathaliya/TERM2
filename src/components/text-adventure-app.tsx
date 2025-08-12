@@ -10,6 +10,7 @@ import type { GameState, StoryPart, VocabularyWord, LoadingStates, GameGenre, Te
 import { textToSpeech } from '@/ai/flows/tts-flow';
 import { translateText } from '@/ai/flows/translate-flow';
 import { useToast } from "@/hooks/use-toast";
+import { useUserTasks } from '@/hooks/use-user-tasks';
 
 const GAME_GENRES: GameGenre[] = ['fantasy', 'sci-fi', 'mystery', 'cyberpunk', 'steampunk', 'saudi-folklore'];
 
@@ -39,18 +40,35 @@ export function TextAdventureApp() {
   const [translation, setTranslation] = useState<TranslationState | null>(null);
   const [sceneImageUrl, setSceneImageUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const tasks = useUserTasks();
 
   const handleAction = useCallback(async (action: TextAdventureAction, prompt?: string) => {
     setLoading(prev => ({ ...prev, story: true }));
     setError(null);
     setSelectedWord(null);
 
+    // If starting and quota reached, reuse random saved start
+    if (action === 'start' && tasks.textAdventureGenCount >= 10 && tasks.textAdventureSaved.length > 0) {
+      const pick = tasks.textAdventureSaved[Math.floor(Math.random() * tasks.textAdventureSaved.length)];
+      const startPart: StoryPart = {
+        id: Date.now(),
+        sender: 'ai',
+        text: pick.narrative,
+        vocabularyWord: undefined,
+        suggestions: pick.suggestions,
+        gameOver: false,
+      };
+      setStoryHistory([startPart]);
+      setLoading(prev => ({ ...prev, story: false }));
+      return;
+    }
+
     let currentHistory = storyHistory;
     if (action === 'start') {
         setStoryHistory([]);
         currentHistory = [];
         setSceneImageUrl(null);
-        setGameState('playing'); // Move to playing state immediately for better UI feedback
+        setGameState('playing');
     }
 
     const isUserAction = action === 'continue' && prompt;
@@ -97,19 +115,20 @@ export function TextAdventureApp() {
           setGameState('gameOver');
       }
 
+      if (action === 'start') {
+        // save this start for reuse and count
+        tasks.addAdventureStart({ narrative: response.narrative, imageUrl: sceneImageUrl, suggestions: response.promptSuggestions });
+      }
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(errorMessage);
-      toast({
-        variant: "destructive",
-        title: "Story Generation Error",
-        description: errorMessage,
-      });
-      setGameState('error'); // Go to an error state
+      toast({ variant: "destructive", title: "Story Generation Error", description: errorMessage });
+      setGameState('error');
     } finally {
       setLoading(prev => ({ ...prev, story: false }));
     }
-  }, [gameGenre, storyHistory, toast]);
+  }, [gameGenre, storyHistory, toast, tasks, sceneImageUrl]);
 
   const handleWordClick = useCallback(async (word: string) => {
     if (!word) return;
@@ -144,19 +163,30 @@ export function TextAdventureApp() {
   }, [gameGenre]);
 
   const handleNarrativeWordClick = useCallback(async (word: string) => {
-    const cleanedWord = word.replace(/[^a-zA-Z]/g, '').trim();
+    const cleanedWord = word.replace(/[^\p{L}]/gu, '').trim();
     if (!cleanedWord) return;
 
-    textToSpeech({prompt: cleanedWord, lang: 'en'}).catch(err => console.error("TTS error:", err));
+    const isArabic = /[\u0600-\u06FF]/.test(cleanedWord);
+    if (isArabic) {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        const u = new SpeechSynthesisUtterance(cleanedWord);
+        u.lang = 'ar-SA';
+        window.speechSynthesis.speak(u);
+      } else {
+        textToSpeech({ prompt: cleanedWord, lang: 'ar' }).catch(err => console.error('TTS error:', err));
+      }
+    } else {
+      textToSpeech({ prompt: cleanedWord, lang: 'en' }).catch(err => console.error('TTS error:', err));
+    }
 
     setTranslation({ word: word, text: 'جاري الترجمة...', isLoading: true });
     try {
-        const result = await translateText({ text: cleanedWord, targetLanguage: 'ar' });
-        setTranslation({ word: word, text: result.translation, isLoading: false });
+      const result = await translateText({ text: cleanedWord, targetLanguage: 'ar' });
+      setTranslation({ word: word, text: result.translation, isLoading: false });
     } catch (error) {
-        console.error('Translation error:', error);
-        setTranslation({ word: word, text: 'فشل الترجمة', isLoading: false });
-        toast({ variant: 'destructive', title: 'خطأ في الترجمة' });
+      console.error('Translation error:', error);
+      setTranslation({ word: word, text: 'فشل الترجمة', isLoading: false });
+      toast({ variant: 'destructive', title: 'خطأ في الترجمة' });
     }
   }, [toast]);
   
@@ -220,6 +250,11 @@ export function TextAdventureApp() {
           </div>
         )}
       </main>
+      <VocabularyPanel 
+        selectedWord={selectedWord} 
+        loading={loading.vocab} 
+        onContinue={() => setSelectedWord(null)}
+      />
     </div>
   );
 }
