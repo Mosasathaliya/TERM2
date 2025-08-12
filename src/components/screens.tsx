@@ -64,6 +64,7 @@ import { generateExtraLearning } from '@/ai/flows/generate-extra-learning';
 import { summarizeYouTubeInArabic } from '@/ai/flows/youtube-transcript-summary';
 import { getAiLessonRag, putAiLessonRag } from '@/lib/rag';
 import { enrichAiLessonInEnglish, translateAiLessonToArabic } from '@/ai/flows/generate-ai-lesson-content';
+import { getAiLessonArabicRag, putAiLessonArabicRag } from '@/lib/rag';
 
 // Helper function to extract YouTube embed URL and video ID
 const getYouTubeInfo = (url: string): { embedUrl: string | null; videoId: string | null; title: string | null } => {
@@ -516,8 +517,14 @@ function AiLessonViewerDialog({ lesson, isOpen, onOpenChange, onBack }: { lesson
     if (!englishContent || isTranslating) return;
     setIsTranslating(true);
     try {
+      const cached = await getAiLessonArabicRag(lesson!.id);
+      if (cached) {
+        setArabicTranslation(cached.arabic);
+        return;
+      }
       const ar = await translateAiLessonToArabic(englishContent);
       setArabicTranslation(ar);
+      await putAiLessonArabicRag({ id: lesson!.id, arabic: ar, updated_at: new Date().toISOString() });
     } catch {
       toast({ variant: 'destructive', title: 'خطأ', description: 'فشل في الترجمة.' });
     } finally {
