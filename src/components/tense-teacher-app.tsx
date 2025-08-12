@@ -53,6 +53,34 @@ const TENSES_LIST = [
   "Passive Voice (Present)", "Passive Voice (Past)", "Passive Voice (Future)"
 ];
 
+const SARA_ADVANCED_TOPICS: string[] = [
+  "Sentence Structure (SV, SVO, SVC, SVOO, SVOC)",
+  "Clause Types (Independent vs Dependent)",
+  "Subordination and Coordination",
+  "Complex / Compound / Compound-Complex Sentences",
+  "Phrases (Noun, Verb, Adjective, Adverb, Prepositional)",
+  "Modifiers and Placement (Dangling/Misplaced)",
+  "Parallelism (Grammar and Rhetoric)",
+  "Subject–Verb Agreement (Advanced Cases)",
+  "Tense Consistency in Narratives",
+  "Voice and Focus (Active vs Passive, Agentless Passive)",
+  "Conditionals (Mixed and Implied)",
+  "Reported Speech (Advanced Transformations)",
+  "Relative Clauses and Reduced Relatives",
+  "Gerunds and Infinitives (Advanced Control)",
+  "Participial and Absolute Phrases",
+  "Inversion and Emphasis (Clefts, Fronting)",
+  "Ellipsis and Substitution",
+  "Punctuation in Complex Sentences (Comma, Semicolon, Colon, Dash)",
+  "Cohesion and Coherence (Connectors, Reference)",
+  "Collocations and Idiomatic Structures",
+  "Modality and Hedging (Modals, Stance Adverbs)",
+  "Article Use in Abstract/Specific Contexts",
+  "Prepositions in Academic Style",
+  "Nominalization and Formal Style",
+  "Lexical Density and Sentence Variety"
+];
+
 export function TenseTeacherApp() {
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher>("Ahmed");
   const { toast } = useToast();
@@ -232,6 +260,13 @@ export function TenseTeacherApp() {
     }
   };
 
+  const handleSaraTopicSelection = (topic: string) => {
+    if (topic) {
+      const prompt = `اشرح لي موضوع القواعد المتقدمة التالي بالتفصيل مع أمثلة: ${topic}`;
+      setValue('englishGrammarConcept', prompt);
+    }
+  };
+
   const teacherDetails = {
     Ahmed: { name: "أحمد", avatarSrc: "https://placehold.co/128x128/3498db/ffffff.png", avatarHint: "male teacher" },
     Sara: { name: "سارة", avatarSrc: "https://placehold.co/128x128/e91e63/ffffff.png", avatarHint: "female teacher" },
@@ -269,7 +304,7 @@ export function TenseTeacherApp() {
                   <div key={entry.id} className={`flex items-end gap-2 ${entry.speaker === 'User' ? 'justify-end' : 'justify-start'}`} ref={index === conversationHistory.length - 1 ? lastMessageRef : null}>
                     {entry.speaker !== 'User' && <Avatar className="h-6 w-6"><AvatarImage src={currentTeacherInfo.avatarSrc} /><AvatarFallback>{entry.speaker.charAt(0)}</AvatarFallback></Avatar>}
                     <div className={`rounded-lg px-3 py-2 max-w-[85%] flex items-center gap-2 ${entry.speaker === 'User' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                      <p className="text-sm whitespace-pre-wrap">{entry.message}</p>
+                      <p className="text-base whitespace-pre-wrap">{entry.message}</p>
                       {entry.speaker !== 'User' && (
                         <Button variant="ghost" size="icon" className="shrink-0 h-6 w-6 p-1 text-muted-foreground" onClick={() => handlePlayAudio(entry.message, entry.id)} disabled={activeAudio === entry.id}>
                           {activeAudio === entry.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Volume2 className="h-4 w-4" />}
@@ -309,15 +344,31 @@ export function TenseTeacherApp() {
               </div>
             )}
             <div>
-              <Label htmlFor="tense-select" className="text-sm sm:text-md font-medium">اختر زمناً ليبدأ الشرح</Label>
-              <Select onValueChange={handleTenseSelection} disabled={isSubmitting}>
-                <SelectTrigger id="tense-select" className="mt-1 text-base">
-                  <SelectValue placeholder="اختر زمناً من القائمة..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {TENSES_LIST.map(tense => (<SelectItem key={tense} value={tense}>{tense}</SelectItem>))}
-                </SelectContent>
-              </Select>
+              {selectedTeacher === 'Ahmed' ? (
+                <>
+                  <Label htmlFor="tense-select" className="text-sm sm:text-md font-medium">اختر زمناً ليبدأ الشرح</Label>
+                  <Select onValueChange={handleTenseSelection} disabled={isSubmitting}>
+                    <SelectTrigger id="tense-select" className="mt-1 text-base">
+                      <SelectValue placeholder="اختر زمناً من القائمة..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TENSES_LIST.map(tense => (<SelectItem key={tense} value={tense}>{tense}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                </>
+              ) : (
+                <>
+                  <Label htmlFor="advanced-topic-select" className="text-sm sm:text-md font-medium">اختر موضوع قواعد متقدم</Label>
+                  <Select onValueChange={handleSaraTopicSelection} disabled={isSubmitting}>
+                    <SelectTrigger id="advanced-topic-select" className="mt-1 text-base">
+                      <SelectValue placeholder="اختر موضوعاً متقدماً..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SARA_ADVANCED_TOPICS.map(topic => (<SelectItem key={topic} value={topic}>{topic}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
             </div>
             <div>
               <Label htmlFor="englishGrammarConcept" className="text-sm sm:text-md font-medium">أو اطرح سؤالاً للمتابعة</Label>
