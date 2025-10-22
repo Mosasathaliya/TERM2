@@ -24,9 +24,5 @@ export default function RootLayout({
         </div>
       </body>
     </html>
-<<<<<<< Current (Your changes)
-  );
-=======
   )
->>>>>>> Incoming (Background Agent changes)
 }
