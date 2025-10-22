@@ -14,9 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A comprehensive library of 80 English lessons with explanations, examples, and quizzes.
 - Interactive, animated background for the dashboard.
 - A `CHANGELOG.md` file to track project updates.
+- Reference to uptime-kuma repository for monitoring and status tracking.
 
 ### Fixed
 - Resolved multiple build and hydration errors related to server components and client-side rendering.
 - Corrected CSS and Tailwind configuration to enable background animations.
 - Fixed layout issues to ensure all content in the lesson dialog is scrollable.
 - Removed redundant header title on the home screen.
+- Resolved merge conflict in README.md and standardized documentation format.

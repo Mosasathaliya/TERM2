@@ -1645,8 +1645,6 @@ function CertificateDialog({ isOpen, onOpenChange, userName }: { isOpen: boolean
     );
 }
 
-<<<<<<< Current (Your changes)
-=======
 function ArabicCoachDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (isOpen: boolean) => void }) {
   const [history, setHistory] = useState<CoachChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -1778,5 +1776,4 @@ function FinalExamDialog({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChan
   );
 }
 
->>>>>>> Incoming (Background Agent changes)
     
